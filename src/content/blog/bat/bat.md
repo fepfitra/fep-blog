@@ -1,5 +1,5 @@
 ---
-title: "A Cool Cat Alternative as Text Printer in Terminal"
+title: "A Cool 'cat' Alternative as a Text Printer in Terminal"
 description: "With syntax highlighting and git integration"
 date: "2023-08-29"
 ---
