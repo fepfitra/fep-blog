@@ -1,6 +1,6 @@
 ---
 title: "SSL Setup Cheatsheet"
-description: "With Apache as a demo"
+description: "At least, it works. With Apache as a demo"
 date: "2025-5-11"
 ---
 

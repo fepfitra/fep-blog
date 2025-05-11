@@ -1,6 +1,6 @@
 ---
 title: "Recovery Tools Cheatsheet"
-description: "With .dd image demo"
+description: "At least, it works. With .dd image demo"
 date: "2025-5-11"
 ---
 
