@@ -15,10 +15,10 @@ foremost -i RAW-ImageDrive.dd -o ./foremost/
 ```
 
 ## autopsy
-Java is sucks. Better run it on Windows. Just open it and you can operate it intuitively.
+Java is sucks. Better run it on Windows. Just open it and you can operate it intuitively. It's GUI, tho
 
 ## ftkimager
-Better run it on Windows. Just open it and you can operate it intuitively.
+Better run it on Windows. Just open it and you can operate it intuitively. It's GUI, tho
 
 ## dmde
-Can run on Linux. Same as autopsy, just open it and you can operate it intuitively.
+Can run on Linux. Same as autopsy, just open it and you can operate it intuitively. It's GUI, tho
