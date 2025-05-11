@@ -914,3 +914,6 @@ pub fn some_function() {
 ```rust
 pub fn my_function() {}
 ```
+
+## MORE ADVANCE
+[here](https://cheats.rs/)
