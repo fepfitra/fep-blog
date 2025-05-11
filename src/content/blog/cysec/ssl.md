@@ -1,7 +1,7 @@
 ---
 title: "SSL Setup Cheatsheet"
 description: "With Apache as a demo"
-date: "-5-11"
+date: "2025-5-11"
 ---
 
 ## `etc/hosts`
