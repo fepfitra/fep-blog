@@ -1,7 +1,7 @@
 ---
 title: "Rust Cheatsheet"
 description: "From LetsGetRusty"
-date: "2025-5-11"
+date: "2025-5-12"
 ---
 
 ## BASIC TYPES & VARIABLES
