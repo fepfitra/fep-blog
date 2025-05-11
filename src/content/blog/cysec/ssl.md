@@ -50,5 +50,5 @@ sudo sed -i \
 sudo apachectl restart
 ```
 
-## For advance usege
+## For advance usage
 Go to here [here](https://roll.urown.net/ca/ca_root_setup.html)
