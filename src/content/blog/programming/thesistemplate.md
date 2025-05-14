@@ -1,6 +1,6 @@
 ---
 title: "Thesis Template conf.typ"
-description: "Ajdust it with your own uni, dont forget to change the image"
+description: "Adjust it with your own uni, dont forget to change the image"
 date: "2025-5-14"
 ---
 
