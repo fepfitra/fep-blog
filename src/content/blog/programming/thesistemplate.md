@@ -1,8 +1,10 @@
 ---
 title: "Thesis Template conf.typ"
-description: "Ajdust it with your own uni"
+description: "Ajdust it with your own uni, dont forget to change the image"
 date: "2025-5-14"
 ---
+
+## `conf.typ`
 ```typ
 #import "@preview/i-figured:0.2.4"
 
@@ -348,4 +350,40 @@ date: "2025-5-14"
 
   doc
 }
+```
+
+
+## Implementation, example `main.typ`
+```typ
+#import "conf.typ": conf
+
+#show: doc => conf(
+  judul: "JUDUL BAHASA INDONESIA",
+  judul-english: "JUDUL BAHASA INGGRIS",
+  nama: "FITRIANSYAH EKA PUTRA",
+  nim: "123123123123",
+  prodi: "ILMU KOMPUTER",
+  fakultas: "FAKULTAS MATEMATIKA DAN ILMU PENGETAHUAN ALAM",
+  tahun: "2025",
+  tgl-pengesahan: "17 Agustus 1945",
+  tgl-pernyataan: "17 Agustus 1945",
+  intisari: [
+    Pada umumnya sistem perangkat lunak terdiri dari beberapa concern, premis dari masalah ini adalah sebaran concern, di mana kebutuhan rancangan tertentu cenderung memotong- melintasi grup inti fungsional modul. Teknik orientasi-objek yang menerapkan concern tersebut cenderung menghasilkan kode yang tersebar, daya baca yang sulit, serta susah untuk dikembangkan. Metodologi baru, aspect-oriented programming (AOP), memberikan fasilitas modularisasi pemotong-lintasan/cross-cutting concern. Dengan menggunakan AOP, terdapat cara untuk membuat penerapan sistem yang lebih mudah untuk dirancang, dipahami, dan dipelihara. Lebih jauh lagi, AOP menjanjikan produktivitas yang lebih tinggi, peningkatan kualitas, dan kemampuan lebih baik untuk menambahkan feature baru.
+
+    AspectJ adalah bahasa pemrograman yang digunakan secara luas untuk menerapkan program-program berorientasi aspek di Java. Namun demikian, AspectJ masih belum memiliki bahasa pemodelan yang dapat memenuhi perancangan program berorientasi aspek. #emph[Aspect Oriented Design Model] (AODM), sebagai sebuah model perancangan baru pada pengembangan program dalam AspectJ, hanya memperluas konsep-konsep UML (#emph[Unified Modeling Language]) yang telah ada dengan menggunakan mekanisme perluasan UML untuk memberikan konsep orientasi-aspek yang ada di dalam AspectJ. AODM menyediakan spesikasi model rancangan orientasi-aspek untuk ditransformasikan menjadi model rancangan UML biasa.
+  ],
+  abstract: [
+    Pada umumnya sistem perangkat lunak terdiri dari beberapa concern, premis dari masalah ini adalah sebaran concern, di mana kebutuhan rancangan tertentu cenderung memotong- melintasi grup inti fungsional modul. Teknik orientasi-objek yang menerapkan concern tersebut cenderung menghasilkan kode yang tersebar, daya baca yang sulit, serta susah untuk dikembangkan. Metodologi baru, aspect-oriented programming (AOP), memberikan fasilitas modularisasi pemotong-lintasan/cross-cutting concern. Dengan menggunakan AOP, terdapat cara untuk membuat penerapan sistem yang lebih mudah untuk dirancang, dipahami, dan dipelihara. Lebih jauh lagi, AOP menjanjikan produktivitas yang lebih tinggi, peningkatan kualitas, dan kemampuan lebih baik untuk menambahkan feature baru.
+
+    AspectJ adalah bahasa pemrograman yang digunakan secara luas untuk menerapkan program-program berorientasi aspek di Java. Namun demikian, AspectJ masih belum memiliki bahasa pemodelan yang dapat memenuhi perancangan program berorientasi aspek. Aspect Oriented Design Model (AODM), sebagai sebuah model perancangan baru pada pengembangan program dalam AspectJ, hanya memperluas konsep-konsep UML (Unified Modeling Language) yang telah ada dengan menggunakan mekanisme perluasan UML untuk memberikan konsep orientasi-aspek yang ada di dalam AspectJ. AODM menyediakan spesikasi model rancangan orientasi-aspek untuk ditransformasikan menjadi model rancangan UML biasa.
+  ],
+  doc,
+)
+
+#include "./pages/bab1.typ"
+#include "./pages/bab2.typ"
+#include "./pages/bab3.typ"
+#include "./pages/bab4.typ"
+#include "./pages/bab5.typ"
+#include "./pages/bab6.typ"
 ```
