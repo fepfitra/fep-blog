@@ -14,9 +14,9 @@ Actually I don't need it anymore. Wtf are `doc` and `docx` that you can't code y
 
 My uni recommends [LaTex](https://www.latex-project.org/) for formal documents. You can use [Overleaf](https://www.overleaf.com/) to write your document online. It provides templates for paper as well. It has a free plan with some limitations, but you can use it for free if you don't need to collaborate with others. You can also use [Texmaker](https://www.xm1math.net/texmaker/) or [TeXstudio](https://www.texstudio.org/) to write your document offline.
 
-Personally, I use [Typst](https://typst.app/) to write my documents. Since I like to write my documents offline, Typst provides a faster compiler than LaTex. Also, it has a simple and intuitive syntax like markdown but richer.
+Personally, I use [Typst](https://typst.app/) to write my documents. Since I like to write my documents offline, Typst provides a faster compilation than LaTex. Also, it has a simple and intuitive syntax like markdown but richer.
 
-## Excel
+## Microsoft Excel
 I rarely use it, but when needed, [Google Sheets](https://docs.google.com/spreadsheets/) is a good friend.
 
 ## PDF Reader
