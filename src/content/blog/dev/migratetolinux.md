@@ -26,3 +26,8 @@ Your browser is a good pdf reader. But, for minimalism purpose, I prefer [Zathur
 OneDrive is a good cloud storage to sync your data and access it from anywhere. What free storage do you get? it's 5GB. Too small for my need. Also, it doesn't have an official client app for linux. So, it can be frustating for synchronication.
 
 For better experiance, I use [Mega](https://mega.nz/)  It has 20GB free storage and clients for various devices and operating sistems including Linux. You can also sync certain Mega folders to your local directory.
+
+## WhatsApp
+WhatsApp is a good messaging app. It has a client version for Mac and Windows, but not for Linux. `WhatsApp Web` is an alternative left, but it consumes to much ram. It can be frustating if you reopen the `WhatsApp Web` tab and it takes a long time to load.
+
+I use [Beeper](https://beeper.com/) as my messaging app. It has a client version for Linux, Mac, Windows, iOS, iPad, and Android. I use it as my WhatsApp client since it can connect to various messaging apps like WhatsApp, Telegram, Signal, iMessage, and many more and operate it like WhatsApp client in Windows or Mac.
