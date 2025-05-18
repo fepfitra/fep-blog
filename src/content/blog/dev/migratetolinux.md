@@ -17,7 +17,7 @@ My uni recommends [LaTex](https://www.latex-project.org/) for formal documents. 
 Personally, I use [Typst](https://typst.app/) to write my documents. Since I like to write my documents offline, Typst provides a faster compiler than LaTex. Also, it has a simple and intuitive syntax like markdown but richer.
 
 ## Excel
-I seldom use it, but if I need it, [Google Sheets](https://docs.google.com/spreadsheets/) is a good friend.
+I rarely use it, but when needed, [Google Sheets](https://docs.google.com/spreadsheets/) is a good friend.
 
 ## PDF Reader
 Your browser is a good pdf reader. But, for minimalism purpose, I prefer [Zathura](https://pwmt.org/projects/zathura/) as my pdf reader. It has a simple interface, fast to open a pdf file, and support vim-like keybind.
