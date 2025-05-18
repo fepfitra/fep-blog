@@ -1,5 +1,5 @@
 ---
-title: "Ditching Windows? Here's a Linux Setup with All the Apps You Need!"
+title: "Frustated with Windows? Here's a Linux Setup with All the Apps You Need!"
 description: "with essential alternative applications for productivity, development, and entertainment."
 date: "2025-5-18"
 ---
