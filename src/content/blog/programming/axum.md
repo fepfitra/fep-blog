@@ -173,3 +173,14 @@ where
 }
 
 ```
+
+## Group routes
+```rust
+// fn main
+    let app = Router::new()
+        .nest("/dyn", using_dyn)
+        .nest("/generic", using_generic);
+...
+    axum::serve(listener, app).await.unwrap();
+...
+```
