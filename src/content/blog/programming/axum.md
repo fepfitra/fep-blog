@@ -29,8 +29,8 @@ async fn handler() -> Html<&'static str> {
 ```
 
 ## Trace
-Inside `main` function, before any other code.
 ```rust
+// fn main (on top)
     tracing_subscriber::registry()
         .with(
             tracing_subscriber::EnvFilter::try_from_default_env()
