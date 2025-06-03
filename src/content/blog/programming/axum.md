@@ -321,6 +321,4 @@ async fn get_user(
         None => Err(AppError(anyhow::anyhow!("User not found"))),
     }
 }
-
-
 ```
