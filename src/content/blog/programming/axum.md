@@ -229,9 +229,57 @@ it is required to add ".allow_headers([http::header::CONTENT_TYPE])"
 or see this issue https://github.com/tokio-rs/axum/issues/849
 
 ```rust
-let app = Router::new().route("/json", get(json)).layer(
-    CorsLayer::new()
-        .allow_origin("http://localhost:3000".parse::<HeaderValue>().unwrap())
-        .allow_methods([Method::GET]),
-    );
+// fn main 
+    let app = Router::new().route("/json", get(json)).layer(
+        CorsLayer::new()
+            .allow_origin("http://localhost:3000".parse::<HeaderValue>().unwrap())
+            .allow_methods([Method::GET]),
+        );
+```
+
+## Gracefull shutdown
+Graceful shutdown will wait for outstanding requests to complete. Add a timeout so requests don't hang forever.
+```bash
+cargo add tower-http --features timeout,trace
+```
+```rust
+// fn main
+    let app = Router::new()
+        .route("/slow", get(|| sleep(Duration::from_secs(5))))
+        .route("/forever", get(std::future::pending::<()>))
+        .layer((
+            TraceLayer::new_for_http(),
+            TimeoutLayer::new(Duration::from_secs(10)), //here
+        ));
+...
+    axum::serve(listener, app)
+            .with_graceful_shutdown(shutdown_signal())
+            .await
+            .unwrap();
+...
+
+
+async fn shutdown_signal() {
+    let ctrl_c = async {
+        signal::ctrl_c()
+            .await
+            .expect("failed to install Ctrl+C handler");
+    };
+
+    #[cfg(unix)]
+    let terminate = async {
+        signal::unix::signal(signal::unix::SignalKind::terminate())
+            .expect("failed to install signal handler")
+            .recv()
+            .await;
+    };
+
+    #[cfg(not(unix))]
+    let terminate = std::future::pending::<()>();
+
+    tokio::select! {
+        _ = ctrl_c => {},
+        _ = terminate => {},
+    }
+}
 ```
