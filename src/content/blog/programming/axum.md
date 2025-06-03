@@ -92,7 +92,28 @@ impl UserRepo for InMemoryUserRepo {
 }
 ```
 
-## Inject repo into service routes with dyn
+## Inject repo 
+
+We generally have two ways to inject dependencies:
+
+1. Using trait objects (`dyn SomeTrait`)
+    - Pros
+        - Likely leads to simpler code due to fewer type parameters.
+    - Cons
+        - Less flexible because we can only use object safe traits
+        - Small amount of additional runtime overhead due to dynamic dispatch.
+          This is likely to be negligible.
+2. Using generics (`T where T: SomeTrait`)
+    - Pros
+        - More flexible since all traits can be used.
+        - No runtime overhead.
+    - Cons:
+        - Additional type parameters and trait bounds can lead to more complex code and
+          boilerplate.
+
+Using trait objects is recommended unless you really need generics.
+
+### With dyn
 ```rust
 // fn main
     let using_dyn = Router::new()
@@ -139,7 +160,7 @@ async fn get_user_dyn(
 }
 ```
 
-## Inject repo into service routes with generics
+### With generics
 ```rust
 // fn main
     let using_generic = Router::new()
