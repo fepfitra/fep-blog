@@ -283,3 +283,44 @@ async fn shutdown_signal() {
     }
 }
 ```
+
+## Error handling
+```bash
+cargo add anyhow
+```
+```rust
+struct AppError(anyhow::Error);
+
+impl IntoResponse for AppError {
+    fn into_response(self) -> axum::response::Response {
+        tracing::error!("Unhandled error: {}", self.0);
+        (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            format!("Something went wrong: {}", self.0),
+        )
+        .into_response()
+    }
+}
+
+impl<E> From<E> for AppError
+where
+    E: Into<anyhow::Error>,
+{
+    fn from(err: E) -> Self {
+        Self(err.into())
+    }
+}
+
+//------------------
+async fn get_user(
+    State(state): State<AppStateDyn>,
+    Path(id): Path<Uuid>,
+) -> Result<Json<User>, AppError> {
+    match state.user_repo.get_user(id) {
+        Some(user) => Ok(Json(user)),
+        None => Err(AppError(anyhow::anyhow!("User not found"))),
+    }
+}
+
+
+```
