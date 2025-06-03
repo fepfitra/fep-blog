@@ -4,6 +4,9 @@ description: "From its examples"
 date: "2025-6-3"
 ---
 ## Main
+```bash
+cargo add tokio --features full
+```
 ```rust
 #[tokio::main]
 async fn main() {
@@ -11,6 +14,7 @@ async fn main() {
 }
 ```
 ## Hello World
+
 ```rust
 #[tokio::main]
 async fn main() {
@@ -29,6 +33,11 @@ async fn handler() -> Html<&'static str> {
 ```
 
 ## Trace
+```bash
+cargo add axum --features tracing
+cargo add tracing-subscriber --features env-filter
+cargo add tracing
+```
 ```rust
 // fn main (on top)
     tracing_subscriber::registry()
@@ -47,6 +56,10 @@ async fn handler() -> Html<&'static str> {
 ```
 
 ## Repo
+```bash
+cargo add serde --features derive
+cargo add uuid --features serde,v4
+```
 ```rust
 // fn main
     let user_repo = InMemoryUserRepo::default();
