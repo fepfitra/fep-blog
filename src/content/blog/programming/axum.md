@@ -218,3 +218,20 @@ where
     axum::serve(listener, app).await.unwrap();
 ...
 ```
+
+## Cors
+
+see https://docs.rs/tower-http/latest/tower_http/cors/index.html
+for more details
+
+pay attention that for some request types like posting content-type: application/json
+it is required to add ".allow_headers([http::header::CONTENT_TYPE])"
+or see this issue https://github.com/tokio-rs/axum/issues/849
+
+```rust
+let app = Router::new().route("/json", get(json)).layer(
+    CorsLayer::new()
+        .allow_origin("http://localhost:3000".parse::<HeaderValue>().unwrap())
+        .allow_methods([Method::GET]),
+    );
+```
