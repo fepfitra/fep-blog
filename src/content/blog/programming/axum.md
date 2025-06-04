@@ -323,6 +323,16 @@ async fn get_user(
 }
 ```
 
+## Global 404 Handler
+```rust
+// fn main
+    let app = app.fallback(handler_404);
+...
+async fn handler_404() -> impl IntoResponse {
+    (StatusCode::NOT_FOUND, "nothing to see here")
+}
+```
+
 ## JWT
 ```bash
 cargo add jsonwebtoken
