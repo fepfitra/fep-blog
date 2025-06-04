@@ -357,7 +357,7 @@ async fn main() {
 }
 ```
 
-### Auth Error Enum
+### AuthError Enum
 ```rust
 #[derive(Debug)]
 enum AuthError {
