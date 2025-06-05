@@ -501,3 +501,343 @@ echo $token
 
 curl -s -w '\n' -H 'Content-Type: application/json' -H "Authorization: Bearer $token" http://localhost:3000/protected
 ```
+
+## Oauth
+### Memory Store (example)
+```rust
+// fn main
+    let store = MemoryStore::new();
+```
+
+### AppError
+```rust
+#[derive(Debug)]
+struct AppError(anyhow::Error);
+
+impl IntoResponse for AppError {
+    fn into_response(self) -> Response {
+        tracing::error!("Application error: {:#}", self.0);
+        (StatusCode::INTERNAL_SERVER_ERROR, "Something went wrong").into_response()
+    }
+}
+
+impl<E> From<E> for AppError
+where
+    E: Into<anyhow::Error>,
+{
+    fn from(err: E) -> Self {
+        Self(err.into())
+    }
+}
+```
+
+### AppState
+```rust
+// fn main
+    let app_state = AppState {
+        store,
+        oauth_client,
+    };
+//---
+#[derive(Clone)]
+struct AppState {
+    store : MemoryStore,
+    oauth_client: BasicClient,
+}
+
+impl FromRef<AppState> for MemoryStore {
+    fn from_ref(state: &AppState) -> Self {
+        state.store.clone()
+    }
+}
+
+impl FromRef<AppState> for BasicClient {
+    fn from_ref(state: &AppState) -> Self {
+        state.oauth_client.clone()
+    }
+}
+```
+
+### AuthRedirect
+```rust
+struct AuthRedirect;
+
+impl IntoResponse for AuthRedirect {
+    fn into_response(self) -> Response {
+        Redirect::temporary("/auth/discord").into_response()
+    }
+}
+```
+### User data
+```rust
+#[derive(Debug, Serialize, Deserialize)]
+struct User {
+    id: String,
+    avatar: Option<String>,
+    username: String,
+    discriminator: String,
+}
+
+impl<S> FromRequestParts<S> for User
+where
+    MemoryStore: FromRef<S>,
+    S: Send + Sync,
+{
+    type Rejection = AuthRedirect;
+
+    async fn from_request_parts(parts: &mut Parts, state: &S) -> Result<Self, Self::Rejection> {
+        let store = MemoryStore::from_ref(state);
+
+        let cookies = parts
+            .extract::<TypedHeader<headers::Cookie>>()
+            .await
+            .map_err(|e| match *e.name() {
+                header::COOKIE => match e.reason() {
+                    TypedHeaderRejectionReason::Missing => AuthRedirect,
+                    _ => panic!("unexpected error getting Cookie header(s): {e}"),
+                },
+                _ => panic!("unexpected error getting cookies: {e}"),
+            })?;
+        let session_cookie = cookies.get(COOKIE_NAME).ok_or(AuthRedirect)?;
+
+        let session = store
+            .load_session(session_cookie.to_string())
+            .await
+            .unwrap()
+            .ok_or(AuthRedirect)?;
+
+        let user = session.get::<User>("user").ok_or(AuthRedirect)?;
+
+        Ok(user)
+    }
+}
+
+impl<S> OptionalFromRequestParts<S> for User
+where
+    MemoryStore: FromRef<S>,
+    S: Send + Sync,
+{
+    type Rejection = Infallible;
+
+    async fn from_request_parts(
+        parts: &mut Parts,
+        state: &S,
+    ) -> Result<Option<Self>, Self::Rejection> {
+        match <User as FromRequestParts<S>>::from_request_parts(parts, state).await {
+            Ok(res) => Ok(Some(res)),
+            Err(AuthRedirect) => Ok(None),
+        }
+    }
+}
+```
+
+### index
+```rust
+//fn main
+    let app = Router::new().route("/", get(index)).with_state(app_state);
+//---
+
+async fn index(user: Option<User>) -> impl IntoResponse {
+    match user {
+        Some(u) => format!(
+            "Hey {}! You're logged in!\nYou may now access `/protected`.\nLog out with `/logout`.",
+            u.username
+        ),
+        None => "You're not logged in.\nVisit `/auth/discord` to do so.".to_string(),
+    }
+}
+
+```
+
+### discord auth
+```rust
+// fn main
+    let app = Router::new()
+        .route("/", get(index))
+        .route("/auth/discord", get(discord_auth))
+        .with_state(app_state);
+// ---
+
+async fn discord_auth(
+    State(client): State<BasicClient>,
+    State(store): State<MemoryStore>,
+) -> Result<impl IntoResponse, AppError> {
+    let (auth_url, csrf_token) = client
+        .authorize_url(CsrfToken::new_random)
+        .add_scope(Scope::new("identify".to_string()))
+        .url();
+    let mut session = Session::new();
+    session
+        .insert(CSRF_TOKEN, &csrf_token)
+        .context("failed to insert CSRF token into session")?;
+
+    let cookie = store
+        .store_session(session)
+        .await
+        .context("failed to store session")?
+        .context("unexpected error retrieving CSRF cookie value")?;
+
+    let cookie = format!("{COOKIE_NAME}={cookie}; SameSite=Lax; HttpOnly; Secure; Path=/");
+    let mut headers = HeaderMap::new();
+
+    headers.insert(
+        SET_COOKIE,
+        cookie.parse().context("failed to parse cookie")?,
+    );
+
+    Ok((headers, Redirect::to(auth_url.as_ref())))
+}
+```
+
+### AuthRequest
+```rust
+#[derive(Debug, Deserialize)]
+#[allow(dead_code)]
+struct AuthRequest {
+    code: String,
+    state: String,
+}
+```
+
+### Authorized
+```rust
+// fn main
+    let app = Router::new()
+        .route("/", get(index))
+        .route("/auth/discord", get(discord_auth))
+        .route("/auth/authorized", get(auth_authorized))
+        .with_state(app_state);
+//---
+async fn csrf_token_validation_workflow(
+    auth_request: &AuthRequest,
+    cookies: &headers::Cookie,
+    store: &MemoryStore,
+) -> Result<(), AppError> {
+    let cookie = cookies
+        .get(COOKIE_NAME)
+        .context("unexpected error getting cookie name")?
+        .to_string();
+    let session = match store
+        .load_session(cookie)
+        .await
+        .context("failed to load session")?
+    {
+        Some(session) => session,
+        None => return Err(AppError(anyhow::anyhow!("Session not found").into())),
+    };
+
+    let stored_csrf_token = session
+        .get::<CsrfToken>(CSRF_TOKEN)
+        .context("CSRF token not found")?
+        .to_owned();
+
+    store
+        .destroy_session(session)
+        .await
+        .context("failed to destroy old session")?;
+
+    if *stored_csrf_token.secret() != auth_request.state {
+        return Err(AppError(anyhow::anyhow!("CSRF token mismatch").into()));
+    }
+
+    Ok(())
+}
+
+async fn auth_authorized(
+    Query(query): Query<AuthRequest>,
+    State(store): State<MemoryStore>,
+    State(oauth_client): State<BasicClient>,
+    TypedHeader(cookies): TypedHeader<headers::Cookie>,
+) -> Result<impl IntoResponse, AppError> {
+    csrf_token_validation_workflow(&query, &cookies, &store).await?;
+    let token = oauth_client
+        .exchange_code(AuthorizationCode::new(query.code.clone()))
+        .request_async(async_http_client)
+        .await
+        .context("failed in sending request request to authorization server")?;
+    let client = reqwest::Client::new();
+    let user_data: User = client
+        .get("https://discordapp.com/api/users/@me")
+        .bearer_auth(token.access_token().secret())
+        .send()
+        .await
+        .context("failed to send request to Discord API")?
+        .json()
+        .await
+        .context("failed to deserialize user data from Discord API")?;
+
+    let mut session = Session::new();
+    session
+        .insert("user", &user_data)
+        .context("failed to insert user data into session")?;
+
+    let cookie = store
+        .store_session(session)
+        .await
+        .context("failed to store session")?
+        .context("unexpected error retrieving cookie value")?;
+
+    let cookie = format!("{COOKIE_NAME}={cookie}; SameSite=Lax; HttpOnly; Secure; Path=/");
+
+    let mut headers = HeaderMap::new();
+    headers.insert(
+        SET_COOKIE,
+        cookie.parse().context("failed to parse cookie")?,
+    );
+
+    Ok((headers, Redirect::to("/").into_response()))
+}
+
+```
+
+### Protected
+```rust
+// fn main
+    let app = Router::new()
+        .route("/", get(index))
+        .route("/auth/discord", get(discord_auth))
+        .route("/auth/authorized", get(auth_authorized))
+        .route("/protected", get(protected))
+        .with_state(app_state);
+//---
+async fn protected(user: User) -> impl IntoResponse {
+    format!("Welcome to the protected area :)\nHere's your info:\n{user:?}")
+}
+```
+
+### Logout
+```rust
+// fn main
+    let app = Router::new()
+        .route("/", get(index))
+        .route("/auth/discord", get(discord_auth))
+        .route("/auth/authorized", get(auth_authorized))
+        .route("/protected", get(protected))
+        .route("/logout", get(logout))
+        .with_state(app_state);
+//---
+async fn logout(
+    State(store): State<MemoryStore>,
+    TypedHeader(cookies): TypedHeader<headers::Cookie>,
+) -> Result<impl IntoResponse, AppError> {
+    let cookie = cookies
+        .get(COOKIE_NAME)
+        .context("unexpected error getting cookie name")?;
+
+    let session = match store
+        .load_session(cookie.to_string())
+        .await
+        .context("failed to load session")?
+    {
+        Some(session) => session,
+        None => return Ok(Redirect::to("/")),
+    };
+
+    store
+        .destroy_session(session)
+        .await
+        .context("failed to destroy session")?;
+    Ok(Redirect::to("/"))
+}
+
+```
