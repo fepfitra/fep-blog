@@ -1,7 +1,8 @@
 ---
-title: "2025 Search"
+title: "Vuln C"
 description: "Cheatsheet"
 date: "2025-8-3"
+draft: true
 ---
 
 ```c
