@@ -238,36 +238,72 @@ assert((long)__builtin_return_address(0) == (long)win);
 ```
 ## overlaping_chunks
 ```c
-	long *p1,*p2,*p3,*p4;
-	p1 = malloc(0x80 - 8);
-	p2 = malloc(0x500 - 8);
-	p3 = malloc(0x80 - 8);
+long *p1,*p2,*p3,*p4;
+p1 = malloc(0x80 - 8);
+p2 = malloc(0x500 - 8);
+p3 = malloc(0x80 - 8);
 
-	memset(p1, '1', 0x80 - 8);
-	memset(p2, '2', 0x500 - 8);
-	memset(p3, '3', 0x80 - 8);
+memset(p1, '1', 0x80 - 8);
+memset(p2, '2', 0x500 - 8);
+memset(p3, '3', 0x80 - 8);
 
-	int evil_chunk_size = 0x581;
-	int evil_region_size = 0x580 - 8;
+int evil_chunk_size = 0x581;
+int evil_region_size = 0x580 - 8;
 
-	/* VULNERABILITY */
-	*(p2-1) = evil_chunk_size; // we are overwriting the "size" field of chunk p2
-	/* VULNERABILITY */
+/* VULNERABILITY */
+*(p2-1) = evil_chunk_size; // we are overwriting the "size" field of chunk p2
+/* VULNERABILITY */
 
-	free(p2);
-	p4 = malloc(evil_region_size); // overlapping chunk
+free(p2);
+p4 = malloc(evil_region_size); // overlapping chunk
 
-    // initially
-	printf("p4 = %s\n", (char *)p4);
-	printf("p3 = %s\n", (char *)p3);
+// initially
+printf("p4 = %s\n", (char *)p4);
+printf("p3 = %s\n", (char *)p3);
 
-    // overwrite p3 via p4
-	memset(p4, '4', evil_region_size);
-	printf("p4 = %s\n", (char *)p4);
-	printf("p3 = %s\n", (char *)p3);
+// overwrite p3 via p4
+memset(p4, '4', evil_region_size);
+printf("p4 = %s\n", (char *)p4);
+printf("p3 = %s\n", (char *)p3);
 
-    // overwrite p4 via p3
-	memset(p3, '3', 80);
-	printf("p4 = %s\n", (char *)p4);
-	printf("p3 = %s\n", (char *)p3);
+// overwrite p4 via p3
+memset(p3, '3', 80);
+printf("p4 = %s\n", (char *)p4);
+printf("p3 = %s\n", (char *)p3);
+```
+## overlaping_chunks2
+```c
+intptr_t *p1,*p2,*p3,*p4,*p5,*p6;
+unsigned int real_size_p1,real_size_p2,real_size_p3,real_size_p4,real_size_p5,real_size_p6;
+int prev_in_use = 0x1;
+
+//setup
+p1 = malloc(1000);
+p2 = malloc(1000);
+p3 = malloc(1000);
+p4 = malloc(1000);
+p5 = malloc(1000);
+
+real_size_p1 = malloc_usable_size(p1);
+real_size_p2 = malloc_usable_size(p2);
+real_size_p3 = malloc_usable_size(p3);
+real_size_p4 = malloc_usable_size(p4);
+real_size_p5 = malloc_usable_size(p5);
+
+//fill
+memset(p1,'A',real_size_p1);
+memset(p2,'B',real_size_p2);
+memset(p3,'C',real_size_p3);
+memset(p4,'D',real_size_p4);
+memset(p5,'E',real_size_p5);
+
+free(p4);//fooling allocator for the free(p2) later
+*(unsigned int *)((unsigned char *)p1 + real_size_p1 ) = real_size_p2 + real_size_p3 + prev_in_use + sizeof(size_t) * 2; //<--- BUG HERE  // p2->size = 0x7e1 (before: 0x3f1)
+free(p2);//to unsorted bin
+
+p6 = malloc(2000); // overlapping chunk with p3
+
+fprintf(stderr, "%s\n",(char *)p3); 
+memset(p6,'F',1500);  
+fprintf(stderr, "%s\n",(char *)p3); 
 ```
