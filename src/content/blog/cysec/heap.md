@@ -155,9 +155,9 @@ assert(*(long *)victim_string == 0x4141414142424242L);
 
 	((char *)victim2)[-8] = '\x00';//overwrite victim prev_size (again)
 
-	free(victim);
+	free(victim); // to unsorted bin, consolidate (merge) with prev
 
-	void *merged = malloc(0x100);
+	void *merged = malloc(0x100); // 0x??0020, prev2 (0x??0010)
 	memset(merged, 'A', 0x80);
 	memset(prev2, 'C', 0x80);
 	assert(strstr(merged, "CCCCCCCCC"));
