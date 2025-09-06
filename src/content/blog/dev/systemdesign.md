@@ -2,6 +2,7 @@
 title: "System Design"
 description: "TBA gradually"
 date: "2025-5-12"
+draft: true
 ---
 
 ## Client-Server Architecture
