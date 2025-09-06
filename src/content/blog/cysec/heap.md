@@ -518,3 +518,23 @@ free(fastbin_chunk); // Trigger the madness
 printf("Target Write at %p: 0x%llx\n", target_loc, *((unsigned long long*) (target_loc)));
 assert(*((unsigned long *) (target_loc)) != 0);
 ```
+## decrypt_safe_linking
+```c
+long decrypt(long cipher) {
+  long key = 0;
+  long plain;
+
+  for (int i = 1; i < 6; i++) {
+    int bits = 64 - 12 * i;
+    if (bits < 0)
+      bits = 0;
+    plain = ((cipher ^ key) >> bits) << bits;
+    key = plain >> 12;
+    printf("round %d:\n", i);
+    printf("key:    %#016lx\n", key);
+    printf("plain:  %#016lx\n", plain);
+    printf("cipher: %#016lx\n\n", cipher);
+  }
+  return plain;
+}
+```
