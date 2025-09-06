@@ -431,3 +431,14 @@ malloc(128)
 intptr_t *c = malloc(128); // stack address allocated
 assert((long)target == (long)c);
 ```
+## tcache_house_of_spirit
+```c
+malloc(1);
+unsigned long long *a; //pointer that will be overwritten
+unsigned long long fake_chunks[10]; //fake chunk region
+
+fake_chunks[1] = 0x40; // this is the size
+a = &fake_chunks[2]; 
+free(a); // tree the fake chunk from stack into the tcache
+void *b = malloc(0x30); // get the stack address
+```
