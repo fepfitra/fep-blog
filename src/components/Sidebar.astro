@@ -1,6 +1,8 @@
 ---
 import { getCollection } from "astro:content";
 
+import SidebarItem from "./SidebarItem.astro";
+
 const { currentSlug } = Astro.props;
 
 const allModules = await getCollection("modules");
@@ -9,6 +11,7 @@ const allModules = await getCollection("modules");
 type ModuleNode = {
     _isDir: boolean;
     _children: Record<string, ModuleNode>;
+    name?: string;
     [key: string]: any;
 };
 
@@ -24,6 +27,7 @@ function buildModuleTree(modules: any[]) {
                 currentLevel[part] = {
                     _isDir: true,
                     _children: {},
+                    name: part, // Add name for directory label
                 };
             }
 
@@ -42,24 +46,34 @@ function buildModuleTree(modules: any[]) {
     return tree;
 }
 
-// Helper to render the tree recursively
-// Note: This is a simplified recursive render. For a robust GitBook style,
-// we might want to group by top-level folder and only show the current group.
-// However, for now, let's show the full tree or just the relevant subtree.
-// Given the user wants /pwn/index.md, let's group by the first path segment.
-
 const currentTopLevel = currentSlug.split("/")[0];
 
 const modules = allModules
     .filter((module) => !module.data.draft)
     .filter((module) => module.id.startsWith(currentTopLevel));
 
-// Sort modules: module.md first, then by order, then alphabetical
-modules.sort((a, b) => {
-    if (a.id.endsWith("/module")) return -1;
-    if (b.id.endsWith("/module")) return 1;
-    return (a.data.order || 0) - (b.data.order || 0);
-});
+const tree = buildModuleTree(modules);
+const rootNode = tree[currentTopLevel];
+
+// If the root node exists, we want to render its children.
+// If the root node itself is a page (e.g. pwn.md), we might want to render it too?
+// Usually the top level is a directory or a grouping.
+// Given the previous implementation showed the top level title separately, let's keep that.
+// And render the children of the top level.
+
+const children = rootNode
+    ? Object.values(rootNode._children || {}).sort((a: any, b: any) => {
+          const aIsIndex =
+              a.id?.endsWith("/module") || a.id?.endsWith("/index");
+          const bIsIndex =
+              b.id?.endsWith("/module") || b.id?.endsWith("/index");
+
+          if (aIsIndex && !bIsIndex) return -1;
+          if (!aIsIndex && bIsIndex) return 1;
+
+          return (a.data?.order || 0) - (b.data?.order || 0);
+      })
+    : [];
 ---
 
 <aside
@@ -67,21 +81,12 @@ modules.sort((a, b) => {
 >
     <div class="mb-4 text-lg font-semibold capitalize">{currentTopLevel}</div>
     <nav class="space-y-1">
-        {
-            modules.map((module) => (
-                <a
-                    href={`/modules/${module.id}`}
-                    class:list={[
-                        "block rounded-md px-3 py-2 text-sm font-medium transition-colors",
-                        currentSlug === module.id
-                            ? "bg-black/5 text-black dark:bg-white/10 dark:text-white"
-                            : "text-black/70 hover:bg-black/5 hover:text-black dark:text-white/70 dark:hover:bg-white/5 dark:hover:text-white",
-                        module.id.split("/").length > 2 ? "ml-4" : "",
-                    ]}
-                >
-                    {module.data.title}
-                </a>
-            ))
-        }
+        <ul class="space-y-1">
+            {
+                children.map((child) => (
+                    <SidebarItem node={child} currentSlug={currentSlug} />
+                ))
+            }
+        </ul>
     </nav>
 </aside>

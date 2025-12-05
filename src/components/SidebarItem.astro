@@ -1,0 +1,70 @@
+---
+import type { CollectionEntry } from "astro:content";
+
+type ModuleNode = {
+    _isDir: boolean;
+    _children: Record<string, ModuleNode>;
+    data?: CollectionEntry<"modules">["data"];
+    id?: string;
+    name?: string;
+};
+
+type Props = {
+    node: ModuleNode;
+    currentSlug: string;
+    depth?: number;
+};
+
+const { node, currentSlug, depth = 0 } = Astro.props;
+
+const isActive = node.id === currentSlug;
+const children = Object.values(node._children || {}).sort((a: any, b: any) => {
+    const aIsIndex = a.id?.endsWith("/module") || a.id?.endsWith("/index");
+    const bIsIndex = b.id?.endsWith("/module") || b.id?.endsWith("/index");
+
+    if (aIsIndex && !bIsIndex) return -1;
+    if (!aIsIndex && bIsIndex) return 1;
+
+    return (a.data?.order || 0) - (b.data?.order || 0);
+});
+---
+
+<li>
+    {
+        node.data ? (
+            <a
+                href={`/modules/${node.id}`}
+                class:list={[
+                    "block rounded-md px-3 py-2 text-sm font-medium transition-colors",
+                    isActive
+                        ? "bg-black/5 text-black dark:bg-white/10 dark:text-white"
+                        : "text-black/70 hover:bg-black/5 hover:text-black dark:text-white/70 dark:hover:bg-white/5 dark:hover:text-white",
+                ]}
+                style={`padding-left: ${depth * 1 + 0.75}rem`}
+            >
+                {node.data.title}
+            </a>
+        ) : (
+            <div
+                class="px-3 py-2 text-sm font-semibold text-black/50 dark:text-white/50"
+                style={`padding-left: ${depth * 1 + 0.75}rem`}
+            >
+                {node.name}
+            </div>
+        )
+    }
+
+    {
+        children.length > 0 && (
+            <ul class="space-y-1">
+                {children.map((child) => (
+                    <Astro.self
+                        node={child}
+                        currentSlug={currentSlug}
+                        depth={depth + 1}
+                    />
+                ))}
+            </ul>
+        )
+    }
+</li>
