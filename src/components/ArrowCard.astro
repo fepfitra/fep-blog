@@ -22,6 +22,17 @@ const { entry } = Astro.props;
     <div class="text-sm">
       {entry.data.description}
     </div>
+    {
+      entry.collection === "blog" && entry.data.tags && (
+        <div class="mt-1 flex flex-wrap gap-2">
+          {entry.data.tags.map((tag) => (
+            <span class="rounded-sm border border-black/15 px-1 py-0.5 text-xs text-black/75 dark:border-white/20 dark:text-white/75">
+              {tag}
+            </span>
+          ))}
+        </div>
+      )
+    }
   </div>
   <svg
     xmlns="http://www.w3.org/2000/svg"
