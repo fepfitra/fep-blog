@@ -10,9 +10,10 @@ type Props = {
     title: string;
     description: string;
     currentSlug: string;
+    width?: "sm" | "md" | "lg" | "xl" | "2xl";
 };
 
-const { title, description, currentSlug } = Astro.props;
+const { title, description, currentSlug, width = "sm" } = Astro.props;
 ---
 
 <!doctype html>
@@ -21,7 +22,7 @@ const { title, description, currentSlug } = Astro.props;
         <Head title={`${title} | ${SITE.TITLE}`} description={description} />
     </head>
     <body>
-        <Header />
+        <Header containerSize={width} />
         <main class="container mx-auto px-4 py-32">
             <div class="flex flex-col gap-8 md:flex-row">
                 <Sidebar currentSlug={currentSlug} />
@@ -32,7 +33,7 @@ const { title, description, currentSlug } = Astro.props;
                 </article>
             </div>
         </main>
-        <Footer />
+        <Footer containerSize={width} />
         <Pagefind />
     </body>
 </html>

@@ -8,9 +8,10 @@ import { SITE } from "@consts";
 type Props = {
   title: string;
   description: string;
+  width?: "sm" | "md" | "lg" | "xl" | "2xl";
 };
 
-const { title, description } = Astro.props;
+const { title, description, width = "sm" } = Astro.props;
 ---
 
 <!doctype html>
@@ -19,11 +20,11 @@ const { title, description } = Astro.props;
     <Head title={`${title} | ${SITE.TITLE}`} description={description} />
   </head>
   <body>
-    <Header />
+    <Header containerSize={width} />
     <main>
       <slot />
     </main>
-    <Footer />
+    <Footer containerSize={width} />
     <Pagefind />
   </body>
 </html>

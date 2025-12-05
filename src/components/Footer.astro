@@ -2,10 +2,16 @@
 import Container from "@components/Container.astro";
 import { SITE } from "@consts";
 import BackToTop from "@components/BackToTop.astro";
+
+type Props = {
+  containerSize?: "sm" | "md" | "lg" | "xl" | "2xl";
+};
+
+const { containerSize = "sm" } = Astro.props;
 ---
 
 <footer class="animate">
-  <Container>
+  <Container size={containerSize}>
     <div class="relative">
       <div class="absolute -top-12 right-0">
         <BackToTop />

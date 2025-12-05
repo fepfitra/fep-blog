@@ -51,50 +51,65 @@ const post = Astro.props;
 const { Content, headings } = await render(post);
 ---
 
-<Layout title={post.data.title} description={post.data.description}>
-  <Container>
-    <div class="animate">
-      <BackToPrevious href="/blog">Back to blog</BackToPrevious>
-    </div>
-    <div class="my-10 space-y-1">
-      <div class="animate flex items-center gap-1.5">
-        <div class="font-base text-sm">
-          <FormattedDate date={post.data.date} />
+<Layout title={post.data.title} description={post.data.description} width="2xl">
+  <Container size="xl">
+    <div
+      class="grid grid-cols-1 gap-10 md:grid-cols-[1fr_250px] lg:grid-cols-[1fr_300px]"
+    >
+      <div>
+        <div class="animate">
+          <BackToPrevious href="/blog">Back to blog</BackToPrevious>
         </div>
-        &bull;
-        {post.body && (
-          <div class="font-base text-sm">
-            {readingTime(post.body)}
+        <div class="my-10 space-y-1">
+          <div class="animate flex items-center gap-1.5">
+            <div class="font-base text-sm">
+              <FormattedDate date={post.data.date} />
+            </div>
+            &bull;
+            {
+              post.body && (
+                <div class="font-base text-sm">{readingTime(post.body)}</div>
+              )
+            }
           </div>
-        )}        
+          <h1 class="animate text-3xl font-semibold text-black dark:text-white">
+            {post.data.title}
+          </h1>
+          {
+            post.data.tags && post.data.tags?.length > 0 ? (
+              <div class="animate flex gap-2 pt-1">
+                {post.data.tags.map((tag) => (
+                  <a
+                    href={`/tags/${tag}`}
+                    class="rounded-sm border border-black/15 px-2 py-1 text-sm transition-colors duration-300 ease-in-out hover:bg-black/5 hover:text-black focus-visible:bg-black/5 focus-visible:text-black dark:border-white/20 dark:hover:bg-white/5 dark:hover:text-white dark:focus-visible:bg-white/5 dark:focus-visible:text-white"
+                  >
+                    {tag}
+                  </a>
+                ))}
+              </div>
+            ) : null
+          }
+        </div>
+        <article class="animate">
+          <Content />
+          <div class="mt-24">
+            <PostNavigation prevPost={prevPost} nextPost={nextPost} />
+          </div>
+          <div class="mt-24">
+            <Giscus />
+          </div>
+        </article>
       </div>
-      <h1 class="animate text-3xl font-semibold text-black dark:text-white">
-        {post.data.title}
-      </h1>
+
       {
-        post.data.tags && post.data.tags?.length > 0 ? (
-          <div class="animate flex gap-2 pt-1">
-            {post.data.tags.map((tag) => (
-              <a
-                href={`/tags/${tag}`}
-                class="rounded-sm border border-black/15 px-2 py-1 text-sm transition-colors duration-300 ease-in-out hover:bg-black/5 hover:text-black focus-visible:bg-black/5 focus-visible:text-black dark:border-white/20 dark:hover:bg-white/5 dark:hover:text-white dark:focus-visible:bg-white/5 dark:focus-visible:text-white"
-              >
-                {tag}
-              </a>
-            ))}
-          </div>
-        ) : null
+        headings.length > 0 && (
+          <aside class="hidden md:block">
+            <div class="sticky top-24">
+              <TableOfContents headings={headings} />
+            </div>
+          </aside>
+        )
       }
     </div>
-    {headings.length > 0 && <TableOfContents headings={headings} />}
-    <article class="animate">
-      <Content />
-      <div class="mt-24">
-        <PostNavigation prevPost={prevPost} nextPost={nextPost} />
-      </div>
-      <div class="mt-24">
-        <Giscus />
-      </div>
-    </article>
   </Container>
 </Layout>
