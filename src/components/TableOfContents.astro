@@ -2,7 +2,7 @@
 import TableOfContentsHeading from "./TableOfContentsHeading.astro";
 
 // https://kld.dev/building-table-of-contents/
-const { headings } = Astro.props;
+const { headings, open = true } = Astro.props;
 const toc = buildToc(headings);
 
 export interface Heading {
@@ -28,7 +28,7 @@ function buildToc(headings: Heading[]) {
 ---
 
 <details
-  open
+  open={open}
   class="animate group rounded-lg border border-black/15 dark:border-white/20"
 >
   <summary

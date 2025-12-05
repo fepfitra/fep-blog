@@ -39,6 +39,16 @@ const {
                 <article
                     class="prose dark:prose-invert max-w-none min-w-0 flex-1"
                 >
+                    {
+                        headings.length > 0 && (
+                            <div class="mb-8 lg:hidden">
+                                <TableOfContents
+                                    headings={headings}
+                                    open={false}
+                                />
+                            </div>
+                        )
+                    }
                     <slot />
                 </article>
                 {

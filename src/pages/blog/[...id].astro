@@ -91,6 +91,13 @@ const { Content, headings } = await render(post);
           }
         </div>
         <article class="animate">
+          {
+            headings.length > 0 && (
+              <div class="mb-8 md:hidden">
+                <TableOfContents headings={headings} open={false} />
+              </div>
+            )
+          }
           <Content />
           <div class="mt-24">
             <PostNavigation prevPost={prevPost} nextPost={nextPost} />
