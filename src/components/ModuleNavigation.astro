@@ -1,21 +1,31 @@
 ---
 import { getCollection } from "astro:content";
 
+import {
+    buildModuleTree,
+    flattenModuleTree,
+    type ModuleNode,
+} from "@lib/modules";
+
 const { currentSlug } = Astro.props;
 const currentTopLevel = currentSlug.split("/")[0];
 
 const modules = (await getCollection("modules"))
     .filter((module) => !module.data.draft)
-    .filter((module) => module.id.startsWith(currentTopLevel))
-    .sort((a, b) => {
-        if (a.id.endsWith("/module")) return -1;
-        if (b.id.endsWith("/module")) return 1;
-        return (a.data.order || 0) - (b.data.order || 0);
-    });
+    .filter((module) => module.id.startsWith(currentTopLevel));
 
-const currentIndex = modules.findIndex((module) => module.id === currentSlug);
-const prevModule = modules[currentIndex - 1];
-const nextModule = modules[currentIndex + 1];
+const tree = buildModuleTree(modules);
+const rootNode = tree[currentTopLevel];
+
+// Flatten the tree to get the linear navigation order
+// We pass [rootNode] because flattenModuleTree expects an array of siblings
+const flatModules = rootNode ? flattenModuleTree([rootNode]) : [];
+
+const currentIndex = flatModules.findIndex(
+    (module) => module.id === currentSlug,
+);
+const prevModule = flatModules[currentIndex - 1];
+const nextModule = flatModules[currentIndex + 1];
 ---
 
 <div
@@ -31,7 +41,7 @@ const nextModule = modules[currentIndex + 1];
                     Previous
                 </span>
                 <span class="font-medium group-hover:underline">
-                    {prevModule.data.title}
+                    {prevModule.data?.title}
                 </span>
             </a>
         ) : (
@@ -49,7 +59,7 @@ const nextModule = modules[currentIndex + 1];
                     Next
                 </span>
                 <span class="font-medium group-hover:underline">
-                    {nextModule.data.title}
+                    {nextModule.data?.title}
                 </span>
             </a>
         ) : (

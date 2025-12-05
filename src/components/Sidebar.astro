@@ -3,48 +3,15 @@ import { getCollection } from "astro:content";
 
 import SidebarItem from "./SidebarItem.astro";
 
+import {
+    buildModuleTree,
+    sortModuleNodes,
+    type ModuleNode,
+} from "@lib/modules";
+
 const { currentSlug } = Astro.props;
 
 const allModules = await getCollection("modules");
-
-// Helper to build a tree structure from module IDs
-type ModuleNode = {
-    _isDir: boolean;
-    _children: Record<string, ModuleNode>;
-    name?: string;
-    [key: string]: any;
-};
-
-function buildModuleTree(modules: any[]) {
-    const tree: Record<string, ModuleNode> = {};
-
-    modules.forEach((module) => {
-        const parts = module.id.split("/");
-        let currentLevel: Record<string, ModuleNode> = tree;
-
-        parts.forEach((part: string, index: number) => {
-            if (!currentLevel[part]) {
-                currentLevel[part] = {
-                    _isDir: true,
-                    _children: {},
-                    name: part, // Add name for directory label
-                };
-            }
-
-            if (index === parts.length - 1) {
-                currentLevel[part] = {
-                    ...currentLevel[part],
-                    _isDir: false,
-                    ...module,
-                };
-            } else {
-                currentLevel = currentLevel[part]._children;
-            }
-        });
-    });
-
-    return tree;
-}
 
 const currentTopLevel = currentSlug.split("/")[0];
 
@@ -55,24 +22,8 @@ const modules = allModules
 const tree = buildModuleTree(modules);
 const rootNode = tree[currentTopLevel];
 
-// If the root node exists, we want to render its children.
-// If the root node itself is a page (e.g. pwn.md), we might want to render it too?
-// Usually the top level is a directory or a grouping.
-// Given the previous implementation showed the top level title separately, let's keep that.
-// And render the children of the top level.
-
 const children = rootNode
-    ? Object.values(rootNode._children || {}).sort((a: any, b: any) => {
-          const aIsIndex =
-              a.id?.endsWith("/module") || a.id?.endsWith("/index");
-          const bIsIndex =
-              b.id?.endsWith("/module") || b.id?.endsWith("/index");
-
-          if (aIsIndex && !bIsIndex) return -1;
-          if (!aIsIndex && bIsIndex) return 1;
-
-          return (a.data?.order || 0) - (b.data?.order || 0);
-      })
+    ? sortModuleNodes(Object.values(rootNode._children || {}))
     : [];
 ---
 
