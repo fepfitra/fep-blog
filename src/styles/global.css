@@ -20,6 +20,7 @@
   color utility to any element that depends on these defaults.
 */
 @layer base {
+
   *,
   ::after,
   ::before,
@@ -67,7 +68,7 @@
   }
 
   article {
-    @apply prose prose-neutral max-w-full dark:prose-invert prose-img:mx-auto prose-img:my-auto;
+    @apply prose prose-neutral dark:prose-invert prose-img:mx-auto prose-img:my-auto;
     @apply prose-headings:font-semibold;
     @apply prose-headings:text-black dark:prose-headings:text-white;
   }
@@ -79,6 +80,7 @@
     @apply decoration-black/30 dark:decoration-white/30;
     @apply transition-colors duration-300 ease-in-out;
   }
+
   article a:hover {
     @apply text-black dark:text-white;
     @apply decoration-black/50 dark:decoration-white/50;
@@ -103,8 +105,15 @@ html.scrolled #back-to-top {
 }
 
 /* shiki config */
-pre {
-  @apply border border-black/15 py-5 dark:border-white/20;
+.prose pre {
+  @apply border border-black/15 py-5 rounded-sm dark:border-white/20;
+  white-space: pre-wrap !important;
+  max-width: 100%;
+}
+
+.prose pre code {
+  white-space: pre-wrap !important;
+  overflow-wrap: anywhere !important;
 }
 
 :root {

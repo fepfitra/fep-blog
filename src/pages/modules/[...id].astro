@@ -14,7 +14,7 @@ export async function getStaticPaths() {
 type Props = CollectionEntry<"modules">;
 
 const module = Astro.props;
-const { Content } = await render(module);
+const { Content, headings } = await render(module);
 ---
 
 <ModulesLayout
@@ -22,6 +22,7 @@ const { Content } = await render(module);
     description={module.data.description}
     currentSlug={module.id}
     width="2xl"
+    headings={headings}
 >
     <div class="prose dark:prose-invert max-w-none">
         <Content />

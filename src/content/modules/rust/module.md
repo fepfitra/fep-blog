@@ -5,7 +5,7 @@ date: 2023-11-01
 order: 20
 ---
 
-# Rust
+## Rust
 
 Welcome to the Rust module. Learn about memory safety and concurrency.
 
