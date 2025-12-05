@@ -1,0 +1,310 @@
+---
+
+---
+
+<div class="space-y-6">
+    <!-- Stats Card -->
+    <div
+        class="rounded-lg border border-black/15 bg-white p-6 dark:border-white/20 dark:bg-[#151515]"
+    >
+        <h3 class="mb-4 font-semibold text-black dark:text-white">
+            GitHub Stats
+        </h3>
+
+        <div id="github-stats-loading" class="animate-pulse space-y-4">
+            <div class="flex justify-between gap-4">
+                <div class="h-20 w-1/3 rounded bg-black/10 dark:bg-white/10">
+                </div>
+                <div class="h-20 w-1/3 rounded bg-black/10 dark:bg-white/10">
+                </div>
+                <div class="h-20 w-1/3 rounded bg-black/10 dark:bg-white/10">
+                </div>
+            </div>
+        </div>
+
+        <div id="github-stats-content" class="hidden">
+            <div class="grid grid-cols-1 gap-4 text-center sm:grid-cols-3">
+                <!-- Total Contributions -->
+                <div class="flex flex-col items-center justify-center">
+                    <span
+                        id="gh-total-contribs"
+                        class="text-2xl font-bold text-black dark:text-white"
+                        >...</span
+                    >
+                    <span class="text-xs text-black/60 dark:text-white/60"
+                        >Total Contributions</span
+                    >
+                    <span
+                        id="gh-contribs-range"
+                        class="mt-1 text-[10px] text-black/40 dark:text-white/40"
+                        >Last Year</span
+                    >
+                </div>
+
+                <!-- Current Streak -->
+                <div
+                    class="flex flex-col items-center justify-center border-r border-l border-black/10 px-2 dark:border-white/10"
+                >
+                    <div class="relative mb-1 flex items-center justify-center">
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            class="size-8 text-orange-500"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            ><path
+                                d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.1.2-2.2.5-3.3.3-1.1.9-2.2 1.6-3.1 1.4 2.8 1.4 4.9 1.4 6.9z"
+                            ></path></svg
+                        >
+                        <span
+                            id="gh-current-streak"
+                            class="absolute text-sm font-bold text-black dark:text-white"
+                            >0</span
+                        >
+                    </div>
+                    <span class="text-xs font-medium text-orange-500"
+                        >Current Streak</span
+                    >
+                    <span
+                        id="gh-current-streak-date"
+                        class="mt-1 text-[10px] text-black/40 dark:text-white/40"
+                        >...</span
+                    >
+                </div>
+
+                <!-- Longest Streak -->
+                <div class="flex flex-col items-center justify-center">
+                    <span
+                        id="gh-longest-streak"
+                        class="text-2xl font-bold text-black dark:text-white"
+                        >...</span
+                    >
+                    <span class="text-xs text-black/60 dark:text-white/60"
+                        >Longest Streak</span
+                    >
+                    <span
+                        id="gh-longest-streak-range"
+                        class="mt-1 text-[10px] text-black/40 dark:text-white/40"
+                        >...</span
+                    >
+                </div>
+            </div>
+        </div>
+
+        <div
+            id="github-stats-error"
+            class="hidden text-center text-sm text-red-500"
+        >
+            Failed to load GitHub stats.
+        </div>
+    </div>
+
+    <!-- Top Repos Card -->
+    <div
+        class="rounded-lg border border-black/15 bg-white p-6 dark:border-white/20 dark:bg-[#151515]"
+    >
+        <h3 class="mb-4 font-semibold text-black dark:text-white">
+            Top Repositories
+        </h3>
+        <div id="github-repos-loading" class="animate-pulse space-y-2">
+            <div class="h-8 w-full rounded bg-black/10 dark:bg-white/10"></div>
+            <div class="h-8 w-full rounded bg-black/10 dark:bg-white/10"></div>
+            <div class="h-8 w-full rounded bg-black/10 dark:bg-white/10"></div>
+        </div>
+        <ul id="github-repos-list" class="hidden flex-col gap-2">
+            <!-- Repos will be injected here -->
+        </ul>
+    </div>
+</div>
+
+<script>
+    async function fetchGitHubStats() {
+        const username = "fepfitra";
+        const loadingStats = document.getElementById("github-stats-loading");
+        const contentStats = document.getElementById("github-stats-content");
+        const errorStats = document.getElementById("github-stats-error");
+
+        const loadingRepos = document.getElementById("github-repos-loading");
+        const listRepos = document.getElementById("github-repos-list");
+
+        if (
+            !loadingStats ||
+            !contentStats ||
+            !errorStats ||
+            !loadingRepos ||
+            !listRepos
+        )
+            return;
+
+        try {
+            // 1. Fetch Contributions
+            const contribRes = await fetch(
+                `https://github-contributions-api.jogruber.de/v4/${username}?y=last`,
+            );
+            if (!contribRes.ok)
+                throw new Error("Failed to fetch contributions");
+            const contribData = await contribRes.json();
+
+            // Process Contributions
+            const contributions = contribData.contributions; // Array of { date, count, level }
+            const totalContributions = contribData.total.lastYear;
+
+            // Calculate Streaks
+            let currentStreak = 0;
+            let longestStreak = 0;
+            let tempStreak = 0;
+            let currentStreakStart = "";
+            let currentStreakEnd = "";
+            let longestStreakStart = "";
+            let longestStreakEnd = "";
+            let tempStreakStart = "";
+
+            const today = new Date().toISOString().split("T")[0];
+
+            // Iterate backwards for current streak
+            // Find index of today or yesterday (in case of timezone diffs, check last few days)
+            // Actually, let's iterate forwards to find longest, and backwards for current.
+
+            // Longest Streak
+            for (let i = 0; i < contributions.length; i++) {
+                const day = contributions[i];
+                if (day.count > 0) {
+                    if (tempStreak === 0) tempStreakStart = day.date;
+                    tempStreak++;
+                } else {
+                    if (tempStreak > longestStreak) {
+                        longestStreak = tempStreak;
+                        longestStreakStart = tempStreakStart;
+                        longestStreakEnd = contributions[i - 1].date;
+                    }
+                    tempStreak = 0;
+                }
+            }
+            // Check if streak ended at the end of the array
+            if (tempStreak > longestStreak) {
+                longestStreak = tempStreak;
+                longestStreakStart = tempStreakStart;
+                longestStreakEnd = contributions[contributions.length - 1].date;
+            }
+
+            // Current Streak
+            // Check from the end. If today has 0, check yesterday.
+            // The API returns data up to today usually.
+            let lastIndex = contributions.length - 1;
+            // If the last entry is today and has 0, we can still be in a streak if yesterday had contributions.
+            // But strictly, current streak includes today if we contributed, or is kept alive if we contributed yesterday.
+            // Let's count backwards from the last day with contributions that is connected to today/yesterday.
+
+            let streakEndIndex = -1;
+            const lastDay = contributions[lastIndex];
+            const yesterday = new Date();
+            yesterday.setDate(yesterday.getDate() - 1);
+            const yesterdayStr = yesterday.toISOString().split("T")[0];
+
+            if (lastDay.date === today && lastDay.count > 0) {
+                streakEndIndex = lastIndex;
+            } else if (lastDay.date === today && lastDay.count === 0) {
+                // Check yesterday
+                if (
+                    contributions[lastIndex - 1] &&
+                    contributions[lastIndex - 1].date === yesterdayStr &&
+                    contributions[lastIndex - 1].count > 0
+                ) {
+                    streakEndIndex = lastIndex - 1;
+                }
+            } else if (lastDay.date === yesterdayStr && lastDay.count > 0) {
+                streakEndIndex = lastIndex;
+            }
+
+            if (streakEndIndex !== -1) {
+                currentStreak = 0;
+                currentStreakEnd = contributions[streakEndIndex].date;
+                for (let i = streakEndIndex; i >= 0; i--) {
+                    if (contributions[i].count > 0) {
+                        currentStreak++;
+                        currentStreakStart = contributions[i].date;
+                    } else {
+                        break;
+                    }
+                }
+            }
+
+            // Update UI - Stats
+            document.getElementById("gh-total-contribs")!.textContent =
+                totalContributions.toLocaleString();
+            document.getElementById("gh-current-streak")!.textContent =
+                currentStreak.toString();
+            document.getElementById("gh-longest-streak")!.textContent =
+                longestStreak.toString();
+
+            // Format dates
+            const formatDate = (dateStr: string) => {
+                if (!dateStr) return "";
+                const d = new Date(dateStr);
+                return d.toLocaleDateString("en-US", {
+                    month: "short",
+                    day: "numeric",
+                });
+            };
+
+            document.getElementById("gh-current-streak-date")!.textContent =
+                currentStreak > 0
+                    ? `${formatDate(currentStreakEnd)}`
+                    : formatDate(today);
+
+            document.getElementById("gh-longest-streak-range")!.textContent =
+                longestStreak > 0
+                    ? `${formatDate(longestStreakStart)} - ${formatDate(longestStreakEnd)}`
+                    : "-";
+
+            loadingStats.classList.add("hidden");
+            contentStats.classList.remove("hidden");
+
+            // 2. Fetch Repos
+            const reposRes = await fetch(
+                `https://api.github.com/users/${username}/repos?per_page=100&sort=pushed`,
+            );
+            if (!reposRes.ok) throw new Error("Failed to fetch repos");
+            const reposData = await reposRes.json();
+
+            // Sort by stars
+            const topRepos = reposData
+                .sort(
+                    (a: any, b: any) => b.stargazers_count - a.stargazers_count,
+                )
+                .slice(0, 5);
+
+            // Update UI - Repos
+            listRepos.innerHTML = topRepos
+                .map(
+                    (repo: any) => `
+        <li class="flex items-center justify-between rounded p-2 hover:bg-black/5 dark:hover:bg-white/5 transition-colors">
+          <a href="${repo.html_url}" target="_blank" rel="noopener noreferrer" class="flex items-center gap-2 truncate">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4 text-black dark:text-white"><path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36 1.5-8 1.5C8.48 2 5.64 2 2.64.5 2.64 2.5 2.64 4.5 2.64 4.5c-.28 1.15-.28 2.35 0 3.5-.73 1.02-1.08 2.25-1 3.5 0 3.5 3 5.5 6 5.5-.39 1-.39 2 0 3.5v4"/></svg>
+            <span class="font-medium text-black dark:text-white truncate">${repo.name}</span>
+          </a>
+          <div class="flex items-center gap-1 text-xs text-black/60 dark:text-white/60">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-3 text-yellow-500"><path fill-rule="evenodd" d="M10.788 3.21c.448-1.077 1.976-1.077 2.424 0l2.082 5.007 5.404.433c1.164.093 1.636 1.545.749 2.305l-4.117 3.527 1.257 5.273c.271 1.136-.964 2.033-1.96 1.425L12 18.354 7.373 21.18c-.996.608-2.231-.29-1.96-1.425l1.257-5.273-4.117-3.527c-.887-.76-.415-2.212.749-2.305l5.404-.433 2.082-5.006z" clip-rule="evenodd" /></svg>
+            <span>${repo.stargazers_count}</span>
+          </div>
+        </li>
+      `,
+                )
+                .join("");
+
+            loadingRepos.classList.add("hidden");
+            listRepos.classList.remove("hidden");
+            listRepos.classList.add("flex");
+        } catch (error) {
+            console.error("Error fetching GitHub stats:", error);
+            loadingStats.classList.add("hidden");
+            errorStats.classList.remove("hidden");
+        }
+    }
+
+    // Run on load
+    fetchGitHubStats();
+</script>
