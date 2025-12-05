@@ -18,6 +18,10 @@ const projects: CollectionEntry<"projects">[] = (
   .filter((project) => !project.data.draft)
   .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf())
   .slice(0, SITE.NUM_PROJECTS_ON_HOMEPAGE);
+
+import fs from "node:fs";
+const allModules = await getCollection("modules");
+// fs.writeFileSync('debug-ids.txt', JSON.stringify(allModules.map(m => ({id: m.id, data: m.data})), null, 2));
 ---
 
 <Layout title={HOME.TITLE} description={HOME.DESCRIPTION}>
@@ -104,13 +108,43 @@ const projects: CollectionEntry<"projects">[] = (
           </ul>
         </section>
 
+        <section class="animate space-y-6">
+          <div class="flex flex-wrap items-center justify-between gap-y-2">
+            <h2 class="font-semibold text-black dark:text-white">Modules</h2>
+            <Link href="/modules"> See all modules </Link>
+          </div>
+          <ul class="not-prose flex flex-col gap-4">
+            {
+              allModules
+                .filter((module) => module.id.endsWith("/module"))
+                .sort((a, b) => (a.data.order || 0) - (b.data.order || 0))
+                .map((module) => (
+                  <li>
+                    <a
+                      href={`/modules/${module.id}`}
+                      class="group -m-2 block rounded-lg p-2 transition-colors duration-300 ease-in-out hover:bg-black/5 dark:hover:bg-white/5"
+                    >
+                      <div class="flex flex-col gap-1">
+                        <div class="font-semibold text-black group-hover:underline dark:text-white">
+                          {module.data.title}
+                        </div>
+                        <div class="text-sm text-black/70 dark:text-white/70">
+                          {module.data.description}
+                        </div>
+                      </div>
+                    </a>
+                  </li>
+                ))
+            }
+          </ul>
+        </section>
+
         <section class="animate space-y-4">
-          <h2 class="font-semibold text-black dark:text-white">
-            Purpose
-          </h2>
+          <h2 class="font-semibold text-black dark:text-white">Purpose</h2>
           <article>
             <p>
-              Actually, these are my personal notes. But, sometimes people find it useful.
+              Actually, these are my personal notes. But, sometimes people find
+              it useful.
             </p>
           </article>
           <h2 class="font-semibold text-black dark:text-white">

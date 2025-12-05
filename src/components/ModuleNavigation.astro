@@ -1,0 +1,59 @@
+---
+import { getCollection } from "astro:content";
+
+const { currentSlug } = Astro.props;
+const currentTopLevel = currentSlug.split("/")[0];
+
+const modules = (await getCollection("modules"))
+    .filter((module) => !module.data.draft)
+    .filter((module) => module.id.startsWith(currentTopLevel))
+    .sort((a, b) => {
+        if (a.id.endsWith("/module")) return -1;
+        if (b.id.endsWith("/module")) return 1;
+        return (a.data.order || 0) - (b.data.order || 0);
+    });
+
+const currentIndex = modules.findIndex((module) => module.id === currentSlug);
+const prevModule = modules[currentIndex - 1];
+const nextModule = modules[currentIndex + 1];
+---
+
+<div
+    class="mt-12 flex items-center justify-between border-t border-black/10 pt-6 dark:border-white/10"
+>
+    {
+        prevModule ? (
+            <a
+                href={`/modules/${prevModule.id}`}
+                class="group flex flex-col gap-1 text-sm text-black/70 transition-colors hover:text-black dark:text-white/70 dark:hover:text-white"
+            >
+                <span class="text-xs text-black/50 dark:text-white/50">
+                    Previous
+                </span>
+                <span class="font-medium group-hover:underline">
+                    {prevModule.data.title}
+                </span>
+            </a>
+        ) : (
+            <div />
+        )
+    }
+
+    {
+        nextModule ? (
+            <a
+                href={`/modules/${nextModule.id}`}
+                class="group flex flex-col gap-1 text-right text-sm text-black/70 transition-colors hover:text-black dark:text-white/70 dark:hover:text-white"
+            >
+                <span class="text-xs text-black/50 dark:text-white/50">
+                    Next
+                </span>
+                <span class="font-medium group-hover:underline">
+                    {nextModule.data.title}
+                </span>
+            </a>
+        ) : (
+            <div />
+        )
+    }
+</div>

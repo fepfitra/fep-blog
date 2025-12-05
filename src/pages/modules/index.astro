@@ -1,0 +1,42 @@
+---
+import Layout from "@layouts/Layout.astro";
+import Container from "@components/Container.astro";
+import { getCollection } from "astro:content";
+import { SITE } from "@consts";
+
+const modules = (await getCollection("modules"))
+    .filter((module) => !module.data.draft)
+    .filter((module) => module.id.endsWith("/module"))
+    .sort((a, b) => (a.data.order || 0) - (b.data.order || 0));
+---
+
+<Layout title="Modules" description="All modules">
+    <Container>
+        <div class="space-y-10">
+            <div class="animate font-semibold text-black dark:text-white">
+                Modules
+            </div>
+            <ul class="animate flex flex-col gap-4">
+                {
+                    modules.map((module) => (
+                        <li>
+                            <a
+                                href={`/modules/${module.id.replace(/\/module$/, "")}/module`}
+                                class="group block rounded-lg border border-black/15 p-4 transition-colors duration-300 ease-in-out hover:bg-black/5 dark:border-white/20 dark:hover:bg-white/5"
+                            >
+                                <div class="flex flex-col gap-1">
+                                    <div class="font-semibold text-black group-hover:underline dark:text-white">
+                                        {module.data.title}
+                                    </div>
+                                    <div class="text-sm text-black/70 dark:text-white/70">
+                                        {module.data.description}
+                                    </div>
+                                </div>
+                            </a>
+                        </li>
+                    ))
+                }
+            </ul>
+        </div>
+    </Container>
+</Layout>

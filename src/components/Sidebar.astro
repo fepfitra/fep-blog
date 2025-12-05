@@ -1,0 +1,87 @@
+---
+import { getCollection } from "astro:content";
+
+const { currentSlug } = Astro.props;
+
+const allModules = await getCollection("modules");
+
+// Helper to build a tree structure from module IDs
+type ModuleNode = {
+    _isDir: boolean;
+    _children: Record<string, ModuleNode>;
+    [key: string]: any;
+};
+
+function buildModuleTree(modules: any[]) {
+    const tree: Record<string, ModuleNode> = {};
+
+    modules.forEach((module) => {
+        const parts = module.id.split("/");
+        let currentLevel: Record<string, ModuleNode> = tree;
+
+        parts.forEach((part: string, index: number) => {
+            if (!currentLevel[part]) {
+                currentLevel[part] = {
+                    _isDir: true,
+                    _children: {},
+                };
+            }
+
+            if (index === parts.length - 1) {
+                currentLevel[part] = {
+                    ...currentLevel[part],
+                    _isDir: false,
+                    ...module,
+                };
+            } else {
+                currentLevel = currentLevel[part]._children;
+            }
+        });
+    });
+
+    return tree;
+}
+
+// Helper to render the tree recursively
+// Note: This is a simplified recursive render. For a robust GitBook style,
+// we might want to group by top-level folder and only show the current group.
+// However, for now, let's show the full tree or just the relevant subtree.
+// Given the user wants /pwn/index.md, let's group by the first path segment.
+
+const currentTopLevel = currentSlug.split("/")[0];
+
+const modules = allModules
+    .filter((module) => !module.data.draft)
+    .filter((module) => module.id.startsWith(currentTopLevel));
+
+// Sort modules: module.md first, then by order, then alphabetical
+modules.sort((a, b) => {
+    if (a.id.endsWith("/module")) return -1;
+    if (b.id.endsWith("/module")) return 1;
+    return (a.data.order || 0) - (b.data.order || 0);
+});
+---
+
+<aside
+    class="w-full pr-4 md:w-64 md:flex-shrink-0 md:border-r md:border-black/10 dark:md:border-white/10"
+>
+    <div class="mb-4 text-lg font-semibold capitalize">{currentTopLevel}</div>
+    <nav class="space-y-1">
+        {
+            modules.map((module) => (
+                <a
+                    href={`/modules/${module.id}`}
+                    class:list={[
+                        "block rounded-md px-3 py-2 text-sm font-medium transition-colors",
+                        currentSlug === module.id
+                            ? "bg-black/5 text-black dark:bg-white/10 dark:text-white"
+                            : "text-black/70 hover:bg-black/5 hover:text-black dark:text-white/70 dark:hover:bg-white/5 dark:hover:text-white",
+                        module.id.split("/").length > 2 ? "ml-4" : "",
+                    ]}
+                >
+                    {module.data.title}
+                </a>
+            ))
+        }
+    </nav>
+</aside>

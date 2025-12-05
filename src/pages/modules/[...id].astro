@@ -1,0 +1,29 @@
+---
+import { type CollectionEntry, getCollection, render } from "astro:content";
+import ModulesLayout from "@layouts/ModulesLayout.astro";
+import ModuleNavigation from "@components/ModuleNavigation.astro";
+
+export async function getStaticPaths() {
+    const modules = await getCollection("modules");
+    return modules.map((module) => ({
+        params: { id: module.id },
+        props: module,
+    }));
+}
+
+type Props = CollectionEntry<"modules">;
+
+const module = Astro.props;
+const { Content } = await render(module);
+---
+
+<ModulesLayout
+    title={module.data.title}
+    description={module.data.description}
+    currentSlug={module.id}
+>
+    <div class="prose dark:prose-invert max-w-none">
+        <Content />
+        <ModuleNavigation currentSlug={module.id} />
+    </div>
+</ModulesLayout>

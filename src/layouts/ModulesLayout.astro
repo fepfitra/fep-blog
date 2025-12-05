@@ -1,0 +1,38 @@
+---
+import Head from "@components/Head.astro";
+import Header from "@components/Header.astro";
+import Footer from "@components/Footer.astro";
+import Pagefind from "@components/PageFind.astro";
+import Sidebar from "@components/Sidebar.astro";
+import { SITE } from "@consts";
+
+type Props = {
+    title: string;
+    description: string;
+    currentSlug: string;
+};
+
+const { title, description, currentSlug } = Astro.props;
+---
+
+<!doctype html>
+<html lang="en">
+    <head>
+        <Head title={`${title} | ${SITE.TITLE}`} description={description} />
+    </head>
+    <body>
+        <Header />
+        <main class="container mx-auto px-4 py-32">
+            <div class="flex flex-col gap-8 md:flex-row">
+                <Sidebar currentSlug={currentSlug} />
+                <article
+                    class="prose dark:prose-invert max-w-none min-w-0 flex-1"
+                >
+                    <slot />
+                </article>
+            </div>
+        </main>
+        <Footer />
+        <Pagefind />
+    </body>
+</html>
