@@ -6,6 +6,7 @@ import Pagefind from "@components/PageFind.astro";
 import Pagefind from "@components/PageFind.astro";
 import Sidebar from "@components/Sidebar.astro";
 import TableOfContents from "@components/TableOfContents.astro";
+import Giscus from "@components/Giscus.astro";
 import { SITE } from "@consts";
 import type { MarkdownHeading } from "astro";
 
@@ -50,6 +51,9 @@ const {
                         )
                     }
                     <slot />
+                    <div class="mt-24">
+                        <Giscus />
+                    </div>
                 </article>
                 {
                     headings.length > 0 && (

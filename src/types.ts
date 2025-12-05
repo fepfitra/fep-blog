@@ -15,3 +15,10 @@ export type Socials = {
   NAME: string;
   HREF: string;
 }[];
+
+export type GiscusProps = {
+  repo: string;
+  repoId: string;
+  category: string;
+  categoryId: string;
+};

@@ -1,4 +1,4 @@
-import type { Metadata, Site, Socials } from "@types";
+import type { Metadata, Site, Socials, GiscusProps } from "@types";
 
 export const SITE: Site = {
   TITLE: "Fep Blog",
@@ -38,3 +38,10 @@ export const SOCIALS: Socials = [
     HREF: "https://fitrafep.com",
   },
 ];
+
+export const GISCUS: GiscusProps = {
+  repo: "fepfitra/fep-blog",
+  repoId: "R_kgDONW_mQA",
+  category: "General",
+  categoryId: "DIC_kwDONW_mQM4Ck1zO",
+};
