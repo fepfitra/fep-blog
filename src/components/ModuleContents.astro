@@ -1,0 +1,39 @@
+---
+import { getCollection } from "astro:content";
+import ArrowCard from "@components/ArrowCard.astro";
+
+const { slug } = Astro.props;
+
+const currentSlug = slug || Astro.params.id;
+const base = currentSlug.endsWith("/module")
+    ? currentSlug.replace(/\/module$/, "")
+    : currentSlug;
+
+const allModules = await getCollection("modules");
+const modules = allModules
+    .filter((module) => !module.data.draft)
+    .filter((module) => {
+        if (!module.id.startsWith(base + "/")) return false;
+        if (module.id === currentSlug) return false;
+        return true;
+    })
+    .sort((a, b) => (a.data.order || 0) - (b.data.order || 0));
+
+console.log("ModuleContents Debug:");
+console.log("Slug:", currentSlug);
+console.log("Base:", base);
+console.log(
+    "Found modules:",
+    modules.map((m) => m.id),
+);
+---
+
+<ul class="flex flex-col gap-3">
+    {
+        modules.map((module) => (
+            <li>
+                <ArrowCard entry={module} />
+            </li>
+        ))
+    }
+</ul>

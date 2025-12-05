@@ -8,8 +8,13 @@ import GitHubStats from "@components/GitHubStats.astro";
 import { getCollection } from "astro:content";
 import type { CollectionEntry } from "astro:content";
 
-const blog = (await getCollection("blog"))
-  .filter((post) => !post.data.draft)
+const blog = (await getCollection("blog")).filter((post) => !post.data.draft);
+
+const modulePosts = (await getCollection("modules")).filter(
+  (module) => !module.data.draft,
+);
+
+const allPosts = [...blog, ...modulePosts]
   .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf())
   .slice(0, SITE.NUM_POSTS_ON_HOMEPAGE);
 
@@ -107,7 +112,7 @@ const modules = allModules
           </div>
           <ul class="flex flex-col gap-4">
             {
-              blog.map((post) => (
+              allPosts.map((post) => (
                 <li>
                   <ArrowCard entry={post} />
                 </li>
