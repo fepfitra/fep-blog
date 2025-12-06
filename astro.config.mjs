@@ -3,23 +3,36 @@ import sitemap from "@astrojs/sitemap";
 import mdx from "@astrojs/mdx";
 import pagefind from "astro-pagefind";
 import tailwindcss from "@tailwindcss/vite";
+import { typst } from 'astro-typst';
+
 
 import cloudflare from "@astrojs/cloudflare";
 
 // https://astro.build/config
 export default defineConfig({
-  site: "https://blog.fitrafep.com",
-  integrations: [sitemap(), mdx(), pagefind()],
+	site: "https://blog.fitrafep.com",
+	integrations: [sitemap(), mdx(), pagefind(), typst({
+		options: {
+			remPx: 14,
+		},
+		target: (id) => {
+			console.debug("Detected typst file:", id);
+			return "html";
+		}
+	})],
 
-  vite: {
-    plugins: [tailwindcss()],
-  },
+	vite: {
+		plugins: [tailwindcss()],
+		ssr: {
+			external: ["@myriaddreamin/typst-ts-node-compiler"]
+		}
+	},
 
-  markdown: {
-    shikiConfig: {
-      theme: "css-variables",
-    },
-  },
+	markdown: {
+		shikiConfig: {
+			theme: "css-variables",
+		},
+	},
 
-  adapter: cloudflare(),
+	adapter: cloudflare(),
 });

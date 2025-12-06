@@ -156,3 +156,23 @@ html.scrolled #back-to-top {
 .copy-code:active {
   @apply scale-90 transition-transform;
 }
+
+/* Typst equation styling */
+[role="math"] {
+  @apply align-middle;
+}
+
+[role="inline-math"] {
+  @apply inline-block align-middle;
+}
+
+/* Typst Math Visibility Toggling */
+/* Hide dark version in light mode */
+html:not(.dark) .typst-math-dark {
+  display: none;
+}
+
+/* Hide light version in dark mode */
+html.dark .typst-math-light {
+  display: none;
+}
