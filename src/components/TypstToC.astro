@@ -13,7 +13,7 @@ const { class: className } = Astro.props;
             Table of Contents
         </summary>
         <nav>
-            <ul class="typst-toc-list py-3">
+            <ul class="typst-toc-list my-0 py-3">
                 <!-- items injected here -->
             </ul>
         </nav>
@@ -89,4 +89,3 @@ const { class: className } = Astro.props;
     document.addEventListener("DOMContentLoaded", generateToC);
     document.addEventListener("astro:page-load", generateToC);
 </script>
-```
