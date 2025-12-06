@@ -19,9 +19,18 @@
 
 The World Health Organization (WHO) reports that 430 million people worldwide are currently deaf or mute. By 2050, this number is projected to exceed 700 million, meaning 1 in 10 people could experience disabling hearing loss. These figures emphasize the critical need to address communication challenges for this population.
 
-Sign Master came as an innovative application designed to support the deaf and mute community, their families, and close connections. It addresses key challenges such as limited resources and restricted communication opportunities. By leveraging AI-powered tools for gesture recognition and interactive learning modules, Sign Master enables smooth conversations between deaf individuals and their loved ones, fostering stronger bonds and breaking communication barriers. This ensures the community feels empowered, supported, and included.
+Sign Master is an innovative application designed to support the deaf and mute community, their families, and close connections. It addresses key challenges such as the limited resources and limited communication opportunities. By leveraging AI-powered tools for gesture recognition and interactive learning modules, Sign Master enables smooth conversations between deaf individuals and their loved ones, fostering stronger bonds and breaking communication barriers. This ensures the community feels empowered, supported, and included.
 
-The app also caters to two additional groups: individuals learning sign language for personal growth and professionals such as educators or customer service representatives who need it for their careers.
+The app also caters to two additional groups: individuals learning sign language for personal growth and professionals such as educators or customer service representatives who need it for their careers. With structured modules, gamified quizzes, and certifications, Sign Master makes the learning process engaging and effective. By bridging communication gaps and promoting inclusivity, the app helps foster societal understanding and respect for the deaf community.
+
+This project was developed by a dedicated team of 7 members from Bangkit Academy 2024:
+- *Aziz Nur Ashidiq* (Mobile Development)
+- *Muhammad Adira Zaidan Putra Pratama* (Mobile Development)
+- *Mohammad Fajar Maulid* (Machine Learning)
+- *Muhammad Hariish Hafiiz* (Machine Learning)
+- *Yazid Rizki Kurniawan* (Machine Learning)
+- *Me :D* (Cloud Computing)
+- *Rakyan Pangrukti Wibana* (Cloud Computing)
 
 = Core Features
 
