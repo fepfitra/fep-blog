@@ -9,6 +9,8 @@ import { getCollection } from "astro:content";
 import type { CollectionEntry } from "astro:content";
 import { Typst } from "astro-typst/src/components";
 
+import ThreeModel from "@components/ThreeModel.astro";
+
 const blog = (await getCollection("blog")).filter((post) => !post.data.draft);
 
 const modulePosts = (await getCollection("modules")).filter(
@@ -36,19 +38,21 @@ const modules = allModules
 	<Container size="xl">
 		<!-- Hero Section -->
 		<section
-			class="relative mb-16 flex flex-col items-start justify-center py-10 md:py-20"
+			class="relative mb-16 grid grid-cols-1 items-center gap-8 py-10 md:grid-cols-2 md:py-20"
 		>
 			<div class="animate relative z-10">
 				<h1
 					class="text-5xl font-bold tracking-tight text-black md:text-7xl dark:text-white"
 				>
-					Hi, I'm <span class="text-blue-600 dark:text-blue-400">Fep</span>.
+					Hi, I'm <span class="text-blue-600 dark:text-blue-400"
+						>Fep</span
+					>.
 				</h1>
 				<p
 					class="mt-6 text-xl leading-relaxed text-black/75 md:w-2/3 dark:text-white/75"
 				>
-					I write about things I find interesting. Mostly cybersecurity,
-					programming, and random tech explorations.
+					I write about things I find interesting. Mostly
+					cybersecurity, programming, and random tech explorations.
 				</p>
 
 				<div class="mt-8 flex flex-wrap gap-4">
@@ -93,10 +97,17 @@ const modules = allModules
 							class="size-4"
 							><path
 								d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"
-							></path><polyline points="22,6 12,13 2,6"></polyline></svg
+							></path><polyline points="22,6 12,13 2,6"
+							></polyline></svg
 						>
 					</a>
 				</div>
+			</div>
+
+			<div
+				class="animate relative z-10 order-first flex justify-center md:order-none"
+			>
+				<ThreeModel />
 			</div>
 		</section>
 
@@ -106,7 +117,9 @@ const modules = allModules
 				<!-- Latest Posts -->
 				<section class="animate space-y-6">
 					<div class="flex items-center justify-between">
-						<h2 class="text-2xl font-bold text-black dark:text-white">
+						<h2
+							class="text-2xl font-bold text-black dark:text-white"
+						>
 							Latest Posts
 						</h2>
 						<Link href="/blog"> View all </Link>
@@ -125,7 +138,9 @@ const modules = allModules
 				<!-- Recent Projects -->
 				<section class="animate space-y-6">
 					<div class="flex items-center justify-between">
-						<h2 class="text-2xl font-bold text-black dark:text-white">
+						<h2
+							class="text-2xl font-bold text-black dark:text-white"
+						>
 							Recent Projects
 						</h2>
 						<Link href="/projects"> View all </Link>
@@ -147,7 +162,9 @@ const modules = allModules
 				<!-- Modules -->
 				<section class="animate space-y-6">
 					<div class="flex items-center justify-between">
-						<h2 class="text-xl font-bold text-black dark:text-white">
+						<h2
+							class="text-xl font-bold text-black dark:text-white"
+						>
 							Modules
 						</h2>
 						<Link href="/modules"> View all </Link>
