@@ -18,6 +18,13 @@ $
   #annot(<tag1>)[Annotation]
 $
 
+#figure(
+  image("../../../../public/y-wing.jpeg"),
+  caption: [A Y-Wing from Star Wars],
+)<g1>
+
+Ref @g1
+
 $
   e = m c^2
 $

@@ -12,6 +12,14 @@
   ),
 )<frontmatter>
 
+
+#figure(
+  image("../../../public/y-wing.jpeg"),
+  caption: [A Y-Wing from Star Wars],
+)<g1>
+
+Ref @g1
+
 $
   markhl(x) + markhl(y, color: #blue, tag: #<tag1>)
   #annot(<tag1>)[Annotation]
