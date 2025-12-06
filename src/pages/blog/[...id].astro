@@ -98,7 +98,7 @@ const { Content, headings } = await render(post);
                 <TableOfContents headings={headings} open={false} />
               </div>
             ) : (
-              <TypstToC class="mb-8 md:hidden" />
+              <TypstToC class="mb-8 md:hidden" open={false} />
             )
           }
           <Content />
