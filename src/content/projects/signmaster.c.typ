@@ -40,6 +40,8 @@ This project was developed by a dedicated team of 7 members from Bangkit Academy
 - *Text-to-Sign Language Gesture Video*: Allows users to translate text into sign language gesture videos, making it easier for them to learn and practice.
 - *Sign Language Articles*: Offers a curated collection of insightful articles to deepen users' understanding of sign language and its cultural significance.
 
+#image(bytes(read("img/signmaster.svg")))
+
 #link("https://drive.google.com/drive/folders/1tAYnIP9UemDs9H7dYSUxSuF4QITxSn4q")[Link Demo]
 
 = DATASET LINK
@@ -58,4 +60,6 @@ This project was developed by a dedicated team of 7 members from Bangkit Academy
 
 #link("https://github.com/orgs/Bangkit-Capstone-Project-C242-PS363/repositories")[GITHUB REPO LINK]
 
+
 #link("https://youtu.be/FpDv5hnRYKI")[10-MIN VIDEO PRESENTATION LINK]
+
