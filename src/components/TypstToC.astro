@@ -2,7 +2,10 @@
 const { class: className, open = true } = Astro.props;
 ---
 
-<div class:list={["typst-toc-root", className]} style="display: none;">
+<div
+    class:list={["typst-toc-root not-prose", className]}
+    style="display: none;"
+>
     <details
         open={open}
         class="animate group rounded-lg border border-black/15 dark:border-white/20"
