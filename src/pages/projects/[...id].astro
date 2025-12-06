@@ -7,6 +7,8 @@ import { readingTime } from "@lib/utils";
 import BackToPrevious from "@components/BackToPrevious.astro";
 import Link from "@components/Link.astro";
 import TableOfContents from "@components/TableOfContents.astro";
+import TypstToC from "@components/TypstToC.astro";
+import PostNavigation from "@components/PostNavigation.astro";
 import Giscus from "@components/Giscus.astro";
 
 export async function getStaticPaths() {
@@ -20,6 +22,33 @@ export async function getStaticPaths() {
 }
 type Props = CollectionEntry<"projects">;
 
+const projects = (await getCollection("projects"))
+  .filter((post) => !post.data.draft)
+  .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+
+function getNextProject() {
+  let projectIndex;
+  for (const project of projects) {
+    if (project.id === Astro.params.id) {
+      projectIndex = projects.indexOf(project);
+      return projects[projectIndex + 1];
+    }
+  }
+}
+
+function getPrevProject() {
+  let projectIndex;
+  for (const project of projects) {
+    if (project.id === Astro.params.id) {
+      projectIndex = projects.indexOf(project);
+      return projects[projectIndex - 1];
+    }
+  }
+}
+
+const nextProject = getNextProject();
+const prevProject = getPrevProject();
+
 const project = Astro.props;
 const { Content, headings } = await render(project);
 ---
@@ -29,49 +58,86 @@ const { Content, headings } = await render(project);
   description={project.data.description}
   width="2xl"
 >
-  <Container size="xl">
-    <div class="animate">
-      <BackToPrevious href="/projects">Back to projects</BackToPrevious>
-    </div>
-    <div class="animate my-10 space-y-1">
-      <div class="flex items-center gap-1.5">
-        <div class="font-base text-sm">
-          <FormattedDate date={project.data.date} />
+  <Container size="lg">
+    <div
+      class="grid grid-cols-1 gap-10 md:grid-cols-[1fr_250px] lg:grid-cols-[1fr_300px]"
+    >
+      <div>
+        <div class="animate">
+          <BackToPrevious href="/projects">Back to projects</BackToPrevious>
         </div>
-        &bull;
-        {
-          project.body && (
-            <div class="font-base text-sm">{readingTime(project.body)}</div>
-          )
-        }
+        <div class="animate my-10 space-y-1">
+          <div class="flex items-center gap-1.5">
+            <div class="font-base text-sm">
+              <FormattedDate date={project.data.date} />
+            </div>
+            &bull;
+            {
+              project.body && (
+                <div class="font-base text-sm">{readingTime(project.body)}</div>
+              )
+            }
+          </div>
+          <h1 class="text-3xl font-semibold text-black dark:text-white">
+            {project.data.title}
+          </h1>
+          {
+            (project.data.demoURL || project.data.repoURL) && (
+              <nav class="flex gap-1">
+                {project.data.demoURL && (
+                  <Link href={project.data.demoURL} external>
+                    demo
+                  </Link>
+                )}
+                {project.data.demoURL && project.data.repoURL && <span>/</span>}
+                {project.data.repoURL && (
+                  <Link href={project.data.repoURL} external>
+                    repo
+                  </Link>
+                )}
+              </nav>
+            )
+          }
+        </div>
+        <article class="animate">
+          {
+            headings.length > 0 ? (
+              <div class="mb-8 md:hidden">
+                <TableOfContents headings={headings} open={false} />
+              </div>
+            ) : (
+              <TypstToC class="mb-8 md:hidden" open={false} />
+            )
+          }
+          <Content />
+          <div class="mt-24">
+            <PostNavigation
+              prevPost={prevProject}
+              nextPost={nextProject}
+              basePath="/projects/"
+            />
+          </div>
+          <div class="mt-24">
+            <Giscus />
+          </div>
+        </article>
       </div>
-      <h1 class="text-3xl font-semibold text-black dark:text-white">
-        {project.data.title}
-      </h1>
+
       {
-        (project.data.demoURL || project.data.repoURL) && (
-          <nav class="flex gap-1">
-            {project.data.demoURL && (
-              <Link href={project.data.demoURL} external>
-                demo
-              </Link>
-            )}
-            {project.data.demoURL && project.data.repoURL && <span>/</span>}
-            {project.data.repoURL && (
-              <Link href={project.data.repoURL} external>
-                repo
-              </Link>
-            )}
-          </nav>
+        headings.length > 0 ? (
+          <aside class="hidden md:block">
+            <div class="sticky top-24">
+              <TableOfContents headings={headings} />
+            </div>
+          </aside>
+        ) : (
+          <aside class="hidden md:block">
+            <div class="sticky top-24">
+              <TypstToC />
+            </div>
+          </aside>
         )
       }
     </div>
-    <TableOfContents headings={headings} />
-    <article class="animate">
-      <Content />
-      <div class="mt-24">
-        <Giscus />
-      </div>
-    </article>
   </Container>
 </Layout>
