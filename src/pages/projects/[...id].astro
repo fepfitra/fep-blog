@@ -82,6 +82,15 @@ const { Content, headings } = await render(project);
             {project.data.title}
           </h1>
           {
+            project.data.img && (
+              <img
+                src={project.data.img}
+                alt={project.data.img_alt || project.data.title}
+                class="my-4 w-full rounded-lg object-cover"
+              />
+            )
+          }
+          {
             (project.data.demoURL || project.data.repoURL) && (
               <nav class="flex gap-1">
                 {project.data.demoURL && (
