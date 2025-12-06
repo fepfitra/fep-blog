@@ -6,6 +6,7 @@ import Pagefind from "@components/PageFind.astro";
 import Pagefind from "@components/PageFind.astro";
 import Sidebar from "@components/Sidebar.astro";
 import TableOfContents from "@components/TableOfContents.astro";
+import BackToPrevious from "@components/BackToPrevious.astro";
 import TypstToC from "@components/TypstToC.astro";
 import Giscus from "@components/Giscus.astro";
 import { SITE } from "@consts";
@@ -41,6 +42,11 @@ const {
                 <article
                     class="prose dark:prose-invert max-w-none min-w-0 flex-1"
                 >
+                    <div class="animate mb-10">
+                        <BackToPrevious href="/modules"
+                            >Back to home</BackToPrevious
+                        >
+                    </div>
                     {
                         headings.length > 0 ? (
                             <div class="mb-8 lg:hidden">
