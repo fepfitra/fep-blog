@@ -3,7 +3,6 @@ import Head from "@components/Head.astro";
 import Header from "@components/Header.astro";
 import Footer from "@components/Footer.astro";
 import Pagefind from "@components/PageFind.astro";
-import Pagefind from "@components/PageFind.astro";
 import Sidebar from "@components/Sidebar.astro";
 import TableOfContents from "@components/TableOfContents.astro";
 import BackToPrevious from "@components/BackToPrevious.astro";
@@ -41,6 +40,7 @@ const {
                 <Sidebar currentSlug={currentSlug} />
                 <article
                     class="prose dark:prose-invert max-w-none min-w-0 flex-1"
+                    data-pagefind-body
                 >
                     <div class="animate mb-10">
                         <BackToPrevious href="/modules"

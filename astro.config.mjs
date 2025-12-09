@@ -11,7 +11,7 @@ import cloudflare from "@astrojs/cloudflare";
 // https://astro.build/config
 export default defineConfig({
 	site: "https://blog.fitrafep.com",
-	integrations: [sitemap(), mdx(), pagefind(), typst({
+	integrations: [sitemap(), mdx(), typst({
 		options: {
 			remPx: 14,
 		},
@@ -19,7 +19,7 @@ export default defineConfig({
 			console.debug("Detected typst file:", id);
 			return "html";
 		}
-	})],
+	}), pagefind()],
 
 	vite: {
 		plugins: [tailwindcss()],
