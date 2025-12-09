@@ -6,9 +6,10 @@ type Props = {
     | CollectionEntry<"blog">
     | CollectionEntry<"projects">
     | CollectionEntry<"modules">;
+  showType?: boolean;
 };
 
-const { entry } = Astro.props;
+const { entry, showType = false } = Astro.props;
 ---
 
 <a
@@ -26,6 +27,17 @@ const { entry } = Astro.props;
   }
   <div class="flex w-full items-center justify-between">
     <div class="flex flex-col truncate">
+      {
+        showType && (
+          <div class="text-[10px] font-medium tracking-wider text-black/80 uppercase dark:text-white/80">
+            {entry.collection === "blog"
+              ? "Blog"
+              : entry.collection === "modules"
+                ? "Module"
+                : "Project"}
+          </div>
+        )
+      }
       <div class="font-semibold text-black dark:text-white">
         {entry.data.title}
       </div>
