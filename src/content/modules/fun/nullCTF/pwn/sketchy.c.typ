@@ -163,3 +163,8 @@ The challenge includes a time limit.
   # Switch to interactive mode to use the shell
   p.interactive()
   ```
+
+= Flag
+```
+nullctf{you_4re_officially_a_c3rtified_sketChy_person?!?!?_5b4a0fef28}
+```
