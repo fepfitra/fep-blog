@@ -50,7 +50,7 @@ const { class: className, open = true } = Astro.props;
 
         const createItem = (heading) => {
             const li = document.createElement("li");
-            li.className = "list-inside list-disc px-6 py-1.5 text-sm";
+            li.className = "list-outside list-disc pr-6 py-1.5 text-sm";
 
             const a = document.createElement("a");
             a.href = `#${heading.id}`;
@@ -77,10 +77,8 @@ const { class: className, open = true } = Astro.props;
                 const item = createItem(heading);
 
                 const indent = Math.max(0, level - baseLevel);
-                if (indent > 0) {
-                    // Approximate the translate-x-3 (0.75rem = 12px) nesting
-                    item.style.marginLeft = `${indent * 0.75}rem`;
-                }
+                // Base margin 1.5rem (ml-6) + nesting
+                item.style.marginLeft = `${1.5 + indent * 0.75}rem`;
 
                 list.appendChild(item);
             });
