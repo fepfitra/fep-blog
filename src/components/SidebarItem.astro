@@ -31,7 +31,67 @@ const children = Object.values(node._children || {}).sort((a: any, b: any) => {
 
 <li>
     {
-        node.data ? (
+        children.length > 0 ? (
+            <details
+                open={
+                    node.id &&
+                    (currentSlug === node.id ||
+                        currentSlug.startsWith(node.id + "/"))
+                }
+                class="group"
+            >
+                <summary class="cursor-pointer list-none [&::-webkit-details-marker]:hidden">
+                    <div class="flex items-center justify-between rounded-md transition-colors hover:bg-black/5 dark:hover:bg-white/5">
+                        {node.data ? (
+                            <a
+                                href={`/modules/${node.id}`}
+                                class:list={[
+                                    "block flex-1 rounded-md px-3 py-2 text-sm font-medium transition-colors",
+                                    isActive
+                                        ? "bg-black/5 text-black dark:bg-white/10 dark:text-white"
+                                        : "text-black/70 hover:text-black dark:text-white/70 dark:hover:text-white",
+                                ]}
+                                style={`padding-left: ${depth * 1 + 0.75}rem`}
+                            >
+                                {node.data.title}
+                            </a>
+                        ) : (
+                            <div
+                                class="flex-1 px-3 py-2 text-sm font-semibold text-black/50 dark:text-white/50"
+                                style={`padding-left: ${depth * 1 + 0.75}rem`}
+                            >
+                                {node.name}
+                            </div>
+                        )}
+                        <div class="pr-2 text-black/30 transition-transform duration-200 group-open:rotate-90 dark:text-white/30">
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="16"
+                                height="16"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-width="2"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                class="lucide lucide-chevron-right"
+                            >
+                                <path d="m9 18 6-6-6-6" />
+                            </svg>
+                        </div>
+                    </div>
+                </summary>
+                <ul class="mt-1 space-y-1">
+                    {children.map((child) => (
+                        <Astro.self
+                            node={child}
+                            currentSlug={currentSlug}
+                            depth={depth + 1}
+                        />
+                    ))}
+                </ul>
+            </details>
+        ) : node.data ? (
             <a
                 href={`/modules/${node.id}`}
                 class:list={[
@@ -51,20 +111,6 @@ const children = Object.values(node._children || {}).sort((a: any, b: any) => {
             >
                 {node.name}
             </div>
-        )
-    }
-
-    {
-        children.length > 0 && (
-            <ul class="space-y-1">
-                {children.map((child) => (
-                    <Astro.self
-                        node={child}
-                        currentSlug={currentSlug}
-                        depth={depth + 1}
-                    />
-                ))}
-            </ul>
         )
     }
 </li>

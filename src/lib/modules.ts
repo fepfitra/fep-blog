@@ -15,13 +15,17 @@ export function buildModuleTree(modules: CollectionEntry<"modules">[]) {
     modules.forEach((module) => {
         const parts = module.id.split("/");
         let currentLevel: Record<string, ModuleNode> = tree;
+        let currentPath = "";
 
         parts.forEach((part, index) => {
+            currentPath = currentPath ? `${currentPath}/${part}` : part;
+
             if (!currentLevel[part]) {
                 currentLevel[part] = {
                     _isDir: true,
                     _children: {},
                     name: part,
+                    id: currentPath,
                 };
             }
 
