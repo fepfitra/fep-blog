@@ -37,7 +37,13 @@ const {
         <Header containerSize={width} />
         <main class="container mx-auto px-4 py-32">
             <div class="flex flex-col gap-8 md:flex-row">
-                <Sidebar currentSlug={currentSlug} />
+                <div class="w-full md:w-64 md:shrink-0">
+                    <div
+                        class="sticky top-32 max-h-[calc(100vh-8rem)] overflow-y-auto"
+                    >
+                        <Sidebar currentSlug={currentSlug} />
+                    </div>
+                </div>
                 <article
                     class="prose dark:prose-invert max-w-none min-w-0 flex-1"
                     data-pagefind-body
@@ -67,13 +73,17 @@ const {
                 {
                     headings.length > 0 ? (
                         <aside class="hidden w-64 shrink-0 lg:block">
-                            <div class="sticky top-32">
+                            <div
+                                class="sticky top-32 max-h-[calc(100vh-8rem)] overflow-y-auto"
+                            >
                                 <TableOfContents headings={headings} />
                             </div>
                         </aside>
                     ) : (
                         <aside class="hidden w-64 shrink-0 lg:block">
-                            <div class="sticky top-32">
+                            <div
+                                class="sticky top-32 max-h-[calc(100vh-8rem)] overflow-y-auto"
+                            >
                                 <TypstToC />
                             </div>
                         </aside>
