@@ -160,10 +160,17 @@ html.scrolled #back-to-top {
 /* Typst equation styling */
 [role="math"] {
   @apply align-middle;
+	margin-top: 2em;
+	margin-bottom: 2em;
 }
 
 [role="inline-math"] {
   @apply inline-block align-middle;
+}
+
+.typst-frame {
+	margin-top: 0em;
+	margin-bottom: 0em;
 }
 
 /* Typst Math Visibility Toggling */
