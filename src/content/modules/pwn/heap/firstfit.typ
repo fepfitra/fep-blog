@@ -9,22 +9,16 @@
     order: 17,
   ),
 )<frontmatter>
+
 = glibc Allocator: First-Fit Algorithm
 
 == Introduction
 
 The glibc malloc implementation uses a first-fit algorithm for selecting free chunks of memory. This document explains how this algorithm works, based on the example code in `first_fit.c`.
 
-== The First-Fit Algorithm
+=== Visualization
 
-When a request for memory is made (e.g., via `malloc`), the allocator searches for a suitable free chunk. The first-fit algorithm works as follows:
-
-1. The allocator maintains lists of free chunks of different sizes.
-2. When a new allocation is requested, the allocator starts searching from the beginning of the list of free chunks.
-3. The first chunk that is large enough to satisfy the allocation request is chosen.
-4. If the chosen chunk is larger than the requested size, it is split into two parts:
-  *   One part is returned to the user.
-  *   The other part remains free and is placed back into the appropriate free list.
+Let's visualize the memory state at different stages of the first-fit algorithm.
 
 == Example from `first_fit.c`
 
@@ -39,6 +33,19 @@ char* a = malloc(0x512);
 char* b = malloc(0x256);
 ```
 
+#figure(
+  table(
+    columns: (auto, auto, auto, auto),
+    inset: 10pt,
+    align: center,
+    [*Address*], [*Size*], [*Status*], [*Chunk*],
+    "0x00", "0x512", [*Allocated*], [a $<--$],
+    "0x512", "0x256", [*Allocated*], [b $<--$],
+    "0x768", "...", [*Free*], "...",
+  ),
+  caption: [Initial State: After `a` and `b` are allocated.],
+)
+
 The allocator places these chunks in memory, one after the other.
 
 === Step 2: Freeing a Chunk
@@ -51,6 +58,19 @@ free(a);
 
 This places the chunk of size `0x512` back into a free list.
 
+#figure(
+  table(
+    columns: (auto, auto, auto, auto),
+    inset: 10pt,
+    align: center,
+    [*Address*], [*Size*], [*Status*], [*Chunk*],
+    "0x00", "0x512", [*Free*], [a (freed) $<--$],
+    "0x512", "0x256", [*Allocated*], "b",
+    "0x768", "...", [*Free*], "...",
+  ),
+  caption: [State after `free(a)`.],
+)
+
 === Step 3: Re-allocating a Smaller Chunk
 
 A new, smaller buffer, `c`, is allocated:
@@ -60,6 +80,20 @@ c = malloc(0x500);
 ```
 
 Because the allocator uses a first-fit strategy, it finds the recently freed chunk (originally `a`) is the first one large enough to hold `0x500` bytes.
+
+#figure(
+  table(
+    columns: (auto, auto, auto, auto),
+    inset: 10pt,
+    align: center,
+    [*Address*], [*Size*], [*Status*], [*Chunk*],
+    "0x00", "0x500", [*Allocated*], [c $<--$],
+    "0x500", "0x12", [*Free*], "remainder of a",
+    "0x512", "0x256", [*Allocated*], "b",
+    "0x768", "...", [*Free*], "...",
+  ),
+  caption: [State after `c = malloc(0x500)`.],
+)
 
 === Step 4: The Result
 
