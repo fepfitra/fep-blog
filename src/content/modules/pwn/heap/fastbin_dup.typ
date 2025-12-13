@@ -3,7 +3,7 @@
 
 #metadata(
   (
-    title: "glibc Allocator: Fastbin Double-Free",
+    title: "Fastbin Double-Free",
     description: "Tricking malloc into returning an already-allocated heap pointer by abusing the fastbin freelist.",
     date: "2025-12-13",
     order: 19,
@@ -130,13 +130,13 @@ free(a);
 /* VULNERABILITY */
 ```
 
-1.  After `free(a)`, the fastbin freelist for size `0x20` is: `HEAD -> [ a ] -> NULL`
-2.  After `free(b)`, it becomes: `HEAD -> [ b ] -> [ a ] -> NULL`
-3.  After `free(a)` again, the check is bypassed because `a` is not the head of the list. The list becomes corrupted.
+1. After `free(a)`, the fastbin freelist for size `0x20` is: `HEAD -> [ a ] -> NULL`
+2. After `free(b)`, it becomes: `HEAD -> [ b ] -> [ a ] -> NULL`
+3. After `free(a)` again, the check is bypassed because `a` is not the head of the list. The list becomes corrupted.
 
 #figure(
   table(
-    columns: (auto),
+    columns: auto,
     inset: 10pt,
     align: center,
     [*Corrupted Fastbin Freelist (size 0x20)*],
@@ -168,9 +168,9 @@ b = calloc(1, 8);
 c = calloc(1, 8);
 ```
 
-1.  The first allocation (`a = malloc(8)`) returns the chunk at `0x1000`. The fastbin list becomes `[ b, a ]`.
-2.  The second allocation (`b = calloc(1, 8)`) returns the chunk at `0x1020`. The fastbin list becomes `[ a ]`.
-3.  The third allocation (`c = calloc(1, 8)`) returns the chunk at `0x1000` *again*.
+1. The first allocation (`a = malloc(8)`) returns the chunk at `0x1000`. The fastbin list becomes `[ b, a ]`.
+2. The second allocation (`b = calloc(1, 8)`) returns the chunk at `0x1020`. The fastbin list becomes `[ a ]`.
+3. The third allocation (`c = calloc(1, 8)`) returns the chunk at `0x1000` *again*.
 
 #figure(
   table(

@@ -3,7 +3,7 @@
 
 #metadata(
   (
-    title: "glibc Allocator: Fastbin Dup into Stack",
+    title: "Fastbin Dup into Stack",
     description: "Extending the fastbin double-free to trick malloc into returning a pointer to a controlled location on the stack.",
     date: "2025-12-13",
     order: 20,

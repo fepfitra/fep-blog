@@ -3,7 +3,7 @@
 
 #metadata(
   (
-    title: "glibc Allocator: House of Spirit",
+    title: "House of Spirit",
     description: "An attack that tricks free() into adding a non-heap pointer (e.g., a stack address) to a fastbin, leading to an arbitrary allocation.",
     date: "2025-12-13",
     order: 22,
