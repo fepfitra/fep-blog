@@ -183,3 +183,7 @@ html:not(.dark) .typst-math-dark {
 html.dark .typst-math-light {
   display: none;
 }
+/* center for every figcaption */
+figcaption {
+	@apply text-center;
+}
