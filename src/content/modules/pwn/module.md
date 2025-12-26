@@ -9,6 +9,8 @@ order: 20
 
 Here you will find a collection of tutorials, write-ups, and practical examples covering various topics in "pwn", including:
 
+*   **Pwn Cheatsheet:** A quick reference for binary exploitation commands, tools, and techniques.
+*   **Heap Vulnerability Cheatsheet:** Summary of common heap exploitation techniques, conditions, and targets.
 *   **Heap Exploitation:** Techniques for exploiting vulnerabilities in heap memory management, such as use-after-free, double free, and heap overflows.
 *   **Stack Exploitation:** Understanding and exploiting stack-based buffer overflows and other related vulnerabilities.
 *   **Format String Vulnerabilities:** Learning how to leverage format string bugs to read from and write to arbitrary memory locations.
