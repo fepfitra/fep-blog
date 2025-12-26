@@ -35,7 +35,7 @@
         directionalLight.position.set(5, 5, 5);
         scene.add(directionalLight);
 
-        let model;
+        let model: THREE.Group | undefined;
 
         const loader = new GLTFLoader();
         loader.load(

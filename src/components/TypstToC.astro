@@ -39,7 +39,7 @@ const { class: className, open = true } = Astro.props;
         // Assign IDs
         headings.forEach((heading, index) => {
             if (!heading.id) {
-                let id = heading.textContent
+                let id = (heading.textContent || "")
                     .toLowerCase()
                     .replace(/[^a-z0-9]+/g, "-")
                     .replace(/(^-|-$)/g, "");
@@ -48,7 +48,7 @@ const { class: className, open = true } = Astro.props;
             }
         });
 
-        const createItem = (heading) => {
+        const createItem = (heading: Element) => {
             const li = document.createElement("li");
             li.className = "list-outside list-disc pr-6 py-1.5 text-sm";
 
@@ -83,7 +83,7 @@ const { class: className, open = true } = Astro.props;
                 list.appendChild(item);
             });
 
-            root.style.removeProperty("display");
+            (root as HTMLElement).style.removeProperty("display");
         });
     }
 
