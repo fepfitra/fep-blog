@@ -26,6 +26,7 @@
     [House of Spirit], [Fastbin/Tcache], [Any (with size check)],
     [House of Lore], [Small Bin], [Any],
     [House of Force], [Top Chunk], [< 2.29],
+    [Unsafe Unlink], [Small/Unsorted Bin], [Any (with pointer check)],
     [Overlapping Chunks], [Any], [Any],
   ),
   caption: [Common heap exploitation techniques overview.],
