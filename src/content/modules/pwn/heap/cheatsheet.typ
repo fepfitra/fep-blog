@@ -27,6 +27,7 @@
     [House of Lore], [Small Bin], [Any],
     [House of Force], [Top Chunk], [< 2.29],
     [Unsafe Unlink], [Small/Unsorted Bin], [Any (with pointer check)],
+    [Poison Null Byte], [Unsorted Bin], [Any (modern requires bypass)],
     [Overlapping Chunks], [Any], [Any],
   ),
   caption: [Common heap exploitation techniques overview.],
@@ -60,6 +61,17 @@
 - *Condition*: Heap Overflow into Top Chunk size.
 - *Mechanism*: Overwrite Top Chunk size with `-1` (0xffffffffffffffff).
 - *Goal*: `malloc` a huge size to "wrap around" the memory space and reach any address.
+
+=== 6. Unsafe Unlink
+- *Condition*: Heap Overflow or UAF + a known pointer to the chunk.
+- *Mechanism*: Forge a fake chunk with `fd` and `bk` such that `P->fd->bk == P` and `P->bk->fd == P`.
+- *Goal*: Trigger `unlink(P)` to overwrite the pointer `P` with an address near itself, enabling arbitrary write.
+
+=== 7. Poison Null Byte
+- *Condition*: Off-by-one null byte overwrite into the next chunk's size field.
+- *Mechanism*: Overwrite `size` to clear `PREV_INUSE` and set a fake `prev_size`.
+- *Goal*: Trigger backward consolidation with an "in-use" chunk to create chunk overlapping.
+- *Modern Bypass*: Requires using `largebin` residual pointers to satisfy `unlink` checks (glibc 2.29+).
 
 == Useful Glibc Offsets
 
