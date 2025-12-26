@@ -39,7 +39,7 @@ const {
             <div class="flex flex-col gap-8 md:flex-row">
                 <div class="w-full md:w-64 md:shrink-0">
                     <div
-                        class="sticky top-32 max-h-[calc(100vh-8rem)] overflow-y-auto"
+                        class="sticky top-32 max-h-[calc(100vh-12rem)] overflow-y-auto"
                     >
                         <Sidebar currentSlug={currentSlug} />
                     </div>
@@ -74,7 +74,7 @@ const {
                     headings.length > 0 ? (
                         <aside class="hidden w-64 shrink-0 lg:block">
                             <div
-                                class="sticky top-32 max-h-[calc(100vh-8rem)] overflow-y-auto"
+                                class="sticky top-32 max-h-[calc(100vh-12rem)] overflow-y-auto"
                             >
                                 <TableOfContents headings={headings} />
                             </div>
@@ -82,7 +82,7 @@ const {
                     ) : (
                         <aside class="hidden w-64 shrink-0 lg:block">
                             <div
-                                class="sticky top-32 max-h-[calc(100vh-8rem)] overflow-y-auto"
+                                class="sticky top-32 max-h-[calc(100vh-12rem)] overflow-y-auto"
                             >
                                 <TypstToC />
                             </div>
