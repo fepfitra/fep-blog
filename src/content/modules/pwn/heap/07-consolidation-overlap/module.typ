@@ -1,6 +1,3 @@
-#import "../../../../../typst-theme.c.typ": project
-#show: project
-
 #metadata(
   (
     title: "Consolidation & Overlap",
@@ -9,6 +6,9 @@
     order: 0,
   ),
 )<frontmatter>
+#import "../../../../../typst-theme.c.typ": project
+#show: project
+
 
 = Consolidation & Overlapping Chunks
 

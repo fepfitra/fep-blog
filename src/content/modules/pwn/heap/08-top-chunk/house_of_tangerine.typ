@@ -1,6 +1,3 @@
-#import "../../../../../typst-theme.c.typ": project
-#show: project
-
 #metadata(
   (
     title: "House of Tangerine",
@@ -9,6 +6,9 @@
     order: 73,
   ),
 )<frontmatter>
+#import "../../../../../typst-theme.c.typ": project
+#show: project
+
 
 = glibc Allocator: House of Tangerine
 

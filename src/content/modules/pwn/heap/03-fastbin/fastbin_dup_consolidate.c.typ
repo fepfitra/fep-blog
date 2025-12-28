@@ -1,6 +1,3 @@
-#import "../../../../../typst-theme.c.typ": project
-#show: project
-
 #metadata(
   (
     title: "Fastbin Dup with malloc_consolidate",
@@ -9,6 +6,9 @@
     order: 22,
   ),
 )<frontmatter>
+#import "../../../../../typst-theme.c.typ": project
+#show: project
+
 
 = glibc Allocator: Fastbin Dup with `malloc_consolidate`
 

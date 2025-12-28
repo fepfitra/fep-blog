@@ -1,6 +1,3 @@
-#import "../../../../../typst-theme.c.typ": project
-#show: project
-
 #metadata(
   (
     title: "House of Mind",
@@ -9,6 +6,9 @@
     order: 80,
   ),
 )<frontmatter>
+#import "../../../../../typst-theme.c.typ": project
+#show: project
+
 
 = House of Mind (Fastbin Variant)
 

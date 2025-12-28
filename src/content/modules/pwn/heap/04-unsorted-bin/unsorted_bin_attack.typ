@@ -1,6 +1,3 @@
-#import "../../../../../typst-theme.c.typ": project
-#show: project
-
 #metadata(
   (
     title: "Unsorted Bin Attack",
@@ -9,6 +6,9 @@
     order: 30,
   ),
 )<frontmatter>
+#import "../../../../../typst-theme.c.typ": project
+#show: project
+
 
 = glibc Allocator: Unsorted Bin Attack
 

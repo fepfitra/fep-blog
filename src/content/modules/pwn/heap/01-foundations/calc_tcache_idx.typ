@@ -1,6 +1,3 @@
-#import "../../../../../typst-theme.c.typ": project
-#show: project
-
 #metadata(
   (
     title: "T-Cache Index Calculation",
@@ -9,6 +6,9 @@
     order: 3,
   ),
 )<frontmatter>
+#import "../../../../../typst-theme.c.typ": project
+#show: project
+
 
 = T-Cache Index Calculation
 

@@ -1,6 +1,3 @@
-#import "../../../../../typst-theme.c.typ": project
-#show: project
-
 #metadata(
   (
     title: "Fastbin Double-Free",
@@ -9,6 +6,9 @@
     order: 20,
   ),
 )<frontmatter>
+#import "../../../../../typst-theme.c.typ": project
+#show: project
+
 
 = Fastbin Double-Free Attack
 

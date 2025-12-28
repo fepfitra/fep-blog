@@ -1,6 +1,3 @@
-#import "../../../../../typst-theme.c.typ": project
-#show: project
-
 #metadata(
   (
     title: "Safe-Linking Double Protection Bypass",
@@ -9,6 +6,9 @@
     order: 5,
   ),
 )<frontmatter>
+#import "../../../../../typst-theme.c.typ": project
+#show: project
+
 
 = Safe-Linking Double Protection Bypass
 

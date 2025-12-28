@@ -1,6 +1,3 @@
-#import "../../../../../typst-theme.c.typ": project
-#show: project
-
 #metadata(
   (
     title: "First-Fit Algorithm",
@@ -9,6 +6,9 @@
     order: 2,
   ),
 )<frontmatter>
+#import "../../../../../typst-theme.c.typ": project
+#show: project
+
 
 = glibc Allocator: First-Fit Algorithm
 

@@ -1,6 +1,3 @@
-#import "../../../../../typst-theme.c.typ": project
-#show: project
-
 #metadata(
   (
     title: "Fastbin Reverse into Tcache",
@@ -9,6 +6,9 @@
     order: 51,
   ),
 )<frontmatter>
+#import "../../../../../typst-theme.c.typ": project
+#show: project
+
 
 = Fastbin Reverse into Tcache
 

@@ -1,6 +1,3 @@
-#import "../../../../../typst-theme.c.typ": project
-#show: project
-
 #metadata(
   (
     title: "Tcache Metadata Poisoning",
@@ -9,6 +6,9 @@
     order: 12,
   ),
 )<frontmatter>
+#import "../../../../../typst-theme.c.typ": project
+#show: project
+
 
 = Tcache Metadata Poisoning
 

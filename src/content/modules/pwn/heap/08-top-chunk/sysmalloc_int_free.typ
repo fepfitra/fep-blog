@@ -1,6 +1,3 @@
-#import "../../../../../typst-theme.c.typ": project
-#show: project
-
 #metadata(
   (
     title: "sysmalloc: _int_free on Top Chunk",
@@ -9,6 +6,9 @@
     order: 71,
   ),
 )<frontmatter>
+#import "../../../../../typst-theme.c.typ": project
+#show: project
+
 
 = glibc Allocator: sysmalloc \_int_free
 

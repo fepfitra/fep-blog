@@ -1,6 +1,3 @@
-#import "../../../../../typst-theme.c.typ": project
-#show: project
-
 #metadata(
   (
     title: "Heap Vulnerability Cheatsheet",
@@ -9,6 +6,9 @@
     order: 1,
   ),
 )<frontmatter>
+
+#import "../../../../../typst-theme.c.typ": project
+#show: project
 
 = Heap Vulnerability Cheatsheet
 

@@ -41,6 +41,35 @@ export function buildModuleTree(modules: CollectionEntry<"modules">[]) {
         });
     });
 
+    // Post-process: merge index/module files into parent directory nodes
+    function mergeIndexNodes(nodes: Record<string, ModuleNode>, isTopLevel = false) {
+        for (const key in nodes) {
+            const node = nodes[key];
+            if (node._children) {
+                mergeIndexNodes(node._children, false);
+
+                if (isTopLevel) continue; // Skip merging for top-level categories
+
+                // Check for module or index child
+                const indexKey = Object.keys(node._children).find(
+                    (k) => k === "module" || k === "index"
+                );
+
+                if (indexKey) {
+                    const indexNode = node._children[indexKey];
+                    // Merge index node data into parent
+                    node.data = indexNode.data;
+                    node.id = indexNode.id;
+                    node.collection = indexNode.collection;
+                    // Remove the index node from children so it's not listed twice
+                    delete node._children[indexKey];
+                }
+            }
+        }
+    }
+
+    mergeIndexNodes(tree, true);
+
     return tree;
 }
 
