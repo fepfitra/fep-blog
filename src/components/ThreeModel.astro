@@ -4,44 +4,56 @@
     import * as THREE from "three";
     import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 
-    const container = document.getElementById("three-container");
+    // Enable Three.js internal caching
+    THREE.Cache.enabled = true;
 
-    if (container) {
-        const scene = new THREE.Scene();
-        // Transparent background
-        scene.background = null;
+    let renderer: THREE.WebGLRenderer | undefined;
+    let animationId: number | undefined;
+    let cachedModel: THREE.Group | undefined;
 
-        const camera = new THREE.PerspectiveCamera(
-            75,
-            container.clientWidth / container.clientHeight,
-            0.1,
-            1000,
-        );
-        camera.position.set(0, 2, 5);
-        camera.lookAt(0, 0, 0);
+    function initThree() {
+        const container = document.getElementById("three-container");
 
-        const renderer = new THREE.WebGLRenderer({
-            alpha: true,
-            antialias: true,
-        });
-        renderer.setSize(container.clientWidth, container.clientHeight);
-        container.appendChild(renderer.domElement);
+        if (container) {
+            // Cleanup previous instance if any
+            if (renderer) {
+                renderer.dispose();
+                if (animationId) cancelAnimationFrame(animationId);
+                container.innerHTML = "";
+            }
 
-        // Lighting
-        const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
-        scene.add(ambientLight);
+            const scene = new THREE.Scene();
+            // Transparent background
+            scene.background = null;
 
-        const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
-        directionalLight.position.set(5, 5, 5);
-        scene.add(directionalLight);
+            const camera = new THREE.PerspectiveCamera(
+                75,
+                container.clientWidth / container.clientHeight,
+                0.1,
+                1000,
+            );
+            camera.position.set(0, 2, 5);
+            camera.lookAt(0, 0, 0);
 
-        let model: THREE.Group | undefined;
+            renderer = new THREE.WebGLRenderer({
+                alpha: true,
+                antialias: true,
+            });
+            renderer.setSize(container.clientWidth, container.clientHeight);
+            container.appendChild(renderer.domElement);
 
-        const loader = new GLTFLoader();
-        loader.load(
-            "/oiiaioooooiai_cat.glb",
-            (gltf) => {
-                model = gltf.scene;
+            // Lighting
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+            scene.add(ambientLight);
+
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+            directionalLight.position.set(5, 5, 5);
+            scene.add(directionalLight);
+
+            let model: THREE.Group | undefined;
+
+            const setupModel = (group: THREE.Group) => {
+                model = group;
                 scene.add(model);
 
                 // Center the model
@@ -51,32 +63,66 @@
 
                 // Scale if necessary (adjust based on model size)
                 model.scale.set(8, 8, 8);
-            },
-            undefined,
-            (error) => {
-                console.error("An error happened loading the model:", error);
-            },
-        );
+            };
 
-        function animate() {
-            requestAnimationFrame(animate);
-
-            if (model) {
-                model.rotation.y -= 0.03;
+            if (cachedModel) {
+                setupModel(cachedModel);
+            } else {
+                const loader = new GLTFLoader();
+                loader.load(
+                    "/oiiaioooooiai_cat.glb",
+                    (gltf) => {
+                        cachedModel = gltf.scene;
+                        setupModel(cachedModel);
+                    },
+                    undefined,
+                    (error) => {
+                        console.error("An error happened loading the model:", error);
+                    },
+                );
             }
 
-            renderer.render(scene, camera);
+            function animate() {
+                animationId = requestAnimationFrame(animate);
+
+                if (model) {
+                    model.rotation.y -= 0.03;
+                }
+
+                if (renderer) {
+                    renderer.render(scene, camera);
+                }
+            }
+
+            animate();
+
+            // Handle Resize
+            const handleResize = () => {
+                if (container && renderer) {
+                    camera.aspect = container.clientWidth / container.clientHeight;
+                    camera.updateProjectionMatrix();
+                    renderer.setSize(container.clientWidth, container.clientHeight);
+                }
+            };
+
+            window.addEventListener("resize", handleResize);
+            
+            // Store handleResize to remove it later if needed
+            (container as any)._handleResize = handleResize;
         }
-
-        animate();
-
-        // Handle Resize
-        window.addEventListener("resize", () => {
-            if (container) {
-                camera.aspect = container.clientWidth / container.clientHeight;
-                camera.updateProjectionMatrix();
-                renderer.setSize(container.clientWidth, container.clientHeight);
-            }
-        });
     }
+
+    // Support Astro View Transitions
+    document.addEventListener("astro:page-load", initThree);
+
+    // Cleanup on page swap
+    document.addEventListener("astro:before-swap", () => {
+        if (renderer) {
+            renderer.dispose();
+            renderer.forceContextLoss();
+        }
+        if (animationId) {
+            cancelAnimationFrame(animationId);
+        }
+    });
 </script>
