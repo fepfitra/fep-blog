@@ -1,15 +1,6 @@
 ---
 import type { CollectionEntry } from "astro:content";
-
-type ModuleNode = {
-    _isDir: boolean;
-    _children: Record<string, ModuleNode>;
-    data?: CollectionEntry<"modules">["data"];
-    id?: string;
-    name?: string;
-};
-
-import { sortModuleNodes } from "@lib/modules";
+import { sortModuleNodes, type ModuleNode } from "@lib/modules";
 
 type Props = {
     node: ModuleNode;

@@ -7,7 +7,10 @@ import ArrowCard from "@components/ArrowCard.astro";
 
 const modules = (await getCollection("modules"))
     .filter((module) => !module.data.draft)
-    .filter((module) => module.id.endsWith("/module"))
+    .filter(
+        (module) =>
+            module.id.endsWith("/module") && module.id.split("/").length === 2,
+    )
     .sort((a, b) => (a.data.order || 0) - (b.data.order || 0));
 ---
 
