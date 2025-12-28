@@ -9,6 +9,8 @@ type ModuleNode = {
     name?: string;
 };
 
+import { sortModuleNodes } from "@lib/modules";
+
 type Props = {
     node: ModuleNode;
     currentSlug: string;
@@ -18,15 +20,7 @@ type Props = {
 const { node, currentSlug, depth = 0 } = Astro.props;
 
 const isActive = node.id === currentSlug;
-const children = Object.values(node._children || {}).sort((a: any, b: any) => {
-    const aIsIndex = a.id?.endsWith("/module") || a.id?.endsWith("/index");
-    const bIsIndex = b.id?.endsWith("/module") || b.id?.endsWith("/index");
-
-    if (aIsIndex && !bIsIndex) return -1;
-    if (!aIsIndex && bIsIndex) return 1;
-
-    return (a.data?.order || 0) - (b.data?.order || 0);
-});
+const children = sortModuleNodes(Object.values(node._children || {}));
 ---
 
 <li>

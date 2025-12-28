@@ -81,16 +81,16 @@ export function sortModuleNodes(nodes: ModuleNode[]): ModuleNode[] {
         if (aIsIndex && !bIsIndex) return -1;
         if (!aIsIndex && bIsIndex) return 1;
 
-        // 2. Files before Directories
-        if (!a._isDir && b._isDir) return -1;
-        if (a._isDir && !b._isDir) return 1;
-
-        // 3. Sort by Order
-        const aOrder = a.data?.order || 0;
-        const bOrder = b.data?.order || 0;
+        // 2. Sort by Order
+        const aOrder = a.data?.order ?? 999;
+        const bOrder = b.data?.order ?? 999;
         if (aOrder !== bOrder) {
             return aOrder - bOrder;
         }
+
+        // 3. Files before Directories (if order is same)
+        if (!a._isDir && b._isDir) return -1;
+        if (a._isDir && !b._isDir) return 1;
 
         // 4. Alphabetical by title/name
         const aName = a.data?.title || a.name || "";
@@ -105,7 +105,8 @@ export function flattenModuleTree(nodes: ModuleNode[]): ModuleNode[] {
     const sorted = sortModuleNodes(nodes);
 
     for (const node of sorted) {
-        if (!node._isDir && node.id) {
+        // Include node if it has data and an id (represents a page)
+        if (node.id && node.data) {
             result.push(node);
         }
 
