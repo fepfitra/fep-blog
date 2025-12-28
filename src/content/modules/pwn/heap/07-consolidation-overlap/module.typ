@@ -1,6 +1,6 @@
 #metadata(
   (
-    title: "07-Consolidation & Overlap",
+    title: "Consolidation & Overlap",
     description: "Abusing the allocator's merging logic to create overlapping chunks and cross-allocation control.",
     date: "2025-12-28",
     order: 70,

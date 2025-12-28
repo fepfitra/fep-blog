@@ -1,6 +1,6 @@
 #metadata(
   (
-    title: "01-Foundations",
+    title: "Foundations",
     description: "Core concepts, algorithms, and primitive techniques of the glibc heap allocator.",
     date: "2025-12-28",
     order: 10,
