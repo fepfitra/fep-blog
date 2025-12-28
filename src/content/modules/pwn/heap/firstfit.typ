@@ -6,7 +6,7 @@
     title: "First-Fit Algorithm",
     description: "An explanation of the first-fit algorithm used by glibc's memory allocator.",
     date: "2025-12-09",
-    order: 17,
+    order: 2,
   ),
 )<frontmatter>
 

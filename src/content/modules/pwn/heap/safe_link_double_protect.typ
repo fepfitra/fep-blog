@@ -6,7 +6,7 @@
     title: "Safe-Linking Double Protection Bypass",
     description: "A technique to bypass Safe-Linking by protecting a pointer twice, effectively canceling the obfuscation.",
     date: "2025-12-28",
-    order: 20,
+    order: 5,
   ),
 )<frontmatter>
 

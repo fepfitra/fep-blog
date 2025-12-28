@@ -6,7 +6,7 @@
     title: "T-Cache Index Calculation",
     description: "An explanation of how the t-cache index is calculated in glibc's memory allocator.",
     date: "2025-12-13",
-    order: 18,
+    order: 3,
   ),
 )<frontmatter>
 

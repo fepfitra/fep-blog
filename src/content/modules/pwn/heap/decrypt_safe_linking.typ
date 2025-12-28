@@ -6,7 +6,7 @@
     title: "Decrypting Safe-Linking",
     description: "A technique to recover the original pointer from a Safe-Linking-protected value in glibc 2.32+.",
     date: "2025-12-28",
-    order: 19,
+    order: 4,
   ),
 )<frontmatter>
 

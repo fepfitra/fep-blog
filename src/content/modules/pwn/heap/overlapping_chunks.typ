@@ -6,7 +6,7 @@
     title: "Overlapping Chunks",
     description: "Abusing a size field overwrite to trick the allocator into returning a chunk that overlaps with another active allocation.",
     date: "2025-12-26",
-    order: 34,
+    order: 60,
   ),
 )<frontmatter>
 

@@ -6,7 +6,7 @@
     title: "House of Force",
     description: "Abusing the top chunk (wilderness) size to achieve arbitrary allocation by forcing malloc to wrap around the address space.",
     date: "2025-12-26",
-    order: 37,
+    order: 70,
   ),
 )<frontmatter>
 

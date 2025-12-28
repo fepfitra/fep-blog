@@ -6,7 +6,7 @@
     title: "Tcache Metadata Poisoning",
     description: "Gaining full control over tcache by corrupting the tcache_perthread_struct metadata, allowing for immediate arbitrary allocations.",
     date: "2025-12-28",
-    order: 21,
+    order: 12,
   ),
 )<frontmatter>
 

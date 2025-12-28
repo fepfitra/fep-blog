@@ -6,7 +6,7 @@
     title: "sysmalloc: _int_free on Top Chunk",
     description: "Exploiting sysmalloc to trigger an implicit _int_free on the top chunk by corrupting its size metadata.",
     date: "2025-12-26",
-    order: 44,
+    order: 71,
   ),
 )<frontmatter>
 
