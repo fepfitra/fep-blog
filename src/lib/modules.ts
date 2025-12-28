@@ -5,6 +5,7 @@ export type ModuleNode = {
     _children: Record<string, ModuleNode>;
     name?: string;
     id?: string;
+    dirPath?: string;
     data?: CollectionEntry<"modules">["data"];
     collection?: "modules";
 };
@@ -26,6 +27,7 @@ export function buildModuleTree(modules: CollectionEntry<"modules">[]) {
                     _children: {},
                     name: part,
                     id: currentPath,
+                    dirPath: currentPath,
                 };
             }
 

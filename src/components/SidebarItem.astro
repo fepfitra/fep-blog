@@ -28,9 +28,8 @@ const children = sortModuleNodes(Object.values(node._children || {}));
         children.length > 0 ? (
             <details
                 open={
-                    node.id &&
-                    (currentSlug === node.id ||
-                        currentSlug.startsWith(node.id + "/"))
+                    (node.id && currentSlug === node.id) ||
+                    (node.dirPath && currentSlug.startsWith(node.dirPath + "/"))
                 }
                 class="group"
             >
