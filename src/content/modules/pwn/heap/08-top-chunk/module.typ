@@ -3,7 +3,7 @@
     title: "08-Top Chunk Attacks",
     description: "Techniques targeting the wilderness (top chunk) and the sysmalloc extension mechanism.",
     date: "2025-12-28",
-    order: 0,
+    order: 80,
   ),
 )<frontmatter>
 #import "../../../../../typst-theme.c.typ": project

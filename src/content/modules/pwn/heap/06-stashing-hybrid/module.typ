@@ -3,7 +3,7 @@
     title: "06-Stashing & Hybrid Attacks",
     description: "Exploiting the interaction between different bin types, such as fastbin-to-tcache refill.",
     date: "2025-12-28",
-    order: 0,
+    order: 60,
   ),
 )<frontmatter>
 #import "../../../../../typst-theme.c.typ": project

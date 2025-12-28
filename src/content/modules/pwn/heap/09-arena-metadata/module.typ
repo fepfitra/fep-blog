@@ -3,7 +3,7 @@
     title: "09-Arena & Metadata Hijacking",
     description: "High-level attacks that target the allocator's internal state structures and multi-arena management.",
     date: "2025-12-28",
-    order: 0,
+    order: 90,
   ),
 )<frontmatter>
 #import "../../../../../typst-theme.c.typ": project

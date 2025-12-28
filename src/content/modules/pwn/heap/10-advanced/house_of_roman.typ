@@ -4,7 +4,6 @@
     description: "A leakless heap exploitation technique that uses relative overwrites to hijack __malloc_hook, requiring 12 bits of brute force.",
     date: "2025-12-28",
     order: 90,
-    draft: true,
   ),
 )<frontmatter>
 #import "../../../../../typst-theme.c.typ": project
@@ -60,7 +59,7 @@ int main(){
 	free(fastbin_victim);
 
 	// VULNERABILITY: Relative overwrite on fastbin FD
-	fastbin_victim[0] = 0x00; 
+	fastbin_victim[0] = 0x00;
 
 	long long __malloc_hook_adjust = __malloc_hook_addr - 0x23;
 
@@ -73,7 +72,7 @@ int main(){
 	uint8_t* malloc_hook_chunk = malloc(0x60);
 
 	uint8_t* unsorted_bin_ptr = malloc(0x80);
-	malloc(0x30); 
+	malloc(0x30);
 
 	free(unsorted_bin_ptr);
 

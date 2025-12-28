@@ -3,7 +3,7 @@
     title: "04-Unsorted Bin Attacks",
     description: "Exploiting the unsorted bin's removal logic to achieve powerful write primitives.",
     date: "2025-12-28",
-    order: 0,
+    order: 40,
   ),
 )<frontmatter>
 #import "../../../../../typst-theme.c.typ": project

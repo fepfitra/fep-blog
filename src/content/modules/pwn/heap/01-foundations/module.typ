@@ -3,7 +3,7 @@
     title: "01-Foundations",
     description: "Core concepts, algorithms, and primitive techniques of the glibc heap allocator.",
     date: "2025-12-28",
-    order: 0,
+    order: 10,
   ),
 )<frontmatter>
 #import "../../../../../typst-theme.c.typ": project

@@ -3,7 +3,7 @@
     title: "05-Small & Large Bin Attacks",
     description: "Techniques targeting the sorted small and large bins for complex heap manipulation.",
     date: "2025-12-28",
-    order: 0,
+    order: 50,
   ),
 )<frontmatter>
 #import "../../../../../typst-theme.c.typ": project
