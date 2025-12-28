@@ -6,7 +6,7 @@
     title: "Poison Null Byte",
     description: "Exploiting an off-by-one null byte to trigger backward consolidation and chunk overlapping.",
     date: "2025-12-26",
-    order: 24,
+    order: 25,
   ),
 )<frontmatter>
 

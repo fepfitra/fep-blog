@@ -6,7 +6,7 @@
     title: "mmap Overlapping Chunks",
     description: "Exploiting large mmap-allocated chunks by corrupting their size to trigger overlapping munmap/mmap sequences.",
     date: "2025-12-26",
-    order: 28,
+    order: 29,
   ),
 )<frontmatter>
 

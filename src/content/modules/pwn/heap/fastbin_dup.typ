@@ -6,7 +6,7 @@
     title: "Fastbin Double-Free",
     description: "Tricking malloc into returning an already-allocated heap pointer by abusing the fastbin freelist.",
     date: "2025-12-13",
-    order: 19,
+    order: 20,
   ),
 )<frontmatter>
 

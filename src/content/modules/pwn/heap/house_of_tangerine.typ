@@ -6,7 +6,7 @@
     title: "House of Tangerine",
     description: "A modernized version of House of Orange that corrupts the heap without calling free() directly, utilizing _int_free on the top chunk in sysmalloc and tcache poisoning.",
     date: "2025-12-27",
-    order: 37,
+    order: 38,
   ),
 )<frontmatter>
 
