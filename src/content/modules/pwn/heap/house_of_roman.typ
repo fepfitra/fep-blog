@@ -6,7 +6,7 @@
     title: "House of Roman",
     description: "A leakless heap exploitation technique that uses relative overwrites to hijack __malloc_hook, requiring 12 bits of brute force.",
     date: "2025-12-28",
-    order: 47,
+    order: 48,
     draft: true,
   ),
 )<frontmatter>

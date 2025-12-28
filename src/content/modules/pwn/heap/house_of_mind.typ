@@ -6,7 +6,7 @@
     title: "House of Mind",
     description: "An attack that abuses the non-main arena flag and heap alignment to trick free() into using a fake arena, creating a write-what-where primitive.",
     date: "2025-12-28",
-    order: 45,
+    order: 46,
   ),
 )<frontmatter>
 
