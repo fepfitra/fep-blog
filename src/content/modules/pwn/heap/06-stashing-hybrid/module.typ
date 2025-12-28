@@ -1,6 +1,6 @@
 #metadata(
   (
-    title: "Stashing & Hybrid Attacks",
+    title: "06-Stashing & Hybrid Attacks",
     description: "Exploiting the interaction between different bin types, such as fastbin-to-tcache refill.",
     date: "2025-12-28",
     order: 0,

@@ -1,6 +1,6 @@
 #metadata(
   (
-    title: "Fastbin Attacks",
+    title: "03-Fastbin Attacks",
     description: "Classical heap exploits targeting the fastbins, the original LIFO caching mechanism.",
     date: "2025-12-28",
     order: 0,
