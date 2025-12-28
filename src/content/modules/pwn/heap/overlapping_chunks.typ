@@ -7,6 +7,7 @@
     description: "Abusing a size field overwrite to trick the allocator into returning a chunk that overlaps with another active allocation.",
     date: "2025-12-26",
     order: 26,
+    draft: true,
   ),
 )<frontmatter>
 
@@ -17,8 +18,8 @@
 The "Overlapping Chunks" technique is a heap exploitation method where an attacker overwrites the `size` field of a chunk (either allocated or freed) to make it appear larger than it actually is. When this "evil" chunk is subsequently handled by the allocator (e.g., via `free()` and then `malloc()`), the allocator treats it as a large contiguous block that may encompass other, already-allocated chunks.
 
 The result is that two or more pointers now point to overlapping regions of memory. This primitive allows an attacker to:
-1.  *Leak sensitive data*: Read the contents of the overlapped chunk (e.g., pointers, keys).
-2.  *Corrupt data*: Overwrite critical data in the overlapped chunk (e.g., function pointers, object metadata).
+1. *Leak sensitive data*: Read the contents of the overlapped chunk (e.g., pointers, keys).
+2. *Corrupt data*: Overwrite critical data in the overlapped chunk (e.g., function pointers, object metadata).
 
 == Example from `overlapping_chunks.c`
 
@@ -62,7 +63,7 @@ int main(int argc , char* argv[])
 		 evil_chunk_size, evil_region_size);
 
 	/* VULNERABILITY: Overwrite the size field of chunk p2 */
-	*(p2-1) = evil_chunk_size; 
+	*(p2-1) = evil_chunk_size;
 
 	printf("\nNow let's free the chunk p2\n");
 	free(p2);
@@ -70,7 +71,7 @@ int main(int argc , char* argv[])
 
 	printf("\nNow let's allocate another chunk with a size equal to the data\n"
 	       "size of the chunk p2 injected size\n");
-	
+
 	// This malloc will return the memory starting at p2, but extending through p3
 	p4 = malloc(evil_region_size);
 

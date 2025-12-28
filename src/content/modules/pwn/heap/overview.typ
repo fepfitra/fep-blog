@@ -7,6 +7,7 @@
     description: "A visual overview of what allocated and freed chunks look like in different glibc bins.",
     date: "2025-12-13",
     order: 0,
+    draft: true,
   ),
 )<frontmatter>
 

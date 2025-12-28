@@ -7,6 +7,7 @@
     description: "Abusing an off-by-one null byte to clear the PREV_INUSE bit and trigger backward consolidation with a forged fake chunk.",
     date: "2025-12-26",
     order: 33,
+    draft: true,
   ),
 )<frontmatter>
 

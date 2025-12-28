@@ -7,6 +7,7 @@
     description: "An advanced heap exploitation technique targeting the SmallBin to achieve arbitrary allocation by corrupting the BK pointer.",
     date: "2025-12-26",
     order: 25,
+    draft: true,
   ),
 )<frontmatter>
 

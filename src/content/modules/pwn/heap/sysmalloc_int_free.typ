@@ -7,6 +7,7 @@
     description: "Exploiting sysmalloc to trigger an implicit _int_free on the top chunk by corrupting its size metadata.",
     date: "2025-12-26",
     order: 35,
+    draft: true,
   ),
 )<frontmatter>
 

@@ -7,6 +7,7 @@
     description: "Tricking the Unsorted Bin into returning a stack address by corrupting the BK pointer and size of a freed chunk.",
     date: "2025-12-26",
     order: 30,
+    draft: true,
   ),
 )<frontmatter>
 

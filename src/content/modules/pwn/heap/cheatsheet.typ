@@ -7,6 +7,7 @@
     description: "Summary of common heap exploitation techniques, conditions, and targets.",
     date: "2025-12-26",
     order: 5,
+    draft: true,
   ),
 )<frontmatter>
 

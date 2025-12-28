@@ -7,6 +7,7 @@
     description: "An explanation of the first-fit algorithm used by glibc's memory allocator.",
     date: "2025-12-09",
     order: 17,
+    draft: true,
   ),
 )<frontmatter>
 

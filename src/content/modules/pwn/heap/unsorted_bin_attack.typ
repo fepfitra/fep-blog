@@ -7,6 +7,7 @@
     description: "Exploiting the Unsorted Bin removal logic to write a large libc address to an arbitrary location.",
     date: "2025-12-26",
     order: 31,
+    draft: true,
   ),
 )<frontmatter>
 
