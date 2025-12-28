@@ -7,7 +7,6 @@
     description: "Abusing the top chunk (wilderness) size to achieve arbitrary allocation by forcing malloc to wrap around the address space.",
     date: "2025-12-26",
     order: 29,
-    draft: true,
   ),
 )<frontmatter>
 
@@ -18,6 +17,11 @@
 The "House of Force" is a powerful heap exploitation technique that targets the "wilderness" chunk, also known as the **Top Chunk**. The Top Chunk is the region of memory at the very end of the heap that is used to satisfy allocation requests when no suitable free chunks are available in the bins.
 
 By corrupting the `size` field of the Top Chunk, an attacker can trick the allocator into believing that the heap is much larger than it actually is (e.g., by setting the size to `-1`). This allows the attacker to make a subsequent `malloc()` request with a carefully calculated "evil" size that causes the Top Chunk's pointer to wrap around or reach an arbitrary memory location (like the stack, `.bss`, or the GOT).
+
+== Prerequisites
+- *Heap Overflow*: Ability to overwrite the `size` field of the Top Chunk (Wilderness).
+- *Arbitrary Allocation Size*: Ability to control the size argument of a `malloc()` call.
+- *GLIBC Version*: Typically works on glibc < 2.29. Newer versions have a top chunk size integrity check.
 
 == Example from `house_of_force.c`
 

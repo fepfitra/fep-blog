@@ -7,7 +7,6 @@
     description: "Exploiting the Large Bin sorting logic to achieve an arbitrary write of a heap address.",
     date: "2025-12-26",
     order: 32,
-    draft: true,
   ),
 )<frontmatter>
 
@@ -15,9 +14,14 @@
 
 == Introduction
 
-The "Large Bin Attack" is a heap exploitation technique that allows an attacker to write a heap address to an arbitrary location. It targets the logic used by the allocator when inserting a chunk into a **Large Bin**.
+The "Large Bin Attack" is a heap exploitation technique that allows an attacker to write a heap address to an arbitrary location. It targets the logic used by the allocator when inserting a chunk into a *Large Bin*.
 
 Unlike the Unsorted Bin attack, which writes a libc address, the Large Bin attack writes the address of the chunk being inserted (a heap address). This is achieved by corrupting the `bk_nextsize` pointer of a chunk already sitting in the Large Bin.
+
+== Prerequisites
+- *Large Bin Corruption*: Ability to overwrite the `bk_nextsize` pointer of a chunk while it is in a Large Bin.
+- *Size Control*: Ability to allocate chunks of different sizes within the Large Bin range (typically > 0x400) to trigger specific sorting branches.
+- *GLIBC Version*: Effective on glibc < 2.30. Newer versions include integrity checks for the `nextsize` list.
 
 == Example Code
 

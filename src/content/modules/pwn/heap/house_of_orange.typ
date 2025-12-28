@@ -7,7 +7,6 @@
     description: "Exploiting the glibc allocator by corrupting the top chunk to trigger a sysmalloc that frees the old top chunk into an unsorted bin, followed by FSOP (File Stream Oriented Programming).",
     date: "2025-12-27",
     order: 36,
-    draft: true,
   ),
 )<frontmatter>
 
@@ -18,6 +17,12 @@
 The *House of Orange* is a sophisticated heap exploitation technique that does not rely on calling `free()` directly. Instead, it exploits a heap overflow to corrupt the Top Chunk (Wilderness), forcing `sysmalloc` to free the old Top Chunk into the unsorted bin when a subsequent allocation request cannot be satisfied.
 
 Once the old Top Chunk is in the unsorted bin, the attack typically employs *File Stream Oriented Programming (FSOP)* by overwriting `_IO_list_all` to gain code execution when the program eventually aborts or exits.
+
+== Prerequisites
+- *Heap Overflow*: Ability to overwrite the Top Chunk's `size` field.
+- *No Free Primitive*: This attack is specifically designed for scenarios where the attacker cannot call `free()` directly.
+- *Leak Requirement*: Requires both a heap leak and a libc leak to target `_IO_list_all` and forge the `FILE` structure.
+- *GLIBC Version*: Effective on glibc < 2.26. Modern versions have whitelisted vtables and changed error handling.
 
 == Example from `house_of_orange.c`
 

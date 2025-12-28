@@ -7,7 +7,6 @@
     description: "A variation of the overlapping chunks attack that leverages forward consolidation to swallow a non-adjacent chunk.",
     date: "2025-12-26",
     order: 27,
-    draft: true,
   ),
 )<frontmatter>
 
@@ -15,9 +14,14 @@
 
 == Introduction
 
-This variation of the "Overlapping Chunks" technique, often referred to as the **Nonadjacent Free Chunk Consolidation Attack**, achieves memory overlap by abusing the allocator's consolidation logic. Instead of just making a chunk appear larger for a future `malloc`, we overwrite the size of an in-use chunk so that when it is `free()`-d, the allocator consolidates it with a non-adjacent free chunk, "swallowing" the allocated chunk that sits between them.
+This variation of the "Overlapping Chunks" technique, often referred to as the *Nonadjacent Free Chunk Consolidation Attack*, achieves memory overlap by abusing the allocator's consolidation logic. Instead of just making a chunk appear larger for a future `malloc`, we overwrite the size of an in-use chunk so that when it is `free()`-d, the allocator consolidates it with a non-adjacent free chunk, "swallowing" the allocated chunk that sits between them.
 
 The result is a single large free chunk in the Unsorted Bin that encompasses multiple original chunks, some of which may still be considered "in use" by the application.
+
+== Prerequisites
+- *Heap Overflow*: Ability to overwrite the `size` field of an allocated chunk (the one being freed).
+- *Heap Layout*: The new size must extend exactly to the beginning of another free chunk (to trigger forward consolidation).
+- *Free Primitive*: Ability to free the overwritten chunk.
 
 == Example from `overlapping_chunks_2.c`
 

@@ -7,7 +7,6 @@
     description: "An explanation of the first-fit algorithm used by glibc's memory allocator.",
     date: "2025-12-09",
     order: 17,
-    draft: true,
   ),
 )<frontmatter>
 
@@ -106,7 +105,11 @@ The original content of `a` is overwritten by the new content of `c`. This demon
 
 The first-fit algorithm can have security implications, particularly in use-after-free scenarios. If an attacker can control the size of allocations after a vulnerable object has been freed, they may be able to reclaim that memory region with an object of their own, potentially leading to code execution.
 
-== Source Code
+== Prerequisites
+- *Use-After-Free (UAF)*: The application must maintain a reference to a memory region after it has been `free()`-d.
+- *Allocation Control*: Ability to trigger a new `malloc()` of a size that is equal to or smaller than the freed chunk, allowing the attacker to reclaim the memory.
+
+== Example from `first_fit.c`
 ```c
 #include <stdio.h>
 #include <stdlib.h>

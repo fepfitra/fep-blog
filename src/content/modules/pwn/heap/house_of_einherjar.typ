@@ -7,7 +7,6 @@
     description: "Abusing an off-by-one null byte to clear the PREV_INUSE bit and trigger backward consolidation with a forged fake chunk.",
     date: "2025-12-26",
     order: 33,
-    draft: true,
   ),
 )<frontmatter>
 
@@ -17,9 +16,14 @@
 
 The "House of Einherjar" is a sophisticated heap exploitation technique that leverages an off-by-one null byte vulnerability. By writing a single null byte into the `size` field of the next chunk, an attacker can clear the `PREV_INUSE` bit. This tricks the allocator into believing that the previous chunk is free, even if it is not.
 
-When the target chunk is subsequently `free()`-d, the allocator will attempt to consolidate it backward. By forging a fake `prev_size` metadata, the attacker can force the allocator to consolidate with a "fake" chunk located at an arbitrary memory address (e.g., on the stack, in the `.bss` section, or elsewhere on the heap). This leads to a massive overlapped chunk, which can then be used for further attacks like tcache poisoning.
+== Prerequisites
+- *Off-by-one Null Byte*: Ability to write a single null byte past a buffer, clearing the `PREV_INUSE` bit of the next chunk.
+- *Forged Metadata*: Ability to write a fake `prev_size` field in the user data of the preceding chunk.
+- *Known Heap Address*: Needed to forge a fake chunk inside the preceding chunk that passes the `unlink` check (`P->fd->bk == P` and `P->bk->fd == P`).
+- *T-cache Exhaustion*: On modern glibc, the t-cache for the target size must be full to trigger backward consolidation during `free()`.
 
 == Example Code
+
 
 This PoC demonstrates the attack on glibc 2.32, using a null-byte overflow to trigger consolidation with a fake chunk on the heap, followed by tcache poisoning to gain control over a stack address.
 

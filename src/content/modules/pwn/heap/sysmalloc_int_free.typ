@@ -7,7 +7,6 @@
     description: "Exploiting sysmalloc to trigger an implicit _int_free on the top chunk by corrupting its size metadata.",
     date: "2025-12-26",
     order: 35,
-    draft: true,
   ),
 )<frontmatter>
 
@@ -20,6 +19,11 @@ The `sysmalloc` function in glibc is responsible for extending the heap when the
 When `sysmalloc` is called to grow the heap (usually via `mmap` or `sbrk`), it performs several checks. If the attacker has corrupted the Top Chunk's size such that it is still page-aligned but much smaller than before, and then requests an allocation larger than this new size, `sysmalloc` may decide it cannot merge the old top chunk with the newly acquired memory. Instead, it will **free the old top chunk**.
 
 This primitive is extremely powerful because it allows an attacker to place a chunk into the Unsorted Bin without ever calling `free()` directly on a pointer. This technique is a core component of advanced attacks like the **House of Orange** and **House of Tangerine**.
+
+== Prerequisites
+- *Top Chunk Size Corruption*: Ability to overwrite the `size` field of the Top Chunk (Wilderness).
+- *Alignment Knowledge*: The new size must be page-aligned and have the `PREV_INUSE` bit set to pass internal glibc checks.
+- *Large Allocation*: Ability to trigger a `malloc()` request larger than the corrupted Top Chunk size, forcing the allocator to call `sysmalloc`.
 
 == Example Code
 

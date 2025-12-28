@@ -16,6 +16,9 @@
 
 The glibc malloc implementation uses a t-cache (thread-local cache) for small allocations to improve performance. This document explains how the t-cache index is calculated for a given allocation size, based on the example code in `calc_tcache_idx.c`.
 
+== Prerequisites
+- *GLIBC Version*: The t-cache was introduced in glibc 2.26. This calculation is relevant for all versions from 2.26 onwards.
+
 == Example from `calc_tcache_idx.c`
 
 The `calc_tcache_idx.c` code provides a utility to determine the t-cache bin index for a requested allocation size (`malloc(x)`).

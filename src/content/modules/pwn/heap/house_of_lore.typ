@@ -7,7 +7,6 @@
     description: "An advanced heap exploitation technique targeting the SmallBin to achieve arbitrary allocation by corrupting the BK pointer.",
     date: "2025-12-26",
     order: 25,
-    draft: true,
   ),
 )<frontmatter>
 
@@ -21,6 +20,12 @@ While classic versions of this attack were straightforward, modern glibc version
 1. *Smallbin double-linked list corruption check*: The allocator now verifies that `victim->bk->fd == victim`.
 2. *tcache*: Small-sized allocations are first served from and cached in the tcache, which must be bypassed or exhausted.
 3. *Smallbin-to-tcache mechanism*: When a chunk is returned from the SmallBin, other chunks in the same bin are moved to the tcache. This can trigger crashes if the fake `bk` chain is not properly terminated.
+
+== Prerequisites
+- *SmallBin Pointer Corruption*: Ability to overwrite the `bk` pointer of a chunk that is currently in a SmallBin.
+- *Fake Chunk Control*: Ability to forge multiple fake chunks at the target location (to satisfy `victim->bk->fd == victim` and the `Smallbin-to-tcache` chain).
+- *Known Addresses*: Knowledge of both the target memory address and the heap address is usually required.
+- *T-cache Exhaustion*: The tcache for the target size must be full to force the allocator to use the SmallBin.
 
 == Example from `house_of_lore.c`
 

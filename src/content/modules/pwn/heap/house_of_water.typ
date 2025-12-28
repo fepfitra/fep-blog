@@ -7,7 +7,6 @@
     description: "A complex technique to achieve tcache metadata control by leveraging overlapping tcache counts and small bin reverse refilling.",
     date: "2025-12-26",
     order: 34,
-    draft: true,
   ),
 )<frontmatter>
 
@@ -15,12 +14,18 @@
 
 == Introduction
 
-The **House of Water** is an advanced heap exploitation technique that converts a Use-After-Free (UAF) or arbitrary-free primitive into **tcache metadata control**. By controlling the tcache metadata, an attacker can hijack any subsequent tcache-sized allocation and potentially leak libc pointers.
+The *House of Water* is an advanced heap exploitation technique that converts a Use-After-Free (UAF) or arbitrary-free primitive into *tcache metadata control*. By controlling the tcache metadata, an attacker can hijack any subsequent tcache-sized allocation and potentially leak libc pointers.
 
 The core idea relies on several clever observations:
-1. **Tcache Counts as Metadata**: The tcache metadata structure starts with a series of 2-byte counts for each bin. By freeing chunks of specific large sizes (e.g., `0x3e0` and `0x3f0`), the attacker can set specific count bytes to `0x01`, effectively forging a `size` field (like `0x10001`) inside the tcache metadata.
-2. **Tcache Bins as Pointers**: The tcache bin headers (the actual linked list heads) follow the counts. The forged `size` field can be positioned such that it appears to be the header of a very large chunk that overlaps with these bin headers.
-3. **Small Bin Reverse Refilling**: When the tcache is empty and a `malloc` request is satisfied by the Small Bin, glibc attempts to "refill" the tcache by moving all other chunks from that Small Bin into the tcache. By corrupting the Small Bin's doubly-linked list (`fd`/`bk`) to include the tcache metadata, the attacker can trick this refilling logic into placing the tcache metadata itself into a tcache bin.
+1. *Tcache Counts as Metadata*: The tcache metadata structure starts with a series of 2-byte counts for each bin. By freeing chunks of specific large sizes (e.g., `0x3e0` and `0x3f0`), the attacker can set specific count bytes to `0x01`, effectively forging a `size` field (like `0x10001`) inside the tcache metadata.
+2. *Tcache Bins as Pointers*: The tcache bin headers (the actual linked list heads) follow the counts. The forged `size` field can be positioned such that it appears to be the header of a very large chunk that overlaps with these bin headers.
+3. *Small Bin Reverse Refilling*: When the tcache is empty and a `malloc` request is satisfied by the Small Bin, glibc attempts to "refill" the tcache by moving all other chunks from that Small Bin into the tcache. By corrupting the Small Bin's doubly-linked list (`fd`/`bk`) to include the tcache metadata, the attacker can trick this refilling logic into placing the tcache metadata itself into a tcache bin.
+
+== Prerequisites
+- *UAF / Arbitrary-Free*: Ability to free a pointer that is still in use, or free an arbitrary address.
+- *Small Bin Corruption*: Ability to overwrite `fd`/`bk` pointers of chunks in the Small Bin.
+- *Size Control*: Ability to allocate and free specific large chunks (e.g., `0x3e0`, `0x3f0`) to manipulate tcache metadata counts.
+- *Metadata Layout*: Ability to satisfy "next chunk" integrity checks at specific offsets (e.g., forging a fake header at `metadata + 0x10000`).
 
 == Example Code
 
@@ -123,11 +128,11 @@ Because we've forged a massive size (`0x10000`), when the allocator tries to `fr
 
 === 3. Small Bin Corruption
 
-We prepare a Small Bin with three chunks. We then use a separate primitive to point the `0x20` and `0x30` tcache bins to the headers of our Small Bin chunks. Finally, we use a vulnerability to overwrite the `bk` of the first Small Bin chunk and the `fd` of the last Small Bin chunk to point to the **tcache metadata** itself.
+We prepare a Small Bin with three chunks. We then use a separate primitive to point the `0x20` and `0x30` tcache bins to the headers of our Small Bin chunks. Finally, we use a vulnerability to overwrite the `bk` of the first Small Bin chunk and the `fd` of the last Small Bin chunk to point to the *tcache metadata* itself.
 
 === 4. Reverse Refilling
 
-When `malloc(0x88)` is called and the `0x90` tcache bin is empty, glibc looks in the Small Bin. It finds `small_start`, returns it to the user, and then **moves all other chunks in that bin into the tcache**.
+When `malloc(0x88)` is called and the `0x90` tcache bin is empty, glibc looks in the Small Bin. It finds `small_start`, returns it to the user, and then *moves all other chunks in that bin into the tcache*.
 
 Since we've linked the tcache metadata into the Small Bin, the refilling logic will:
 1. Take the "next" chunk in the Small Bin (our metadata).

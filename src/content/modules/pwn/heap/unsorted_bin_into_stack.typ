@@ -7,7 +7,6 @@
     description: "Tricking the Unsorted Bin into returning a stack address by corrupting the BK pointer and size of a freed chunk.",
     date: "2025-12-26",
     order: 30,
-    draft: true,
   ),
 )<frontmatter>
 
@@ -15,9 +14,14 @@
 
 == Introduction
 
-The "Unsorted Bin into Stack" attack is a technique that targets the **Unsorted Bin** to achieve an arbitrary memory allocation (in this case, on the stack). By corrupting the `bk` (backward) pointer and the `size` field of a chunk in the Unsorted Bin, an attacker can trick the allocator into treating a forged chunk on the stack as the next available chunk in the bin.
+The "Unsorted Bin into Stack" attack is a technique that targets the *Unsorted Bin* to achieve an arbitrary memory allocation (in this case, on the stack). By corrupting the `bk` (backward) pointer and the `size` field of a chunk in the Unsorted Bin, an attacker can trick the allocator into treating a forged chunk on the stack as the next available chunk in the bin.
 
 When a `malloc()` request is made that cannot be satisfied by the exact size of chunks in the Unsorted Bin, the allocator iterates through the bin. If we have corrupted a chunk's `bk` to point to our stack-based fake chunk, and we've set the original chunk's `size` to something small (to trigger the sorting/iteration logic), the allocator will eventually process our fake chunk.
+
+== Prerequisites
+- *Unsorted Bin Corruption*: Ability to overwrite both the `size` and `bk` pointers of a chunk in the Unsorted Bin.
+- *Fake Chunk Control*: Ability to forge a valid chunk header at the target location (e.g., the stack).
+- *GLIBC Version*: Effective on glibc < 2.29. Newer versions check if `victim->bk->fd == victim`.
 
 == Example Code
 
@@ -77,7 +81,7 @@ int main() {
 
 === 1. Bin Preparation
 
-We allocate and then free a `victim` chunk. Because it's large enough and not adjacent to the top chunk (thanks to `p1`), it's placed in the **Unsorted Bin**.
+We allocate and then free a `victim` chunk. Because it's large enough and not adjacent to the top chunk (thanks to `p1`), it's placed in the *Unsorted Bin*.
 
 === 2. Forging the Stack Chunk
 
@@ -89,8 +93,8 @@ We set up a "fake" chunk header on the stack:
 
 We assume a vulnerability (like a Use-After-Free or heap overflow) allows us to modify the metadata of the `victim` chunk while it's in the Unsorted Bin.
 
-1. **Shrink the size**: We set `victim->size` to a small value (e.g., `32`). This ensures that when we later call `malloc(0x100)`, the allocator will decide this chunk is too small to satisfy the request and will move to the next chunk in the `bk` chain.
-2. **Corrupt BK**: We point `victim->bk` to our `stack_buffer`.
+1. *Shrink the size*: We set `victim->size` to a small value (e.g., `32`). This ensures that when we later call `malloc(0x100)`, the allocator will decide this chunk is too small to satisfy the request and will move to the next chunk in the `bk` chain.
+2. *Corrupt BK*: We point `victim->bk` to our `stack_buffer`.
 
 === 4. Triggering the Return
 

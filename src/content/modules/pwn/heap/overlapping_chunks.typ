@@ -7,7 +7,6 @@
     description: "Abusing a size field overwrite to trick the allocator into returning a chunk that overlaps with another active allocation.",
     date: "2025-12-26",
     order: 26,
-    draft: true,
   ),
 )<frontmatter>
 
@@ -20,6 +19,11 @@ The "Overlapping Chunks" technique is a heap exploitation method where an attack
 The result is that two or more pointers now point to overlapping regions of memory. This primitive allows an attacker to:
 1. *Leak sensitive data*: Read the contents of the overlapped chunk (e.g., pointers, keys).
 2. *Corrupt data*: Overwrite critical data in the overlapped chunk (e.g., function pointers, object metadata).
+
+== Prerequisites
+- *Heap Overflow*: Ability to overwrite the `size` field of a chunk (freed or allocated).
+- *Size Calculation*: The new "evil" size must align with a valid chunk boundary (specifically, the next chunk's header must be valid enough to pass free list or allocation checks).
+- *Allocation Control*: Ability to trigger an allocation (or free) of a size that matches the crafted chunk.
 
 == Example from `overlapping_chunks.c`
 

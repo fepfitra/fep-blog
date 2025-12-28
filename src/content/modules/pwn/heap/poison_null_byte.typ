@@ -7,7 +7,6 @@
     description: "Exploiting an off-by-one null byte to trigger backward consolidation and chunk overlapping.",
     date: "2025-12-26",
     order: 24,
-    draft: true,
   ),
 )<frontmatter>
 
@@ -18,6 +17,11 @@
 The "Poison Null Byte" attack leverages an off-by-one vulnerability where a single null byte can be written past the end of a buffer. In the context of the glibc heap, this null byte can overwrite the least significant byte of the next chunk's `size` field.
 
 By clearing the `PREV_INUSE` bit of the next chunk and potentially shrinking its size, an attacker can trick the allocator into performing backward consolidation with a "fake" chunk that is actually still in use, leading to chunk overlapping.
+
+== Prerequisites
+- *Off-by-one Null Byte*: Ability to write a single null byte past the end of a buffer.
+- *LargeBin Residuals*: For glibc >= 2.29, a heap leak or the ability to align the heap is necessary to use residual pointers from a LargeBin to bypass `unlink` checks.
+- *Forged Metadata*: Ability to write a fake `prev_size` field at the end of the preceding chunk's user data.
 
 == The Modern Challenge (glibc 2.29+)
 

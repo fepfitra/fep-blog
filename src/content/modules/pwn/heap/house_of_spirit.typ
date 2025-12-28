@@ -7,7 +7,6 @@
     description: "An attack that tricks free() into adding a non-heap pointer (e.g., a stack address) to a fastbin, leading to an arbitrary allocation.",
     date: "2025-12-13",
     order: 23,
-    draft: true,
   ),
 )<frontmatter>
 
@@ -20,6 +19,12 @@ The "House of Spirit" is a heap exploitation technique where an attacker crafts 
 The required primitives are:
 1. The address of the target memory region must be known.
 2. The attacker must have the ability to write to this memory region to craft the fake chunk.
+
+== Prerequisites
+- *Known Target Address*: The attacker needs to know the address of the memory region they want to allocate (e.g., via a stack leak).
+- *Write Primitive*: Ability to write data to the target memory region to create a fake chunk header (specifically the `size` field and the `size` of the *next* chunk).
+- *Free Primitive*: Ability to pass the pointer of the fake chunk to `free()`.
+- *T-cache Exhaustion*: On modern glibc, the t-cache for the target size must be full so that the `free()` places the chunk into the fastbin.
 
 == Example from `house_of_spirit.c`
 

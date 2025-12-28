@@ -7,7 +7,6 @@
     description: "Exploiting the unlink macro to achieve arbitrary write by corrupting pointers.",
     date: "2025-12-26",
     order: 22,
-    draft: true,
   ),
 )<frontmatter>
 
@@ -23,6 +22,11 @@ if (__builtin_expect (p->fd->bk != p || p->bk->fd != p, 0))
   malloc_printerr ("unlink_chunk(): corrupted double-linked list");
 ```
 To bypass this, we need a known pointer that points to our chunk. The most common scenario is a global pointer to a heap allocation.
+
+== Prerequisites
+- *Global Pointer*: Ability to find a known, static address (like a global variable) that contains a pointer to the target heap chunk.
+- *Heap Overflow / UAF*: Ability to overwrite the `fd` and `bk` pointers of the target chunk.
+- *Unlink Trigger*: Ability to trigger the `unlink` macro, typically by freeing an adjacent chunk to induce backward or forward consolidation.
 
 == The Technique
 

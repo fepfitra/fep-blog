@@ -7,7 +7,6 @@
     description: "A modernized version of House of Orange that corrupts the heap without calling free() directly, utilizing _int_free on the top chunk in sysmalloc and tcache poisoning.",
     date: "2025-12-27",
     order: 37,
-    draft: true,
   ),
 )<frontmatter>
 
@@ -20,6 +19,12 @@ The *House of Tangerine* is a modernized version of the House of Orange techniqu
 It exploits `sysmalloc` to trigger `_int_free` on the top chunk (wilderness). By combining this with tcache poisoning, it can trick `malloc` into returning an arbitrary pointer.
 
 This technique is effective on recent GLIBC versions (tested on 2.34 and 2.39).
+
+== Prerequisites
+- *Heap Overflow / OOB*: Ability to overwrite the `size` field of the Top Chunk (Wilderness).
+- *No Free Primitive*: This attack does not require the attacker to be able to call `free()` directly.
+- *Known Heap Address*: Necessary to bypass Safe-Linking (on glibc 2.32+) when performing the tcache poisoning step.
+- *Allocation Control*: Ability to trigger multiple `malloc()` calls with specific sizes to induce `sysmalloc` to free the old Top Chunk.
 
 == Example from `house_of_tangerine.c`
 

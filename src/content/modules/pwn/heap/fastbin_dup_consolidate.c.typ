@@ -7,7 +7,6 @@
     description: "Leveraging malloc_consolidate and a double free to duplicate a pointer to a tcache-sized chunk.",
     date: "2025-12-13",
     order: 21,
-    draft: true,
   ),
 )<frontmatter>
 
@@ -18,6 +17,11 @@
 This document demonstrates an advanced heap exploitation technique that combines a double-free with the internal `malloc_consolidate` function. This method allows an attacker to gain two pointers to the same chunk, even for sizes that are normally protected against simple double-frees (like t-cache sized chunks).
 
 The core idea is to have a pointer to a small fastbin chunk, trigger `malloc_consolidate` via a large allocation so that the large allocation starts at the same address as the small chunk, and then use the old pointer to free the new large chunk, achieving a type of use-after-free.
+
+== Prerequisites
+- *T-cache Exhaustion*: Ability to fill the t-cache for a small size to ensure the chunk is placed in the fastbin.
+- *Pointer Aliasing*: A vulnerability that allows the attacker to maintain a pointer to a chunk that is subsequently merged and re-allocated as part of a larger chunk.
+- *Consolidation Trigger*: Ability to request an allocation larger than `0x400` bytes to trigger the `malloc_consolidate` function.
 
 == `malloc_consolidate` Explained
 

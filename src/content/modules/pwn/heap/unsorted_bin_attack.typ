@@ -7,7 +7,6 @@
     description: "Exploiting the Unsorted Bin removal logic to write a large libc address to an arbitrary location.",
     date: "2025-12-26",
     order: 31,
-    draft: true,
   ),
 )<frontmatter>
 
@@ -16,11 +15,15 @@
 == Introduction
 
 The "Unsorted Bin Attack" is a classic heap exploitation technique that allows an attacker to write a large value (specifically, the address of the Unsorted Bin head in `main_arena`) to an arbitrary memory location. While it doesn't provide full control over *what* is written, it is extremely useful for:
-1. **Overwriting loop counters** or limit variables to trigger further overflows.
-2. **Modifying `global_max_fast`** in libc to enable fastbin attacks for larger chunk sizes.
-3. **Corrupting pointers** to point to the heap/libc.
+1. *Overwriting loop counters* or limit variables to trigger further overflows.
+2. *Modifying `global_max_fast`* in libc to enable fastbin attacks for larger chunk sizes.
+3. *Corrupting pointers* to point to the heap/libc.
 
 In modern glibc (2.29+), this attack is mitigated by additional checks in the Unsorted Bin removal logic.
+
+== Prerequisites
+- *Unsorted Bin Corruption*: Ability to overwrite the `bk` pointer of a chunk while it is in the Unsorted Bin.
+- *GLIBC Version*: Effective on glibc < 2.29. Newer versions check if `victim->bk->fd == victim`.
 
 == Example Code
 
@@ -64,7 +67,7 @@ fprintf(stderr, "After malloc, the target has been rewritten with a libc address
 
 === 1. The Unsorted Bin State
 
-When a chunk (not fastbin-sized) is freed and is not adjacent to the top chunk, it is placed into the **Unsorted Bin**. The Unsorted Bin is a circular doubly-linked list. For a single freed chunk `P`, its `fd` and `bk` pointers both point to the `main_arena`'s unsorted bin head.
+When a chunk (not fastbin-sized) is freed and is not adjacent to the top chunk, it is placed into the *Unsorted Bin*. The Unsorted Bin is a circular doubly-linked list. For a single freed chunk `P`, its `fd` and `bk` pointers both point to the `main_arena`'s unsorted bin head.
 
 === 2. The Vulnerability: Corrupting BK
 

@@ -7,7 +7,6 @@
     description: "Exploiting large mmap-allocated chunks by corrupting their size to trigger overlapping munmap/mmap sequences.",
     date: "2025-12-26",
     order: 28,
-    draft: true,
   ),
 )<frontmatter>
 
@@ -17,11 +16,16 @@
 
 In glibc, when an allocation request exceeds a certain size (defined by the `mmap_threshold`), the allocator bypasses the main heap and uses the `mmap` system call to create a separate memory mapping for that specific chunk. These "mmap chunks" behave differently from standard heap chunks:
 
-1. **Allocation**: They are created via `mmap` and are typically located between the main heap and the libraries (libc, ld) in the process's virtual memory space.
-2. **Metadata**: The `IS_MMAPPED` bit (the second least significant bit of the `size` field) is set to 1.
-3. **Deallocation**: When `free()` is called on an mmap chunk, the allocator uses the `munmap` system call to release the memory directly back to the kernel.
+1. *Allocation*: They are created via `mmap` and are typically located between the main heap and the libraries (libc, ld) in the process's virtual memory space.
+2. *Metadata*: The `IS_MMAPPED` bit (the second least significant bit of the `size` field) is set to 1.
+3. *Deallocation*: When `free()` is called on an mmap chunk, the allocator uses the `munmap` system call to release the memory directly back to the kernel.
 
 The "mmap Overlapping Chunks" attack involves corrupting the `size` field of an mmap chunk so that when it is freed, the `munmap` call releases a larger region of memory than intended—potentially including other active mmap chunks. If the attacker then performs a new large allocation, the kernel may reuse the released memory range, leading to multiple pointers pointing to overlapping mmap regions.
+
+== Prerequisites
+- *Mmap Allocation*: Ability to trigger large allocations (typically > 128KB) that use the `mmap` syscall instead of the main heap.
+- *Metadata Corruption*: Ability to overwrite the `size` field of an mmap-allocated chunk.
+- *Allocation/Reclamation Control*: Ability to trigger a subsequent large `malloc` to reclaim the released virtual memory range.
 
 == Example from `mmap_overlapping_chunks.c`
 
@@ -131,7 +135,7 @@ By overwriting `mmap_chunk_3->size` with the combined size of `mmap_chunk_3` and
 
 When `free(mmap_chunk_3)` is called, glibc reads the corrupted size and calls `munmap(mmap_chunk_3 - offset, 0x200000)`. Because mmap chunks are adjacent (or nearly adjacent), this releases the memory for *both* chunks to the kernel.
 
-**Note**: Unlike normal heap chunks, once an mmap region is munmapped, accessing the original pointers (`mmap_chunk_2`) will cause a Segmentation Fault because the memory is no longer mapped in the process's address space.
+*Note*: Unlike normal heap chunks, once an mmap region is munmapped, accessing the original pointers (`mmap_chunk_2`) will cause a Segmentation Fault because the memory is no longer mapped in the process's address space.
 
 === 4. Re-mapping and Overlap
 

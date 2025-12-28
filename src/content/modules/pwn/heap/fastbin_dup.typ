@@ -7,11 +7,10 @@
     description: "Tricking malloc into returning an already-allocated heap pointer by abusing the fastbin freelist.",
     date: "2025-12-13",
     order: 19,
-    draft: true,
   ),
 )<frontmatter>
 
-= glibc Allocator: Fastbin Double-Free Attack
+= Fastbin Double-Free Attack
 
 == Introduction
 
@@ -19,7 +18,14 @@ This document demonstrates a double-free attack that abuses the fastbin freelist
 
 The example code is from `fastbin_dup.c`.
 
+== Prerequisites
+- *Double-Free Vulnerability*: The ability to call `free()` on the same memory region more than once, often via a dangling pointer.
+- *T-cache Exhaustion*: On glibc 2.26 and later, the t-cache must be filled (typically with 7 chunks of the same size) to ensure subsequent frees go to the fastbins.
+- *Interleaved Frees*: To bypass the fastbin's double-free check (which only verifies if the chunk being freed is at the top of the list), another chunk must be freed between the two `free()` calls of the target chunk.
+- *Fastbin Size*: The chunk must be within the fastbin size range (typically `0x20` to `0x80` bytes on 64-bit systems).
+
 == Example from `fastbin_dup.c`
+- glibc version: 2.41 (latest)
 
 ```c
 #include <stdio.h>

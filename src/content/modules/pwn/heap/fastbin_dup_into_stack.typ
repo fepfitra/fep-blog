@@ -7,7 +7,6 @@
     description: "Extending the fastbin double-free to trick malloc into returning a pointer to a controlled location on the stack.",
     date: "2025-12-13",
     order: 20,
-    draft: true,
   ),
 )<frontmatter>
 
@@ -18,6 +17,11 @@
 This document continues from the `fastbin_dup` example. It demonstrates how the double-free vulnerability can be escalated to not just allocate a chunk that is already in use, but to trick the allocator into returning a pointer to an arbitrary, controlled location—in this case, a variable on the stack. This is a powerful technique that can often lead directly to arbitrary code execution by overwriting return addresses or other critical stack data.
 
 The example code is `fastbin_dup_into_stack.c`.
+
+== Prerequisites
+- All prerequisites for a basic *Fastbin Double-Free*.
+- *Fake Chunk Forge*: Ability to write a valid size field at the target location (e.g., on the stack) that matches the fastbin size being used.
+- *Safe-Linking Bypass*: For glibc 2.32 and later, knowledge of the heap address is necessary to XOR the target pointer with the shifted heap address to satisfy the safe-linking check.
 
 == Example from `fastbin_dup_into_stack.c`
 
