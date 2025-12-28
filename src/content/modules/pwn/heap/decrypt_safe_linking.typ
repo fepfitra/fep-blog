@@ -34,21 +34,14 @@ The key observation is that heap addresses are typically 12-bit aligned (4KB pag
 
 long decrypt(long cipher)
 {
-	puts("The decryption uses the fact that the first 12bit of the plaintext (the fwd pointer) is known,");
-	puts("because of the 12bit sliding.");
-	puts("And the key, the ASLR value, is the same with the leading bits of the plaintext (the fwd pointer)");
 	long key = 0;
 	long plain;
 
 	for(int i=1; i<6; i++) {
 		int bits = 64-12*i;
 		if(bits < 0) bits = 0;
-		plai n = ((cipher ^ key) >> bits) << bits;
+		plain = ((cipher ^ key) >> bits) << bits;
 		key = plain >> 12;
-		printf("round %d:\n", i);
-		printf("key:    %#016lx\n", key);
-		printf("plain:  %#016lx\n", plain);
-		printf("cipher: %#016lx\n\n", cipher);
 	}
 	return plain;
 }
@@ -58,28 +51,17 @@ int main()
 	setbuf(stdin, NULL);
 	setbuf(stdout, NULL);
 
-	// step 1: allocate chunks
 	long *a = malloc(0x20);
 	long *b = malloc(0x20);
-	printf("First, we create chunk a @ %p and chunk b @ %p\n", a, b);
 	malloc(0x10);
-	puts("And then create a padding chunk to prevent consolidation.");
 
-
-	// step 2: free chunks
-	puts("Now free chunk a and then free chunk b.");
 	free(a);
 	free(b);
-	printf("Now the freelist is: [%p -> %p]\n", b, a);
-	printf("Due to safe-linking, the value actually stored at b[0] is: %#lx\n", b[0]);
 
-	// step 3: recover the values
-	puts("Now decrypt the poisoned value");
 	long plaintext = decrypt(b[0]);
 
-	printf("value: %p\n", a);
-	printf("recovered value: %#lx\n", plaintext);
 	assert(plaintext == (long)a);
+	return 0;
 }
 ```
 

