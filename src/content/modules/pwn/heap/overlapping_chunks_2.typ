@@ -6,7 +6,7 @@
     title: "Overlapping Chunks (Consolidation)",
     description: "A variation of the overlapping chunks attack that leverages forward consolidation to swallow a non-adjacent chunk.",
     date: "2025-12-26",
-    order: 31,
+    order: 32,
   ),
 )<frontmatter>
 

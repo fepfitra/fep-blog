@@ -6,7 +6,7 @@
     title: "House of Einherjar",
     description: "Abusing an off-by-one null byte to clear the PREV_INUSE bit and trigger backward consolidation with a forged fake chunk.",
     date: "2025-12-26",
-    order: 38,
+    order: 39,
   ),
 )<frontmatter>
 

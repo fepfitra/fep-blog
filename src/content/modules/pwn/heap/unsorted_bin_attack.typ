@@ -6,7 +6,7 @@
     title: "Unsorted Bin Attack",
     description: "Exploiting the Unsorted Bin removal logic to write a large libc address to an arbitrary location.",
     date: "2025-12-26",
-    order: 35,
+    order: 36,
   ),
 )<frontmatter>
 
