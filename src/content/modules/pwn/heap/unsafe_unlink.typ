@@ -6,7 +6,7 @@
     title: "Unsafe Unlink",
     description: "Exploiting the unlink macro to achieve arbitrary write by corrupting pointers.",
     date: "2025-12-26",
-    order: 23,
+    order: 24,
   ),
 )<frontmatter>
 
