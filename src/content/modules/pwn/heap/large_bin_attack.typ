@@ -6,7 +6,7 @@
     title: "Large Bin Attack",
     description: "Exploiting the Large Bin sorting logic to achieve an arbitrary write of a heap address.",
     date: "2025-12-26",
-    order: 37,
+    order: 38,
   ),
 )<frontmatter>
 

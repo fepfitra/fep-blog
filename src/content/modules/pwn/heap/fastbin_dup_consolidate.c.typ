@@ -6,7 +6,7 @@
     title: "Fastbin Dup with malloc_consolidate",
     description: "Leveraging malloc_consolidate and a double free to duplicate a pointer to a tcache-sized chunk.",
     date: "2025-12-13",
-    order: 23,
+    order: 24,
   ),
 )<frontmatter>
 

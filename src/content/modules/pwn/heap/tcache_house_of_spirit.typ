@@ -6,7 +6,7 @@
     title: "Tcache House of Spirit",
     description: "A variation of House of Spirit that targets the tcache, which has fewer integrity checks than fastbins.",
     date: "2025-12-28",
-    order: 27,
+    order: 28,
   ),
 )<frontmatter>
 
