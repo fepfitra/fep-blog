@@ -15,9 +15,9 @@
 == Introduction
 
 The "Unsorted Bin Attack" is a classic heap exploitation technique that allows an attacker to write a large value (specifically, the address of the Unsorted Bin head in `main_arena`) to an arbitrary memory location. While it doesn't provide full control over *what* is written, it is extremely useful for:
-1.  **Overwriting loop counters** or limit variables to trigger further overflows.
-2.  **Modifying `global_max_fast`** in libc to enable fastbin attacks for larger chunk sizes.
-3.  **Corrupting pointers** to point to the heap/libc.
+1. **Overwriting loop counters** or limit variables to trigger further overflows.
+2. **Modifying `global_max_fast`** in libc to enable fastbin attacks for larger chunk sizes.
+3. **Corrupting pointers** to point to the heap/libc.
 
 In modern glibc (2.29+), this attack is mitigated by additional checks in the Unsorted Bin removal logic.
 
@@ -37,7 +37,7 @@ int main(){
 
 	unsigned long *p=malloc(400);
 	fprintf(stderr, "Allocated first chunk at: %p\n", p);
-	
+
 	// Allocate another chunk to avoid consolidating p with the top chunk
 	malloc(500);
 
@@ -53,7 +53,7 @@ int main(){
 
 	// Trigger the removal from Unsorted Bin
 	malloc(400);
-	
+
 fprintf(stderr, "After malloc, the target has been rewritten with a libc address:\n");
 	fprintf(stderr, "%p: %p\n", &stack_var, (void*)stack_var);
 }
@@ -98,5 +98,3 @@ if (__glibc_unlikely (victim->bk->fd != victim))
 ```
 
 Because our corrupted `victim->bk` (the stack address) does not point back to `victim`, this check fails and the program crashes. This effectively killed the Unsorted Bin attack in its classic form.
-
-```
