@@ -2,7 +2,7 @@
 title: "Pwn"
 description: "A collection of resources and write-ups on binary exploitation (pwn)."
 date: 2025-12-09
-order: 20
+order: 1
 ---
 
 "Pwn" is a term used in hacking and cybersecurity to describe the act of gaining unauthorized control over a computer or a system. This section is dedicated to the art and science of binary exploitation.
