@@ -10,7 +10,7 @@
   ),
 )<frontmatter>
 
-= glibc Allocator: T-Cache Index Calculation
+= T-Cache Index Calculation
 
 == Introduction
 
