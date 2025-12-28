@@ -6,7 +6,7 @@
     title: "House of Orange",
     description: "Exploiting the glibc allocator by corrupting the top chunk to trigger a sysmalloc that frees the old top chunk into an unsorted bin, followed by FSOP (File Stream Oriented Programming).",
     date: "2025-12-27",
-    order: 44,
+    order: 45,
   ),
 )<frontmatter>
 

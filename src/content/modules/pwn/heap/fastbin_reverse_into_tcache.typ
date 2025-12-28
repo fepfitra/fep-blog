@@ -6,7 +6,7 @@
     title: "Fastbin Reverse into Tcache",
     description: "Abusing the fastbin-to-tcache refill mechanism to achieve an arbitrary allocation or write a heap pointer to a target location.",
     date: "2025-12-28",
-    order: 26,
+    order: 27,
   ),
 )<frontmatter>
 

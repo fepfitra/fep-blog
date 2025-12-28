@@ -6,7 +6,7 @@
     title: "Tcache Poisoning",
     description: "Tricking malloc into returning an arbitrary pointer by overwriting the next pointer of a freed tcache chunk.",
     date: "2025-12-28",
-    order: 22,
+    order: 23,
   ),
 )<frontmatter>
 
