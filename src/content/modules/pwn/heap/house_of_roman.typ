@@ -15,7 +15,7 @@
 
 == Introduction
 
-The **House of Roman** is a leakless heap exploitation technique. Unlike most heap attacks that require a memory leak to bypass ASLR, this technique relies on **relative overwrites** to point pointers to desired locations (like `__malloc_hook`) without ever knowing their absolute addresses.
+The *House of Roman* is a leakless heap exploitation technique. Unlike most heap attacks that require a memory leak to bypass ASLR, this technique relies on *relative overwrites* to point pointers to desired locations (like `__malloc_hook`) without ever knowing their absolute addresses.
 
 Because it uses partial pointer overwrites, it must brute force the "random" bits that are changed. Typically, this requires 12 bits of entropy to be brute-forced (a 1 in 4096 chance).
 
@@ -56,7 +56,7 @@ int main(){
 			     "However, this technique comes at a cost:\n"
                              "12-bits of entropy need to be brute forced.\n"
 			     "That means this technique only work 1 out of every 4096 tries or 0.02%.\n"
-			     "**NOTE**: For the purpose of this exploit, we set the random values in order to make this consisient\n\n\n";
+			     "*NOTE*: For the purpose of this exploit, we set the random values in order to make this consisient\n\n\n";
 	puts(introduction);
 	init();
 
@@ -163,10 +163,10 @@ Point this close to __malloc_hook in order to create a fake fastbin chunk\n");
 The goal is to get a libc address into a fastbin chunk's `fd` pointer.
 1. We free a chunk into the Unsorted Bin to populate it with libc pointers (`main_arena + 0x68`).
 2. We re-allocate it into a `0x70` fastbin.
-3. We use a **relative overwrite** to point a preceding fastbin chunk to this "libc-tainted" chunk.
+3. We use a *relative overwrite* to point a preceding fastbin chunk to this "libc-tainted" chunk.
 4. We then use another relative overwrite on the "libc-tainted" chunk to point it to `__malloc_hook - 0x23`.
 
-This requires **4 bits** of brute force because the upper bits of the 2nd byte are influenced by ASLR.
+This requires *4 bits* of brute force because the upper bits of the 2nd byte are influenced by ASLR.
 
 === 2. Unsorted Bin Attack on `__malloc_hook`
 
@@ -179,7 +179,7 @@ Since `bk` is `__malloc_hook - 0x10`, `bk->fd` is exactly `__malloc_hook`.
 
 === 3. Relative Overwrite to `system`
 
-The `__malloc_hook` now contains a libc pointer. We use our previously allocated fastbin chunk (which overlaps the hook) to perform a final relative overwrite, changing the libc pointer to `system` (or a `one_gadget`). This requires an additional **8 bits** of brute force.
+The `__malloc_hook` now contains a libc pointer. We use our previously allocated fastbin chunk (which overlaps the hook) to perform a final relative overwrite, changing the libc pointer to `system` (or a `one_gadget`). This requires an additional *8 bits* of brute force.
 
 === 4. Execution
 
