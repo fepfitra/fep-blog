@@ -1,7 +1,0 @@
-[
-  "introduction",
-  "getting-started",
-  "pwn",
-  "pwn/introduction",
-  "pwn/bof"
-]
