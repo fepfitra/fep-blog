@@ -18,12 +18,35 @@ Stack Pivoting is a technique used when an attacker has control over the instruc
 
 This document demonstrates stack pivoting using a `leave; ret` gadget to shift the stack execution to a buffer we control.
 
-You can download the challenge files here: #link("/modules/pwn/stack/stack_pivoting.zip")[stack_pivoting.zip]
-
 == Prerequisites
 - *Buffer Overflow*: A vulnerability allowing control of the saved base pointer (RBP) and return address (RIP).
 - *Known Address*: A leaked or known address of a controlled buffer (e.g., the stack buffer itself or a heap chunk).
 - *Gadgets*: Availability of a `leave; ret` gadget and necessary ROP gadgets (`pop rdi`, etc.).
+
+== The Source
+```c
+// gcc source.c -o vuln -no-pie
+#include <stdio.h>
+
+void winner(int a, int b) {
+    if(a == 0xdeadbeef && b == 0xdeadc0de) {
+        puts("Great job!");
+        return;
+    }
+    puts("Whelp, almost...?");
+}
+
+void vuln() {
+    char buffer[0x60];
+    printf("Try pivoting to: %p\n", buffer);
+    fgets(buffer, 0x80, stdin);
+}
+
+int main() {
+    vuln();
+    return 0;
+}
+```
 
 == The Vulnerability
 
