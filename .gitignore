@@ -1,5 +1,6 @@
 # build output
 dist/
+public/pagefind
 # generated types
 .astro/
 
@@ -11,6 +12,8 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
+bun.lockb
+package-lock.json
 
 
 # environment variables
@@ -22,3 +25,5 @@ pnpm-debug.log*
 
 # jetbrains setting folder
 .idea/
+
+**/*.pdf

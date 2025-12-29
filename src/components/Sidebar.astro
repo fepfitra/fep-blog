@@ -1,0 +1,88 @@
+---
+import { getCollection } from "astro:content";
+
+import SidebarItem from "./SidebarItem.astro";
+
+import {
+    buildModuleTree,
+    sortModuleNodes,
+} from "@lib/modules";
+
+const { currentSlug } = Astro.props;
+
+const allModules = await getCollection("modules");
+
+const currentTopLevel = currentSlug.split("/")[0];
+
+const modules = allModules
+    .filter((module) => !module.data.draft)
+    .filter((module) => module.id.startsWith(currentTopLevel));
+
+const tree = buildModuleTree(modules);
+const rootNode = tree[currentTopLevel];
+
+const children = rootNode
+    ? sortModuleNodes(Object.values(rootNode._children || {}))
+    : [];
+---
+
+<aside
+    class="w-full pr-4 md:w-64 md:flex-shrink-0 md:border-r md:border-black/10 dark:md:border-white/10"
+>
+    <button
+        id="sidebar-toggle"
+        class="mb-4 flex items-center gap-2 text-lg font-semibold md:hidden"
+        aria-expanded="false"
+        aria-controls="sidebar-content"
+    >
+        <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            class="lucide lucide-menu"
+        >
+            <line x1="4" x2="20" y1="12" y2="12"></line>
+            <line x1="4" x2="20" y1="6" y2="6"></line>
+            <line x1="4" x2="20" y1="18" y2="18"></line>
+        </svg>
+        Menu
+    </button>
+
+    <div id="sidebar-content" class="hidden md:block pb-24">
+        <div class="mb-4 text-lg font-semibold capitalize">
+            {currentTopLevel}
+        </div>
+        <nav class="space-y-1">
+            <ul class="space-y-1">
+                {
+                    children.map((child) => (
+                        <SidebarItem node={child} currentSlug={currentSlug} />
+                    ))
+                }
+            </ul>
+        </nav>
+    </div>
+</aside>
+
+<script>
+    const toggleButton = document.getElementById("sidebar-toggle");
+    const sidebarContent = document.getElementById("sidebar-content");
+
+    if (toggleButton && sidebarContent) {
+        toggleButton.addEventListener("click", () => {
+            const isExpanded =
+                toggleButton.getAttribute("aria-expanded") === "true";
+            toggleButton.setAttribute(
+                "aria-expanded",
+                (!isExpanded).toString(),
+            );
+            sidebarContent.classList.toggle("hidden");
+        });
+    }
+</script>

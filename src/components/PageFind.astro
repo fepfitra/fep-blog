@@ -51,7 +51,6 @@ import Search from "astro-pagefind/components/Search";
     backdrop?.classList.add("invisible");
   }
 
-  // open pagefind
   magnifyingGlass?.addEventListener("click", () => {
     openPagefind();
   });
@@ -66,14 +65,12 @@ import Search from "astro-pagefind/components/Search";
     }
   });
 
-  // close pagefind
   document.addEventListener("keydown", (e) => {
     if (e.key === "Escape") {
       closePagefind();
     }
   });
 
-  // close pagefind when searched result(link) clicked
   document.addEventListener("click", (event) => {
     if (event.target.classList.contains("pagefind-ui__result-link")) {
       closePagefind();
@@ -86,7 +83,6 @@ import Search from "astro-pagefind/components/Search";
     }
   });
 
-  // prevent form submission
   const form = document.getElementById("form");
   form?.addEventListener("submit", (event) => {
     event.preventDefault();

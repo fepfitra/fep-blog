@@ -1,0 +1,97 @@
+---
+import Head from "@components/Head.astro";
+import Header from "@components/Header.astro";
+import Footer from "@components/Footer.astro";
+import Pagefind from "@components/PageFind.astro";
+import Sidebar from "@components/Sidebar.astro";
+import TableOfContents from "@components/TableOfContents.astro";
+import BackToPrevious from "@components/BackToPrevious.astro";
+import TypstToC from "@components/TypstToC.astro";
+import Giscus from "@components/Giscus.astro";
+import { SITE } from "@consts";
+import type { MarkdownHeading } from "astro";
+
+type Props = {
+    title: string;
+    description: string;
+    currentSlug: string;
+    width?: "sm" | "md" | "lg" | "xl" | "2xl";
+    headings?: MarkdownHeading[];
+};
+
+const {
+    title,
+    description,
+    currentSlug,
+    width = "sm",
+    headings = [],
+} = Astro.props;
+---
+
+<!doctype html>
+<html lang="en">
+    <head>
+        <Head title={`${title} | ${SITE.TITLE}`} description={description} />
+    </head>
+    <body>
+        <Header containerSize={width} />
+        <main class="container mx-auto px-4 py-32">
+            <div class="flex flex-col gap-8 md:flex-row">
+                <div class="w-full md:w-64 md:shrink-0">
+                    <div
+                        class="sticky top-32 max-h-[calc(100vh-12rem)] overflow-y-auto"
+                    >
+                        <Sidebar currentSlug={currentSlug} />
+                    </div>
+                </div>
+                <article
+                    class="prose dark:prose-invert max-w-none min-w-0 flex-1"
+                    data-pagefind-body
+                >
+                    <div class="animate mb-10">
+                        <BackToPrevious href="/modules"
+                            >Back to Modules</BackToPrevious
+                        >
+                    </div>
+                    {
+                        headings.length > 0 ? (
+                            <div class="mb-8 lg:hidden">
+                                <TableOfContents
+                                    headings={headings}
+                                    open={false}
+                                />
+                            </div>
+                        ) : (
+                            <TypstToC class="mb-8 lg:hidden" open={false} />
+                        )
+                    }
+                    <slot />
+                    <div class="mt-24">
+                        <Giscus />
+                    </div>
+                </article>
+                {
+                    headings.length > 0 ? (
+                        <aside class="hidden w-64 shrink-0 lg:block">
+                            <div
+                                class="sticky top-32 max-h-[calc(100vh-12rem)] overflow-y-auto"
+                            >
+                                <TableOfContents headings={headings} />
+                            </div>
+                        </aside>
+                    ) : (
+                        <aside class="hidden w-64 shrink-0 lg:block">
+                            <div
+                                class="sticky top-32 max-h-[calc(100vh-12rem)] overflow-y-auto"
+                            >
+                                <TypstToC />
+                            </div>
+                        </aside>
+                    )
+                }
+            </div>
+        </main>
+        <Footer containerSize={width} />
+        <Pagefind />
+    </body>
+</html>

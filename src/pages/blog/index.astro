@@ -5,12 +5,18 @@ import Container from "@components/Container.astro";
 import ArrowCard from "@components/ArrowCard.astro";
 import { BLOG } from "@consts";
 
-const data = (await getCollection("blog"))
-  .filter((post) => !post.data.draft)
-  .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+const blog = (await getCollection("blog")).filter((post) => !post.data.draft);
+
+const modules = (await getCollection("modules")).filter(
+  (module) => !module.data.draft,
+);
+
+const data = [...blog, ...modules].sort(
+  (a, b) => b.data.date.valueOf() - a.data.date.valueOf(),
+);
 
 type Acc = {
-  [year: string]: CollectionEntry<"blog">[];
+  [year: string]: (CollectionEntry<"blog"> | CollectionEntry<"modules">)[];
 };
 
 const posts = data.reduce((acc: Acc, post) => {
@@ -20,7 +26,7 @@ const posts = data.reduce((acc: Acc, post) => {
   }
   acc[year].push(post);
   return acc;
-}, {});
+}, {} as Acc);
 
 const years = Object.keys(posts).sort((a, b) => parseInt(b) - parseInt(a));
 ---
@@ -40,7 +46,7 @@ const years = Object.keys(posts).sort((a, b) => parseInt(b) - parseInt(a));
                   <ul class="not-prose flex flex-col gap-4">
                     {posts[year].map((post) => (
                       <li>
-                        <ArrowCard entry={post} />
+                        <ArrowCard entry={post} showType={true} />
                       </li>
                     ))}
                   </ul>

@@ -1,0 +1,134 @@
+<div id="three-container" class="h-64 w-full md:h-96"></div>
+
+<script>
+	import * as THREE from "three";
+	import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
+
+	THREE.Cache.enabled = true;
+
+	let renderer: THREE.WebGLRenderer | undefined;
+	let animationId: number | undefined;
+	let cachedModel: THREE.Group | undefined;
+
+	function initThree() {
+		const container = document.getElementById("three-container");
+
+		if (container) {
+			if (renderer) {
+				renderer.dispose();
+				if (animationId) cancelAnimationFrame(animationId);
+				container.innerHTML = "";
+			}
+
+			const scene = new THREE.Scene();
+			scene.background = null;
+
+			const camera = new THREE.PerspectiveCamera(
+				75,
+				container.clientWidth / container.clientHeight,
+				0.1,
+				1000,
+			);
+			camera.position.set(0, 2, 5);
+			camera.lookAt(0, 0, 0);
+
+			renderer = new THREE.WebGLRenderer({
+				alpha: true,
+				antialias: true,
+			});
+			renderer.setSize(container.clientWidth, container.clientHeight);
+			container.appendChild(renderer.domElement);
+
+			const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+			scene.add(ambientLight);
+
+			const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+			directionalLight.position.set(5, 5, 5);
+			scene.add(directionalLight);
+
+			let model: THREE.Group | undefined;
+			let baseY = 0;
+
+			const setupModel = (group: THREE.Group) => {
+				model = group;
+				scene.add(model);
+
+				const box = new THREE.Box3().setFromObject(model);
+				const center = box.getCenter(new THREE.Vector3());
+				model.position.sub(center);
+				baseY = model.position.y;
+
+				model.scale.set(8, 8, 8);
+			};
+
+			if (cachedModel) {
+				setupModel(cachedModel);
+			} else {
+				const loader = new GLTFLoader();
+				loader.load(
+					"/oiiaioooooiai_cat.glb",
+					(gltf) => {
+						cachedModel = gltf.scene;
+						setupModel(cachedModel);
+					},
+					undefined,
+					(error) => {
+						console.error("An error happened loading the model:", error);
+					},
+				);
+			}
+
+			const clock = new THREE.Clock();
+
+			function animate() {
+				animationId = requestAnimationFrame(animate);
+
+				const time = clock.getElapsedTime();
+				const cycle = time % 6;
+
+				let speed = 0.03;
+
+				if (cycle < 3) {
+					speed = 0.1;
+				} else {
+					speed = 0.4;
+				}
+
+				if (model) {
+					model.rotation.y -= speed;
+					model.position.y = baseY + Math.sin(time * 5) * 0.5;
+				}
+
+				if (renderer) {
+					renderer.render(scene, camera);
+				}
+			}
+
+			animate();
+
+			const handleResize = () => {
+				if (container && renderer) {
+					camera.aspect = container.clientWidth / container.clientHeight;
+					camera.updateProjectionMatrix();
+					renderer.setSize(container.clientWidth, container.clientHeight);
+				}
+			};
+
+			window.addEventListener("resize", handleResize);
+
+			(container as any)._handleResize = handleResize;
+		}
+	}
+
+	document.addEventListener("astro:page-load", initThree);
+
+	document.addEventListener("astro:before-swap", () => {
+		if (renderer) {
+			renderer.dispose();
+			renderer.forceContextLoss();
+		}
+		if (animationId) {
+			cancelAnimationFrame(animationId);
+		}
+	});
+</script>
