@@ -1,6 +1,6 @@
 #metadata(
   (
-    title: "Heap",
+    title: "Heap (from how2heap)",
     description: "A collection of resources and write-ups on heap exploitation.",
     date: "2025-12-28",
     order: 30,
