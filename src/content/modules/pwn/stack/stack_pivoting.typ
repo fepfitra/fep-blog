@@ -25,8 +25,13 @@ This document demonstrates stack pivoting using a `leave; ret` gadget to shift t
 
 == The Source
 ```c
-// gcc source.c -o vuln -no-pie
+// gcc source.c -o vuln -no-pie -fno-stack-protector
 #include <stdio.h>
+
+void gadgets() {
+    __asm__("pop %rdi; ret");
+    __asm__("pop %rsi; pop %r15; ret");
+}
 
 void winner(int a, int b) {
     if(a == 0xdeadbeef && b == 0xdeadc0de) {
