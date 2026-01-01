@@ -16,7 +16,11 @@ const modulePosts = (await getCollection("modules")).filter(
 	(module) => !module.data.draft,
 );
 
-const allPosts = [...blog, ...modulePosts]
+const allPosts = blog
+	.sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf())
+	.slice(0, SITE.NUM_POSTS_ON_HOMEPAGE);
+
+const recentModules = modulePosts
 	.sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf())
 	.slice(0, SITE.NUM_POSTS_ON_HOMEPAGE);
 
@@ -164,7 +168,27 @@ const modules = allModules
 						{
 							allPosts.map((post) => (
 								<li>
-									<ArrowCard entry={post} showType={true} />
+									<ArrowCard entry={post} />
+								</li>
+							))
+						}
+					</ul>
+				</section>
+
+				<section class="animate space-y-6">
+					<div class="flex items-center justify-between">
+						<h2
+							class="text-2xl font-bold text-black dark:text-white"
+						>
+							Latest Modules
+						</h2>
+						<Link href="/modules"> View all </Link>
+					</div>
+					<ul class="flex flex-col gap-4">
+						{
+							recentModules.map((post) => (
+								<li>
+									<ArrowCard entry={post} />
 								</li>
 							))
 						}
