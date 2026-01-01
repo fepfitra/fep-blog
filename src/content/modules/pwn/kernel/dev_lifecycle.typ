@@ -15,6 +15,15 @@ This guide explores the lifecycle of a Linux character device driver through a s
 
 The source code for this example is available in #link("https://github.com/fepfitra/kernel-pwn-minimal/blob/master/src/hello_dev_char.c")[`hello_dev_char.c`].
 
+== What is a Character Device?
+
+In Linux, devices are categorized into two main types: **Character** and **Block**.
+
+- **Character Devices**: These handle data as a stream of bytes (characters). Data is accessed sequentially, meaning you read one byte after another. Examples include keyboards, mice, and serial ports.
+- **Block Devices**: These handle data in fixed-size blocks (e.g., 512 bytes). They support random access, meaning you can jump to any part of the data at any time. Examples include hard drives and SSDs.
+
+The "char" in `register_chrdev` stands for **character**. This is the simplest type of driver to write and a common starting point for kernel exploitation.
+
 == The Driver Code
 ```c
 #include <linux/fs.h>
