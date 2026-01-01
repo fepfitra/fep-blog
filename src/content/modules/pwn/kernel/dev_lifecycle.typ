@@ -11,7 +11,7 @@
 
 = Device Driver Lifecycle
 
-This guide explains the lifecycle of a Linux character device driver using a simple example. We will cover how the kernel module is initialized, how it handles file operations (open, read, write, release), and how to interact with it from user space.
+This guide explores the lifecycle of a Linux character device driver through a straightforward example that creates a device in `/dev/`. We will detail the module's initialization process, how it manages file operations such as open, read, write, and release, and demonstrate how to interact with the driver from user space.
 
 The source code for this example is available in #link("https://github.com/fepfitra/kernel-pwn-minimal/blob/master/src/hello_dev_char.c")[`hello_dev_char.c`].
 
