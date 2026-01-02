@@ -4,6 +4,7 @@
     description: "Corrupting the \_IO\_FILE structure to leak the flag from an arbitrary memory address.",
     date: "2026-01-01",
     order: 1,
+    draft: true,
   ),
 )<frontmatter>
 #import "../../../../typst-theme.c.typ": project

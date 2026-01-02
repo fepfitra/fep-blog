@@ -4,6 +4,6 @@ description: "Resources and write-ups on File Stream Oriented Programming."
 date: 2026-01-01
 order: 50
 ---
-"File Stream Oriented Programming (FSOP) involves exploiting the internal structures and mechanisms of the `FILE` stream in the standard C library (glibc). By corrupting `_IO_FILE` structures and their virtual tables (vtables), attackers can achieve arbitrary read/write primitives or code execution."
+## FSOP
 
-This module explores various FSOP techniques and challenges.
+"File Stream Oriented Programming (FSOP) is an advanced binary exploitation technique that leverages the internal structures of the C standard library's stream handling (Glibc `FILE` structures). By corrupting these objects, attackers can bypass modern mitigations like DEP and ASLR, turning limited memory corruption vulnerabilities into powerful arbitrary read, write, or code execution primitives."
