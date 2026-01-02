@@ -1,6 +1,6 @@
 #metadata(
   (
-    title: "Arbitrary Read",
+    title: "Arbitrary Read (fwrite)",
     description: "Corrupting the _IO_FILE structure to leak data from arbitrary memory addresses.",
     date: "2026-01-02",
     order: 3,

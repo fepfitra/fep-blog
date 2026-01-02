@@ -1,6 +1,6 @@
 #metadata(
   (
-    title: "Arbitrary Write",
+    title: "Arbitrary Write (fread)",
     description: "Corrupting the _IO_FILE structure to write data to arbitrary memory addresses.",
     date: "2026-01-02",
     order: 4,
