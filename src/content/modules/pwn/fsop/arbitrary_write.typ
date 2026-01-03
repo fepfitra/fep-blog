@@ -118,6 +118,17 @@ To perform an arbitrary write to the `authenticated` variable, we must satisfy t
 4. *`_IO_buf_base`*: Point to the target address (`&authenticated`).
 5. *`_IO_buf_end`*: Point to the end of the target area (`&authenticated + size`). The difference `_IO_buf_end - _IO_buf_base` must be *strictly larger* than the `fread` size (`want`) to satisfy the internal check: `want < (size_t) (fp->_IO_buf_end - fp->_IO_buf_base)`.
 
+=== Explicit vs. Implicit Triggers
+
+While `fread` is the most direct way to trigger input buffering, other functions that read from a stream can also trigger the underflow mechanism if the internal buffer is marked as empty (by setting `_IO_read_ptr == _IO_read_end`).
+
+1.  *Explicit Functions*: Functions that take a `FILE *` pointer as an argument (e.g., `fread(..., fp)`, `fgets(..., fp)`, `fscanf(fp, ...)`).
+2.  *Implicit Functions*: Functions that rely on the global `stdin` pointer (e.g., `scanf(...)`, `gets(...)`, `getchar()`).
+
+*Note*: Unlike Arbitrary Read (Output), this technique relies on the program explicitly *requesting* input. Passive events like `exit()`, `abort()`, or `fflush()` do *not* trigger an input underflow and thus cannot trigger this exploit.
+
+If an attacker corrupts the `stdin` structure itself, any subsequent call to an *implicit* function (like `scanf`) will use the corrupted structure, triggering the arbitrary write.
+
 When `__underflow` is triggered, Glibc will call `read(0, _IO_buf_base, _IO_buf_end - _IO_buf_base)`, effectively writing our input directly to the target memory.
 
 == Exploit Script

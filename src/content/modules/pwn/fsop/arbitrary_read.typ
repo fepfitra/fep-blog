@@ -1,6 +1,6 @@
 #metadata(
   (
-    title: "Arbitrary Read (fwrite)",
+    title: "Arbitrary Read",
     description: "Corrupting the _IO_FILE structure to leak data from arbitrary memory addresses.",
     date: "2026-01-02",
     order: 3,
@@ -11,13 +11,15 @@
 #show: project
 
 == Prerequisites
-- *Memory Corruption*: Ability to overwrite a `FILE` structure.
+- *Memory Corruption*: Ability to overwrite a `FILE` structure (either a custom one or standard streams like `stdout`/`stderr`).
 - *Known Address*: Knowledge of the address of the data you want to leak (e.g., a flag or a stack/libc pointer).
-- *Output Stream*: A standard library call that triggers a flush (e.g., `fwrite`, `fputs`, `fflush`, or `fclose`).
+- *Output Stream*: A trigger to flush the stream. This can be an explicit call (like `fwrite`) or an implicit one (like `exit`).
 
 = Arbitrary Read via FILE Structure Corruption
 
 The `FILE` structure's buffer pointers determine where data is read from and written to during I/O operations. By corrupting these pointers, an attacker can transform a standard library call like `fwrite` into a powerful arbitrary memory leak primitive.
+
+This technique is not limited to explicitly opened files; it is often used against `stdout` to leak data even when no explicit output function is called.
 
 == Vulnerable Scenario
 
@@ -37,7 +39,7 @@ char *buf;
 int main() {
   setvbuf(stdin, NULL, _IONBF, 0);
   setvbuf(stdout, NULL, _IONBF, 0);
-  strcpy(secret, "FLAG{THIS_IS_A_SECRET_FLAG}\n");
+  strcpy(secret, "well done baby");
   printf("The secret is located at %p\n", secret);
 
   buf = malloc(0x100);
@@ -54,7 +56,7 @@ int main() {
 
 == Glibc Internals: `_IO_new_file_overflow`
 
-When `fwrite` is called, it eventually invokes `_IO_new_file_overflow` if it determines the buffer needs flushing. To reach the arbitrary write primitive (`_IO_do_write`), we must satisfy several internal checks.
+When `fwrite` is called (or any function that triggers a flush), it eventually invokes `_IO_new_file_overflow`. To reach the arbitrary write primitive (`_IO_do_write`), we must satisfy several internal checks.
 
 ```c
 // Simplified glibc/libio/fileops.c
@@ -106,6 +108,20 @@ To leak the `secret` string, we must craft the `FILE` structure to meet these co
 4. *`_IO_read_end`*: Must be exactly equal to `_IO_write_base` to satisfy the check in `new_do_write`.
 5. *`_fileno`*: Set to `1` (stdout) or another descriptor we can monitor.
 
+=== Explicit vs. Implicit Triggers
+
+Crucially, this can work *even without* an explicit call to `fwrite`. When a C program terminates normally (e.g., via `return 0;` or `exit()`), it iterates through *all* active file streams (including `stdout`, `stderr`, and opened files) via `_IO_list_all` and flushes their buffers.
+
+The flush (and thus the leak) occurs whenever Glibc decides it needs to write the buffer's contents. This happens when:
+
+1. *Explicit Functions*: Functions that take a `FILE *` pointer (e.g., `fwrite(buf, 1, 1, fp)`, `fprintf(fp, ...)`).
+2. *Implicit Functions*: Functions that default to `stdout` (e.g., `puts`, `printf`, `putchar`).
+3. *Program Termination*: `exit()` or returning from `main` (iterates `_IO_list_all` and flushes).
+4. *Explicit Flush*: `fflush(stdout)` or `fflush(NULL)`.
+5. *Tied Streams*: Input functions on `stdin` (like `scanf` or `gets`) will flush `stdout` if the streams are tied (common in interactive apps).
+6. *Line Buffering*: Printing a `\n` if the `_IO_LINE_BUF` flag (`0x200`) is set.
+7. *Abort*: `abort()` often calls `_IO_flush_all_lockp` during cleanup.
+
 == Exploit Script
 
 ```python
@@ -129,3 +145,4 @@ payload = flat({
 p.send(payload)
 print(p.recvall(timeout=2))
 ```
+

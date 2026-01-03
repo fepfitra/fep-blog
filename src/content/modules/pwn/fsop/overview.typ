@@ -159,6 +159,58 @@ Key elements for exploitation include:
 
 All file operations go through this vtable. Additionally, all `FILE` structures are linked in a global list via `_IO_list_all` and the `_chain` pointer.
 
+=== The Global FILE List (\_IO_list_all)
+
+Glibc maintains a global linked list of all active `FILE` structures. The head of this list is a global variable called `_IO_list_all`. Each `FILE` structure has a `_chain` member (at offset `0x68`) that points to the next `FILE` structure in the list.
+
+When a new file is opened (e.g., via `fopen`), it is added to the head of the list. The chain traversal follows the `_chain` pointers:
+
+#figure(
+  grid(
+    columns: (auto, auto, auto, auto, auto, auto, auto, auto, auto),
+    align: center + horizon,
+    column-gutter: 5pt,
+    rect(inset: 5pt)[`_IO_list_all (head)`],
+    [→],
+    rect(inset: 5pt)[`opened file \n (_chain)`],
+    [→],
+    rect(inset: 5pt)[`stdin \n (_chain)`],
+    [→],
+    rect(inset: 5pt)[`stdout \n (_chain)`],
+    [→],
+    [`NULL`],
+  ),
+  caption: [The `_IO_list_all` chain linking file structures via their `_chain` members.],
+)
+
+This list is traversed by the internal function `_IO_flush_all_lockp`, which is called during normal program termination (`exit`), when `main` returns, or when `abort` is invoked.
+
+==== The `_IO_flush_all_lockp` Mechanism
+
+This function iterates through the `_IO_list_all` chain and attempts to flush every stream. To trigger an exploit (like an arbitrary leak or code execution) during this traversal, we must satisfy specific conditions within our corrupted `FILE` structure to reach the `overflow` call.
+
+```c
+// Simplified glibc/libio/genops.c
+int _IO_flush_all_lockp (int do_lock) {
+  struct _IO_FILE *fp = (_IO_ITER) _IO_list_all;
+  while (fp != NULL) {
+    // Condition to trigger a flush (and thus call the overflow vtable entry)
+    if (((fp->_mode <= 0 && fp->_IO_write_ptr > fp->_IO_write_base)
+         || (fp->_mode > 0 && (fp->_wide_data->_IO_write_ptr > fp->_wide_data->_IO_write_base)))) {
+
+      // The target call: calls the function at vtable + 0x18 (for _IO_new_file_overflow)
+      if (_IO_OVERFLOW (fp, EOF) == EOF)
+        result = EOF;
+    }
+    fp = fp->_chain;
+  }
+}
+```
+
+*Important Note on Chaining*: The traversal relies on `fp->_chain` to find the next stream. If an attacker corrupts a `FILE` structure such that its `_chain` pointer is invalid (e.g., points to unmapped memory), the loop will crash (Segfault) before processing subsequent streams. Conversely, setting `_chain` to `NULL` will gracefully terminate the loop. This behavior is critical when chaining multiple exploits or ensuring stability.
+
+To exploit this, an attacker often overwrites `_IO_list_all` to point to a fake `FILE` structure. By setting `_IO_write_ptr > _IO_write_base` and `_mode <= 0`, they force the program to call `_IO_OVERFLOW`, which can be hijacked if the vtable is also corrupted.
+
 === Examining file stream in GDB
 
 To bridge the gap between theory and practice, let's examine how a `FILE` structure actually looks in memory during a debugging session. Consider the following simple C program that uses `gets` (which internally utilizes `stdin`):

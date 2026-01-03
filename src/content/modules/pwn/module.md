@@ -16,6 +16,7 @@ Here you will find a collection of tutorials, write-ups, and practical examples 
 *   **Stack Exploitation:** Understanding and exploiting stack-based buffer overflows and other related vulnerabilities.
 *   **Kernel Exploitation:** Resources and write-ups on kernel-space exploitation and environment setup.
 *   **File Stream Oriented Programming (FSOP):** Exploiting internal `FILE` stream structures to gain arbitrary read/write or code execution.
+*   **Sandboxing:** Techniques for escaping `chroot` jails, `seccomp` filters, and namespaces.
 *   **Format String Vulnerabilities:** Learning how to leverage format string bugs to read from and write to arbitrary memory locations.
 
 Whether you are a beginner just starting your journey into binary exploitation or an experienced security researcher, this section aims to provide valuable insights and hands-on learning opportunities.
