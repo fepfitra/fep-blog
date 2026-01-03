@@ -56,7 +56,23 @@ const children = rootNode
 
     <div id="sidebar-content" class="hidden md:block pb-24">
         <div class="mb-4 text-lg font-semibold capitalize">
-            {currentTopLevel}
+            {
+                rootNode?.data ? (
+                    <a
+                        href={`/modules/${rootNode.id}`}
+                        class:list={[
+                            "hover:text-black dark:hover:text-white transition-colors",
+                            currentSlug === rootNode.id
+                                ? "text-black dark:text-white underline underline-offset-4 decoration-2 decoration-black/20 dark:decoration-white/20"
+                                : "text-black/70 dark:text-white/70",
+                        ]}
+                    >
+                        {rootNode.data.title}
+                    </a>
+                ) : (
+                    currentTopLevel
+                )
+            }
         </div>
         <nav class="space-y-1">
             <ul class="space-y-1">
