@@ -66,19 +66,19 @@ struct _IO_FILE_plus
 /* Extra data for wide character streams. */
 struct _IO_wide_data
 {
-  wchar_t *_IO_read_ptr;    /* Current read pointer */
-  wchar_t *_IO_read_end;    /* End of get area. */
-  wchar_t *_IO_read_base;   /* Start of putback+get area. */
-  wchar_t *_IO_write_base;  /* Start of put area. */
-  wchar_t *_IO_write_ptr;   /* Current put pointer. */
-  wchar_t *_IO_write_end;   /* End of put area. */
-  wchar_t *_IO_buf_base;    /* Start of reserve area. */
-  wchar_t *_IO_buf_end;     /* End of reserve area. */
-
+  wchar_t *_IO_read_ptr;	/* Current read pointer */
+  wchar_t *_IO_read_end;	/* End of get area. */
+  wchar_t *_IO_read_base;	/* Start of putback+get area. */
+  wchar_t *_IO_write_base;	/* Start of put area. */
+  wchar_t *_IO_write_ptr;	/* Current put pointer. */
+  wchar_t *_IO_write_end;	/* End of put area. */
+  wchar_t *_IO_buf_base;	/* Start of reserve area. */
+  wchar_t *_IO_buf_end;		/* End of reserve area. */
   /* The following fields are used to support backing up and undo. */
-  wchar_t *_IO_save_base;   /* Pointer to start of non-current get area. */
-  wchar_t *_IO_backup_base; /* Pointer to first valid character of backup area */
-  wchar_t *_IO_save_end;    /* Pointer to end of non-current get area. */
+  wchar_t *_IO_save_base;	/* Pointer to start of non-current get area. */
+  wchar_t *_IO_backup_base;	/* Pointer to first valid character of
+				   backup area */
+  wchar_t *_IO_save_end;	/* Pointer to end of non-current get area. */
 
   __mbstate_t _IO_state;
   __mbstate_t _IO_last_state;
@@ -142,6 +142,25 @@ The `_flags` field is a bitmask where the high 16 bits are reserved for a magic 
   [`0xA0`], [`_wide_data`], [Pointer to wide data struct],
   [...], [`_freeres_list, _freeres_buf, pad5, _mode, _unused2`], [Not important],
   [`0xD8`], [`vtable`], [Virtual function table pointer],
+)
+
+==== Structure Offsets: `_IO_wide_data` (x86-64)
+
+#table(
+  columns: (auto, auto, 1fr),
+  inset: 10pt,
+  align: (center, left, left),
+  [*Offset*], [*Field*], [*Description*],
+  [`0x00`], [`_IO_read_ptr`], [Current read pointer],
+  [`0x18`], [`_IO_write_base`], [Start of write area],
+  [`0x20`], [`_IO_write_ptr`], [Current put pointer],
+  [`0x30`], [`_IO_buf_base`], [Start of reserve area],
+  [`0x38`], [`_IO_buf_end`], [End of reserve area],
+  [...],
+  [`_IO_save_base, _IO_backup_base, _IO_save_end, _IO_state, _IO_last_state, _codecvt, _shortbuf`],
+  [Not important],
+
+  [`0xE0`], [`_wide_vtable`], [Virtual function table for wide characters],
 )
 
 Key elements for exploitation include:
