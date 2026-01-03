@@ -1,6 +1,6 @@
 #metadata(
   (
-    title: "Arbitrary Write (fread)",
+    title: "Arbitrary Write",
     description: "Corrupting the _IO_FILE structure to write data to arbitrary memory addresses.",
     date: "2026-01-02",
     order: 4,
@@ -122,8 +122,8 @@ To perform an arbitrary write to the `authenticated` variable, we must satisfy t
 
 While `fread` is the most direct way to trigger input buffering, other functions that read from a stream can also trigger the underflow mechanism if the internal buffer is marked as empty (by setting `_IO_read_ptr == _IO_read_end`).
 
-1.  *Explicit Functions*: Functions that take a `FILE *` pointer as an argument (e.g., `fread(..., fp)`, `fgets(..., fp)`, `fscanf(fp, ...)`).
-2.  *Implicit Functions*: Functions that rely on the global `stdin` pointer (e.g., `scanf(...)`, `gets(...)`, `getchar()`).
+1. *Explicit Functions*: Functions that take a `FILE *` pointer as an argument (e.g., `fread(..., fp)`, `fgets(..., fp)`, `fscanf(fp, ...)`).
+2. *Implicit Functions*: Functions that rely on the global `stdin` pointer (e.g., `scanf(...)`, `gets(...)`, `getchar()`).
 
 *Note*: Unlike Arbitrary Read (Output), this technique relies on the program explicitly *requesting* input. Passive events like `exit()`, `abort()`, or `fflush()` do *not* trigger an input underflow and thus cannot trigger this exploit.
 
