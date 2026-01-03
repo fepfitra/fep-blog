@@ -4,6 +4,7 @@
     description: "Writeup for Kernel Level 3",
     date: "2026-01-01",
     order: 3,
+    draft: true,
   ),
 )<frontmatter>
 #import "../../../../typst-theme.c.typ": project
@@ -17,8 +18,7 @@
   align: (right, left),
   [*Title*], [Kernel Buffer Interaction],
   [*Date*], [2025-12-30],
-  [*Description*],
-  [Manipulating kernel module state by writing to its provided buffer interface.],
+  [*Description*], [Manipulating kernel module state by writing to its provided buffer interface.],
 )
 
 = Babykernel Level 3

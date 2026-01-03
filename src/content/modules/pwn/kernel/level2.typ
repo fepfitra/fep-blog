@@ -4,6 +4,7 @@
     description: "Writeup for Kernel Level 2",
     date: "2026-01-01",
     order: 2,
+    draft: true,
   ),
 )<frontmatter>
 #import "../../../../typst-theme.c.typ": project
@@ -17,8 +18,7 @@
   align: (right, left),
   [*Title*], [Kernel Logging and Secret Strings],
   [*Date*], [2025-12-30],
-  [*Description*],
-  [Using kernel logging (dmesg) to find or verify the results of interacting with a kernel module.],
+  [*Description*], [Using kernel logging (dmesg) to find or verify the results of interacting with a kernel module.],
 )
 
 = Babykernel Level 2

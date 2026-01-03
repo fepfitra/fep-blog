@@ -4,6 +4,7 @@
     description: "Writeup for Sandboxing Level 9",
     date: "2026-01-01",
     order: 9,
+    draft: true,
   ),
 )<frontmatter>
 #import "../../../../typst-theme.c.typ": project
@@ -162,8 +163,8 @@ Because the filter whitelists syscall numbers 3 and 4 (thinking they are `close`
 
 *Exploit Strategy:*
 1. Call 32-bit `open` (5)? Wait, 5 is whitelisted?
-   - 64-bit 5 is `fstat`.
-   - 32-bit 5 is `open`.
+  - 64-bit 5 is `fstat`.
+  - 32-bit 5 is `open`.
 2. So we can use 32-bit syscall 5 to open the flag.
 3. Use 32-bit syscall 3 to read the flag.
 4. Use 32-bit syscall 4 to write the flag to stdout.

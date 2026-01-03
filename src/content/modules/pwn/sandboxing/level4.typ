@@ -4,6 +4,7 @@
     description: "Writeup for Sandboxing Level 4",
     date: "2026-01-01",
     order: 4,
+    draft: true,
   ),
 )<frontmatter>
 #import "../../../../typst-theme.c.typ": project
@@ -182,7 +183,7 @@ This level adds a check to prevent opening any file whose name contains the stri
 
 == Vulnerability Analysis
 
-The program checks `argv[1]` for the "flag" substring but allows us to open other paths. 
+The program checks `argv[1]` for the "flag" substring but allows us to open other paths.
 
 ```c
 assert(strstr(argv[1], "flag") == NULL);

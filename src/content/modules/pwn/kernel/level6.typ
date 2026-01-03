@@ -4,6 +4,7 @@
     description: "Writeup for Kernel Level 6",
     date: "2026-01-01",
     order: 6,
+    draft: true,
   ),
 )<frontmatter>
 #import "../../../../typst-theme.c.typ": project

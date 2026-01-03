@@ -4,6 +4,7 @@
     description: "Writeup for Sandboxing Level 6",
     date: "2026-01-01",
     order: 6,
+    draft: true,
   ),
 )<frontmatter>
 #import "../../../../typst-theme.c.typ": project
@@ -208,3 +209,4 @@ mov rax, 2 /* SYS_open */
 syscall
 
 ```
+

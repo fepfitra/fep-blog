@@ -4,6 +4,7 @@
     description: "Writeup for Sandboxing Level 14",
     date: "2026-01-01",
     order: 14,
+    draft: true,
   ),
 )<frontmatter>
 #import "../../../../typst-theme.c.typ": project
@@ -169,10 +170,10 @@ This challenge uses more advanced Linux isolation features: **Mount Namespaces**
 == Vulnerability Analysis
 
 The program performs the following steps to create the jail:
-1.  Creates a new mount namespace using `unshare(CLONE_NEWNS)`.
-2.  Creates a new temporary directory to serve as the new root.
-3.  Uses `pivot_root` to move the current root to a subdirectory (`/old`) and set the new temporary directory as the root.
-4.  Bind-mounts essential directories (`/bin`, `/usr`, `/lib`, `/lib64`) from `/old` into the new root.
+1. Creates a new mount namespace using `unshare(CLONE_NEWNS)`.
+2. Creates a new temporary directory to serve as the new root.
+3. Uses `pivot_root` to move the current root to a subdirectory (`/old`) and set the new temporary directory as the root.
+4. Bind-mounts essential directories (`/bin`, `/usr`, `/lib`, `/lib64`) from `/old` into the new root.
 
 The critical vulnerability is that the **old root remains mounted at `/old`** and is never unmounted.
 

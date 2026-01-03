@@ -4,6 +4,7 @@
     description: "Writeup for Sandboxing Level 10",
     date: "2026-01-01",
     order: 10,
+    draft: true,
   ),
 )<frontmatter>
 #import "../../../../typst-theme.c.typ": project
@@ -146,8 +147,7 @@ int main(int argc, char **argv, char **envp)
   align: (right, left),
   [*Title*], [Side-Channel Leak via Exit Code],
   [*Date*], [2025-12-30],
-  [*Description*],
-  [Leaking data from a restricted sandbox by using the process exit code as a communication channel.],
+  [*Description*], [Leaking data from a restricted sandbox by using the process exit code as a communication channel.],
 )
 
 = Babyjail Level 10

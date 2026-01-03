@@ -4,6 +4,7 @@
     description: "Writeup for Sandboxing Level 2",
     date: "2026-01-01",
     order: 2,
+    draft: true,
   ),
 )<frontmatter>
 #import "../../../../typst-theme.c.typ": project

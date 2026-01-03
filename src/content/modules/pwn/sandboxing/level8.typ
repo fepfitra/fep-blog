@@ -4,6 +4,7 @@
     description: "Writeup for Sandboxing Level 8",
     date: "2026-01-01",
     order: 8,
+    draft: true,
   ),
 )<frontmatter>
 #import "../../../../typst-theme.c.typ": project
@@ -165,11 +166,11 @@ int main(int argc, char **argv, char **envp)
 
 == Introduction
 
-This challenge provides limited syscalls: `openat`, `read`, `write`, and `sendfile`. 
+This challenge provides limited syscalls: `openat`, `read`, `write`, and `sendfile`.
 
 == Vulnerability Analysis
 
-While no directory FD is explicitly leaked in this level, we can use `openat(AT_FDCWD, "..", ...)` to attempt traversal. In some configurations or if an FD was accidentally left open, `openat` can be used to escape. 
+While no directory FD is explicitly leaked in this level, we can use `openat(AT_FDCWD, "..", ...)` to attempt traversal. In some configurations or if an FD was accidentally left open, `openat` can be used to escape.
 
 However, the primary intent of this level is often to demonstrate that without a handle to the outside world, escaping `chroot` is difficult even with `openat`. If the challenge intended an escape, it might rely on more advanced kernel interactions or a subtle logic error.
 

@@ -4,6 +4,7 @@
     description: "Writeup for Sandboxing Level 13",
     date: "2026-01-01",
     order: 13,
+    draft: true,
   ),
 )<frontmatter>
 #import "../../../../typst-theme.c.typ": project
@@ -168,8 +169,8 @@ This challenge implements a multi-process sandbox. The parent process forks a ch
 == Vulnerability Analysis
 
 The parent process acts as a request handler for the child. It waits for 128-byte commands over the socket and performs actions based on the command name:
-1.  `print_msg`: Prints the provided argument to stdout.
-2.  `read_file`: Opens a specified file and sends its contents back to the child using `sendfile`.
+1. `print_msg`: Prints the provided argument to stdout.
+2. `read_file`: Opens a specified file and sends its contents back to the child using `sendfile`.
 
 The vulnerability is that the parent does not validate the file path requested by the `read_file` command. The child, although restricted from calling `open` directly, can ask the parent to open and read `/flag` on its behalf.
 

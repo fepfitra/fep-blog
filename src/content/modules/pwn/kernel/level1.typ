@@ -4,6 +4,7 @@
     description: "Writeup for Kernel Level 1",
     date: "2026-01-01",
     order: 1,
+    draft: true,
   ),
 )<frontmatter>
 #import "../../../../typst-theme.c.typ": project
@@ -64,7 +65,7 @@ static ssize_t device_write(struct file *filp, const char __user *buff, size_t l
 
     if (copy_from_user(input, buff, len))
         return -EFAULT;
-    
+
     // Check if the input starts with the password
     if (len >= pass_len && memcmp(input, PASSWORD, pass_len) == 0) {
         authenticated = 1;
@@ -113,8 +114,7 @@ module_exit(babykernel_exit);
   align: (right, left),
   [*Title*], [Basic /proc Interface Interaction],
   [*Date*], [2025-12-30],
-  [*Description*],
-  [Interacting with a custom /proc entry to trigger kernel module behavior and retrieve the flag.],
+  [*Description*], [Interacting with a custom /proc entry to trigger kernel module behavior and retrieve the flag.],
 )
 
 = Babykernel Level 1

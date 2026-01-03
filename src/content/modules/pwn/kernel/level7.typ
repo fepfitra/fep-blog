@@ -4,6 +4,7 @@
     description: "Writeup for Kernel Level 7",
     date: "2026-01-01",
     order: 7,
+    draft: true,
   ),
 )<frontmatter>
 #import "../../../../typst-theme.c.typ": project
@@ -17,8 +18,7 @@
   align: (right, left),
   [*Title*], [Kernel Shellcode Execution via ioctl],
   [*Date*], [2025-12-30],
-  [*Description*],
-  [Executing arbitrary code in kernel space by passing shellcode through an ioctl call.],
+  [*Description*], [Executing arbitrary code in kernel space by passing shellcode through an ioctl call.],
 )
 
 = Babykernel Level 7
