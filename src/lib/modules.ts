@@ -43,13 +43,11 @@ export function buildModuleTree(modules: CollectionEntry<"modules">[]) {
         });
     });
 
-    function mergeIndexNodes(nodes: Record<string, ModuleNode>, isTopLevel = false) {
+    function mergeIndexNodes(nodes: Record<string, ModuleNode>) {
         for (const key in nodes) {
             const node = nodes[key];
             if (node._children) {
-                mergeIndexNodes(node._children, false);
-
-                if (isTopLevel) continue;
+                mergeIndexNodes(node._children);
 
                 const indexKey = Object.keys(node._children).find(
                     (k) => k === "module" || k === "index"
@@ -67,7 +65,7 @@ export function buildModuleTree(modules: CollectionEntry<"modules">[]) {
         }
     }
 
-    mergeIndexNodes(tree, true);
+    mergeIndexNodes(tree);
 
     return tree;
 }
