@@ -5,18 +5,52 @@ import { GISCUS } from "@consts";
 <div class="giscus"></div>
 
 <script
-        is:inline
-        data-repo={GISCUS.repo}
-        data-repo-id={GISCUS.repoId}
-        data-category={GISCUS.category}
-        data-category-id={GISCUS.categoryId}
-        data-mapping="pathname"
-        data-strict="0"
-        data-reactions-enabled="1"
-        data-emit-metadata="0"
-        data-input-position="bottom"
-        data-theme="preferred_color_scheme"
-        data-lang="en"
-        crossorigin="anonymous"
-        async
-        src="https://giscus.app/client.js"></script>
+  is:inline
+  data-repo={GISCUS.repo}
+  data-repo-id={GISCUS.repoId}
+  data-category={GISCUS.category}
+  data-category-id={GISCUS.categoryId}
+  data-mapping="pathname"
+  data-strict="0"
+  data-reactions-enabled="1"
+  data-emit-metadata="0"
+  data-input-position="bottom"
+  data-theme="preferred_color_scheme"
+  data-lang="en"
+  crossorigin="anonymous"
+  async
+  src="https://giscus.app/client.js"
+></script>
+
+<script is:inline>
+  function loadGiscus() {
+    const theme = localStorage.getItem("theme") || "system";
+    const giscusAttributes = {
+      src: "https://giscus.app/client.js",
+      "data-repo": document.querySelector("script[data-repo]").getAttribute("data-repo"),
+      "data-repo-id": document.querySelector("script[data-repo-id]").getAttribute("data-repo-id"),
+      "data-category": document.querySelector("script[data-category]").getAttribute("data-category"),
+      "data-category-id": document.querySelector("script[data-category-id]").getAttribute("data-category-id"),
+      "data-mapping": "pathname",
+      "data-strict": "0",
+      "data-reactions-enabled": "1",
+      "data-emit-metadata": "0",
+      "data-input-position": "bottom",
+      "data-theme": theme === "dark" ? "dark" : theme === "light" ? "light" : "preferred_color_scheme",
+      "data-lang": "en",
+      crossorigin: "anonymous",
+      async: "",
+    };
+
+    const giscusContainer = document.querySelector(".giscus");
+    if (giscusContainer && !document.querySelector(".giscus-frame")) {
+      const script = document.createElement("script");
+      Object.entries(giscusAttributes).forEach(([key, value]) =>
+        script.setAttribute(key, value)
+      );
+      giscusContainer.appendChild(script);
+    }
+  }
+
+  document.addEventListener("astro:after-swap", loadGiscus);
+</script>

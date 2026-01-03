@@ -44,11 +44,6 @@ if (prettyId.endsWith("/module")) {
 	width="2xl"
 	headings={headings}
 >
-	<div class="prose dark:prose-invert max-w-none">
-		<Content />
-		<ModuleNavigation currentSlug={prettyId} />
-	</div>
-	<div class="mt-24">
-		<Giscus />
-	</div>
+	<Content />
+	<ModuleNavigation currentSlug={prettyId} />
 </ModulesLayout>

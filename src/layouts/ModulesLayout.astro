@@ -44,32 +44,34 @@ const {
                         <Sidebar currentSlug={currentSlug} />
                     </div>
                 </div>
-                <article
-                    class="prose dark:prose-invert max-w-none min-w-0 flex-1"
-                    data-pagefind-body
-                >
-                    <div class="animate mb-10">
-                        <BackToPrevious href="/modules"
-                            >Back to Modules</BackToPrevious
-                        >
-                    </div>
-                    {
-                        headings.length > 0 ? (
-                            <div class="mb-8 lg:hidden">
-                                <TableOfContents
-                                    headings={headings}
-                                    open={false}
-                                />
-                            </div>
-                        ) : (
-                            <TypstToC class="mb-8 lg:hidden" open={false} />
-                        )
-                    }
-                    <slot />
+                <div class="min-w-0 flex-1">
+                    <article
+                        class="prose dark:prose-invert max-w-none"
+                        data-pagefind-body
+                    >
+                        <div class="animate mb-10">
+                            <BackToPrevious href="/modules"
+                                >Back to Modules</BackToPrevious
+                            >
+                        </div>
+                        {
+                            headings.length > 0 ? (
+                                <div class="mb-8 lg:hidden">
+                                    <TableOfContents
+                                        headings={headings}
+                                        open={false}
+                                    />
+                                </div>
+                            ) : (
+                                <TypstToC class="mb-8 lg:hidden" open={false} />
+                            )
+                        }
+                        <slot />
+                    </article>
                     <div class="mt-24">
                         <Giscus />
                     </div>
-                </article>
+                </div>
                 {
                     headings.length > 0 ? (
                         <aside class="hidden w-64 shrink-0 lg:block">
