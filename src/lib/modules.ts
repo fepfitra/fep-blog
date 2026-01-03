@@ -58,7 +58,8 @@ export function buildModuleTree(modules: CollectionEntry<"modules">[]) {
                 if (indexKey) {
                     const indexNode = node._children[indexKey];
                     node.data = indexNode.data;
-                    node.id = indexNode.id;
+                    // Use the directory path as the ID for pretty URLs
+                    node.id = node.dirPath; 
                     node.collection = indexNode.collection;
                     delete node._children[indexKey];
                 }

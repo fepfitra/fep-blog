@@ -6,28 +6,47 @@ import Giscus from "@components/Giscus.astro";
 
 export async function getStaticPaths() {
 	const modules = await getCollection("modules");
-	return modules.map((module) => ({
-		params: { id: module.id },
-		props: module,
-	}));
+	return modules.map((module) => {
+		let id: string | undefined = module.id;
+		if (id.endsWith("/module")) {
+			id = id.replace(/\/module$/, "");
+		} else if (id.endsWith("/index")) {
+			id = id.replace(/\/index$/, "");
+		} else if (id === "module" || id === "index") {
+			id = undefined;
+		}
+		return {
+			params: { id },
+			props: module,
+		};
+	});
 }
 
 type Props = CollectionEntry<"modules">;
 
 const module = Astro.props;
 const { Content, headings } = await render(module);
+
+let prettyId = module.id;
+if (prettyId.endsWith("/module")) {
+	prettyId = prettyId.replace(/\/module$/, "");
+} else if (prettyId.endsWith("/index")) {
+	prettyId = prettyId.replace(/\/index$/, "");
+} else if (prettyId === "module" || prettyId === "index") {
+	prettyId = "";
+}
 ---
 
 <ModulesLayout
 	title={module.data.title}
 	description={module.data.description}
-	currentSlug={module.id}
+	currentSlug={prettyId}
 	width="2xl"
 	headings={headings}
 >
 	<div class="prose dark:prose-invert max-w-none">
 		<Content />
-		<ModuleNavigation currentSlug={module.id} />
+		<ModuleNavigation currentSlug={prettyId} />
 	</div>
 	<div class="mt-24">
 		<Giscus />
