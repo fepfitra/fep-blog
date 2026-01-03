@@ -10,6 +10,11 @@
 #import "../../../../typst-theme.c.typ": project
 #show: project
 
+== Prerequisites
+- *Memory Corruption*: Ability to overwrite a `FILE` structure.
+- *Known Address*: Knowledge of the target memory address you want to overwrite.
+- *Input Stream*: A standard library call that triggers an underflow (e.g., `fread`, `fgets`, `fscanf`).
+
 = Arbitrary Write via FILE Structure Corruption
 
 Similar to how `fwrite` can be abused for arbitrary reads, the `fread` function (and other input operations) can be manipulated to perform arbitrary memory writes. By redirecting the internal stream buffers to a target address, we can force the library to "fill" our chosen memory location with data from a file descriptor we control (like `stdin`).

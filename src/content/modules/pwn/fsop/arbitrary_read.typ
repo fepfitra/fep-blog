@@ -10,6 +10,11 @@
 #import "../../../../typst-theme.c.typ": project
 #show: project
 
+== Prerequisites
+- *Memory Corruption*: Ability to overwrite a `FILE` structure.
+- *Known Address*: Knowledge of the address of the data you want to leak (e.g., a flag or a stack/libc pointer).
+- *Output Stream*: A standard library call that triggers a flush (e.g., `fwrite`, `fputs`, `fflush`, or `fclose`).
+
 = Arbitrary Read via FILE Structure Corruption
 
 The `FILE` structure's buffer pointers determine where data is read from and written to during I/O operations. By corrupting these pointers, an attacker can transform a standard library call like `fwrite` into a powerful arbitrary memory leak primitive.
