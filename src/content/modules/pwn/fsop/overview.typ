@@ -245,52 +245,57 @@ int main() {
 By compiling this program and inspecting the `stdin` pointer in GDB, we can observe the populated fields of the `_IO_FILE` structure:
 
 ```bash
-(gdb) p *stdin
+(gdb) p _IO_2_1_stdin_
 ```
 ```c
-$3 = {
-  _flags = -72539512,
-  _IO_read_ptr = 0x555555559310 "",
-  _IO_read_end = 0x555555559310 "",
-  _IO_read_base = 0x555555559310 "",
-  _IO_write_base = 0x555555559310 "",
-  _IO_write_ptr = 0x555555559310 "",
-  _IO_write_end = 0x555555559310 "",
-  _IO_buf_base = 0x555555559310 "",
-  _IO_buf_end = 0x555555559710 "",
-  _IO_save_base = 0x0,
-  _IO_backup_base = 0x0,
-  _IO_save_end = 0x0,
-  _markers = 0x0,
-  _chain = 0x0,
-  _fileno = 0,
-  _flags2 = 0,
-  _short_backupbuf = "",
-  _old_offset = -1,
-  _cur_column = 0,
-  _vtable_offset = 0 '\000',
-  _shortbuf = "",
-  _lock = 0x7ffff7e0a7a0 <_IO_stdfile_0_lock>,
-  _offset = -1,
-  _codecvt = 0x0,
-  _wide_data = 0x7ffff7e089c0 <_IO_wide_data_0>,
-  _freeres_list = 0x0,
-  _freeres_buf = 0x0,
-  _prevchain = 0x7ffff7e09628 <_IO_2_1_stdout_+104>,
-  _mode = -1,
-  _unused3 = 0,
-  _total_written = 0,
-  _unused2 = "\000\000\000\000\000\000\000"
+$1 = {
+  file = {
+    _flags = -72540021,
+    _IO_read_ptr = 0x7ffff7e08963 <_IO_2_1_stdin_+131> "",
+    _IO_read_end = 0x7ffff7e08963 <_IO_2_1_stdin_+131> "",
+    _IO_read_base = 0x7ffff7e08963 <_IO_2_1_stdin_+131> "",
+    _IO_write_base = 0x7ffff7e08963 <_IO_2_1_stdin_+131> "",
+    _IO_write_ptr = 0x7ffff7e08963 <_IO_2_1_stdin_+131> "",
+    _IO_write_end = 0x7ffff7e08963 <_IO_2_1_stdin_+131> "",
+    _IO_buf_base = 0x7ffff7e08963 <_IO_2_1_stdin_+131> "",
+    _IO_buf_end = 0x7ffff7e08964 <_IO_2_1_stdin_+132> "",
+    _IO_save_base = 0x0,
+    _IO_backup_base = 0x0,
+    _IO_save_end = 0x0,
+    _markers = 0x0,
+    _chain = 0x0,
+    _fileno = 0,
+    _flags2 = 0,
+    _short_backupbuf = "",
+    _old_offset = -1,
+    _cur_column = 0,
+    _vtable_offset = 0 '\000',
+    _shortbuf = "",
+    _lock = 0x7ffff7e0a7a0 <_IO_stdfile_0_lock>,
+    _offset = -1,
+    _codecvt = 0x0,
+    _wide_data = 0x7ffff7e089c0 <_IO_wide_data_0>,
+    _freeres_list = 0x0,
+    _freeres_buf = 0x0,
+    _prevchain = 0x7ffff7e09628 <_IO_2_1_stdout_+104>,
+    _mode = 0,
+    _unused3 = 0,
+    _total_written = 0,
+    _unused2 = "\000\000\000\000\000\000\000"
+  },
+  vtable = 0x7ffff7e07030 <_IO_file_jumps>
 }
 ```
 
-The GDB output above reveals the internal state of `stdin` during runtime. Understanding these fields is crucial for crafting FSOP exploits:
+The GDB output above reveals the internal state of `stdin` during runtime. This structure is technically `_IO_FILE_plus`, which wraps the standard `_IO_FILE` (seen as the `file` member) and appends the `vtable`.
 
-- *`_flags`*: The value `-72539512` (hex: `0xfb9b81b8`) contains `_IO_MAGIC` (top 2 bytes) and various status flags. In many exploits, modifying these flags (e.g., clearing `_IO_NO_WRITES`) is a prerequisite for triggering specific code paths in `_IO_file_jumps`.
-- *Buffer Pointers*: Notice that `_IO_read_ptr`, `_IO_read_end`, and `_IO_buf_base` all point to `0x555555559310`. This is the start of the actual character buffer on the heap. By corrupting these pointers, we can redirect I/O operations to arbitrary memory locations (Arbitrary Read/Write).
-- *`_fileno`*: Set to `0`, which is the standard file descriptor for `stdin`. For `stdout`, this would be `1`.
-- *`_lock`*: Points to `_IO_stdfile_0_lock`. Glibc uses this for thread safety. Many FSOP gadgets (like those in `fclose`) will crash if this pointer doesn't point to a *writable area of memory*, as the code attempts to "lock" the file stream before proceeding.
-- *`_vtable`*: Although not explicitly shown in the `struct _IO_FILE` view, standard streams are actually `struct _IO_FILE_plus`. The vtable pointer resides immediately after `_unused2`.
+Understanding these fields is crucial for crafting FSOP exploits:
+
+- *`file._flags`*: The value `-72540021` (hex: `0xfb9b808b`) contains `_IO_MAGIC` (top 2 bytes) and various status flags. In many exploits, modifying these flags (e.g., clearing `_IO_NO_WRITES`) is a prerequisite for triggering specific code paths.
+- *Buffer Pointers*: Notice that `_IO_read_ptr`, `_IO_read_end`, and `_IO_buf_base` all point to the same region. This indicates the buffer state. By corrupting these pointers, we can redirect I/O operations to arbitrary memory locations (Arbitrary Read/Write).
+- *`file._fileno`*: Set to `0`, which is the standard file descriptor for `stdin`. For `stdout`, this would be `1`.
+- *`file._lock`*: Points to `_IO_stdfile_0_lock`. Glibc uses this for thread safety. Many FSOP gadgets (like those in `fclose`) will crash if this pointer doesn't point to a *writable area of memory*.
+- *`vtable`*: Explicitly shown at the end (`0x7ffff7e07030 <_IO_file_jumps>`). This pointer determines which functions are called for operations like `fread`, `fwrite`, or `close`. Redirecting this pointer is the core of execution hijacking.
 
 == Exploitation of FILE Structure
 
