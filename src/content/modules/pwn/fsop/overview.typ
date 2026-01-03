@@ -133,10 +133,14 @@ The `_flags` field is a bitmask where the high 16 bits are reserved for a magic 
   [`0x30`], [`_IO_write_end`], [End of write area],
   [`0x38`], [`_IO_buf_base`], [Start of reserve area],
   [`0x40`], [`_IO_buf_end`], [End of reserve area],
+  [...], [`_IO_save_base, _IO_backup_base, _IO_save_end, _markers`], [Not important],
   [`0x68`], [`_chain`], [Next FILE struct in the list],
   [`0x70`], [`_fileno`], [File descriptor],
+  [...], [`_old_offset, _cur_column, _vtable_offset. _shortbuf`], [Not important],
   [`0x88`], [`_lock`], [Pointer to lock object],
+  [...], [`_offset, _codecvt`], [Not important],
   [`0xA0`], [`_wide_data`], [Pointer to wide data struct],
+  [...], [`_freeres_list, _freeres_buf, pad5, _mode, _unused2`], [Not important],
   [`0xD8`], [`vtable`], [Virtual function table pointer],
 )
 
