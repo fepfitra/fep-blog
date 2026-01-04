@@ -56,19 +56,39 @@ int main(int argc, char **argv, char **envp)
 }
 ```
 
-== Chroot without chdir
+== Vulnerability Analysis
 
-In this challenge, the program calls `chroot()` into a temporary directory but fails to call `chdir("/")` immediately after. This is a common mistake when implementing jails.
+The vulnerability is a missing `chdir("/")` after `chroot()`.
 
-The `chroot()` syscall changes the root directory for the calling process and its future children, but it does *not* change the current working directory (CWD). If the process is at `/home/user` and calls `chroot("/tmp/jail")`, its root becomes `/tmp/jail`, but its CWD is still effectively at the original `/home/user/any/directory`.
-
-Since we are outside the new root, we can use relative paths to traverse upwards and reach the real root of the filesystem.
-
-*Exploit:*
-```bash
-./challenge ../../../flag
+```c
+assert(chroot(jail_path) == 0);
+// Missing: chdir("/");
 ```
-The program opens the file relative to the CWD, which is still outside the jail, allowing us to read the real flag.
+
+The `chroot` system call changes the root directory (`/`) for the process, but it does *not* automatically change the Current Working Directory (CWD). If the process was in `/home/user` before the chroot, it remains in `/home/user` afterwards—even if `/home/user` is outside the new jail root.
+
+Because the CWD is outside the jail, relative paths like `../` are resolved relative to the *host's* filesystem, allowing us to traverse up to the real root.
+
+== Exploitation Plan
+
+1.  **Traverse Up:** Since our CWD is effectively "outside" the new root, we can use `../../` to reach the real root directory.
+2.  **Access Flag:** Provide the path `../../../flag` (or enough `../`s) as the argument to the program. The program will resolve this relative to the CWD, reaching the real flag.
+
+== Exploit Script
+
+```python
+from pwn import *
+
+exe = "./challenge"
+context.binary = exe
+
+# We pass a relative path containing multiple '../' to traverse out of the jail
+# and reach the real flag file.
+payload = "../../../flag"
+
+p = process([exe, payload])
+print(p.recvall().decode())
+```
 
 == Testing Locally
 

