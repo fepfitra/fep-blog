@@ -223,17 +223,7 @@ To exploit this, an attacker often overwrites `_IO_list_all` to point to a fake 
 
 === Examining file stream in GDB
 
-To bridge the gap between theory and practice, let's examine how a `FILE` structure actually looks in memory during a debugging session. Consider the following simple C program that uses `gets` (which internally utilizes `stdin`):
-
-```c
-#include <stdio.h>
-int main() {
-  char buf[100];
-  gets(buf);
-}
-```
-
-By compiling this program and inspecting the `stdin` pointer in GDB, we can observe the populated fields of the `_IO_FILE` structure:
+Try compile any program and incpect the `stdin` pointer in GDB, we can observe the populated fields of the `_IO_FILE` structure:
 
 ```bash
 (gdb) p _IO_2_1_stdin_
