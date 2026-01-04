@@ -140,10 +140,10 @@ Because the parent performs no validation on `command_argument`, the child can r
 == Exploitation Plan
 
 1.  **Request Flag:** Send the `read_file` command with the argument `/flag` to the parent via the socket (FD 4).
-    *   Payload: `"read_file\x00/flag\x00..."` (padded to 128 bytes).
+    -   Payload: `"read_file\x00/flag\x00..."` (padded to 128 bytes).
 2.  **Receive Flag:** Read 128 bytes from the socket. This will be the content of the flag sent by the parent.
 3.  **Exfiltrate:** To see the flag, we can use the `print_msg` command. Send `print_msg` with the flag content as the argument back to the parent.
-    *   Payload: `"print_msg\x00" + flag_content ...`
+    -   Payload: `"print_msg\x00" + flag_content ...`
 
 == Exploit Script
 

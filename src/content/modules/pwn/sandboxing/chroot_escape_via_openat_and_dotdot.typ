@@ -84,7 +84,7 @@ By using shell redirection, we can open the root directory (`/`) on a specific f
 == Exploitation Plan
 
 1.  **Inherit Root FD:** Invoke the binary using a shell command that opens `/` on file descriptor 3.
-    *   Command: `./challenge 3< /`
+    -   Command: `./challenge 3< /`
 2.  **Bypass Sandbox:** Use the `openat` syscall with FD 3. Since FD 3 points to the real root, `openat(3, "flag", ...)` will resolve the path relative to the host's root, bypassing the jail.
 3.  **Read Flag:** Read the flag and write it to stdout.
 

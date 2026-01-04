@@ -82,14 +82,14 @@ The challenge implements a seccomp filter that whitelists specific system calls 
 The vulnerability arises because seccomp filters often check the system call *number*, but system call numbers differ between architectures.
 
 *   **x86-64 (64-bit):**
-    *   `close`: 3
-    *   `stat`: 4
-    *   `fstat`: 5
-    *   `lstat`: 6
+    -   `close`: 3
+    -   `stat`: 4
+    -   `fstat`: 5
+    -   `lstat`: 6
 *   **x86 (32-bit):**
-    *   `read`: 3
-    *   `write`: 4
-    *   `open`: 5
+    -   `read`: 3
+    -   `write`: 4
+    -   `open`: 5
 
 The filter allows syscalls 3, 4, 5, and 6. If we switch the processor to 32-bit mode (or simply execute the 32-bit `int 0x80` instruction), the kernel interprets these numbers as `read`, `write`, and `open`.
 
