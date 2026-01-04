@@ -38,9 +38,9 @@ In binary exploitation (pwn), particularly in sandboxed environments, we often i
 == How Syscalls Work (x86-64)
 
 To invoke a syscall in x86-64 assembly:
-1.  Load the *syscall number* into the `rax` register.
-2.  Load arguments into `rdi`, `rsi`, `rdx`, `r10`, `r8`, and `r9`.
-3.  Execute the `syscall` instruction.
+1. Load the *syscall number* into the `rax` register.
+2. Load arguments into `rdi`, `rsi`, `rdx`, `r10`, `r8`, and `r9`.
+3. Execute the `syscall` instruction.
 
 === Example: `exit(0)`
 - Syscall number for `exit` is 60.
@@ -90,7 +90,7 @@ The following system calls are frequently used in the exploits throughout this m
 )
 
 === Note on Architecture Confusion
-In #link("./cross_arch_syscall_confusion#confusion")[Cross-Arch Syscall Confusion], we exploit the overlap between 64-bit and 32-bit syscall numbers. For reference, the 32-bit (x86) numbers used were:
+In #link("/modules/pwn/sandboxing/9_cross_arch_syscall_confusion")[Cross-Arch Syscall Confusion], we exploit the overlap between 64-bit and 32-bit syscall numbers. For reference, the 32-bit (x86) numbers used were:
 - `read`: 3 (corresponds to x64 `close`)
 - `write`: 4 (corresponds to x64 `stat`)
 - `open`: 5 (corresponds to x64 `fstat`)
@@ -100,7 +100,7 @@ In #link("./cross_arch_syscall_confusion#confusion")[Cross-Arch Syscall Confusio
 To run this binary on a standard Linux system without root privileges (and without `sudo`), you can use *User Namespaces*. The `unshare` command allows you to create a new namespace where you have the `CAP_SYS_CHROOT` capability.
 
 ```bash
-unshare -r ./challenge ../../../flag
+unshare -r ./challenge ../../../../..//flag
 ```
 
 The `-r` flag (or `--map-root-user`) maps your current user to the root user inside the new namespace, permitting the `chroot()` syscall to succeed.
