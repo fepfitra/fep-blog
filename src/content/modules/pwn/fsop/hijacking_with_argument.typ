@@ -16,9 +16,9 @@ In basic FSOP hijacking, we redirect execution to a function like `win()` that r
 
 In the `_IO_wfile_jumps` bypass, when the program eventually calls our target function (via `_IO_wdoallocbuf`), the first argument (`rdi`) is still the pointer to the `FILE` structure (`fp`).
 
-#quote(attribution: [Fun Fact])([
+#quote(attribution: [Fun Fact])[
   During the entire chain from `fwrite` down to `_IO_wdoallocbuf`, the `rdi` register (and often `rsi`) remains populated with the address of the `FILE` structure. This means the hijacked function will receive the corrupted `FILE` struct as its first argument.
-])
+]
 
 == Vulnerable Scenario
 
