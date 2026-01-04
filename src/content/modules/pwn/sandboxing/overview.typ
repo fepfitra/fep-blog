@@ -89,6 +89,26 @@ The following system calls are frequently used in the exploits throughout this m
   [`linkat`], [`265`], [Create a hard link relative to directory FDs.],
 )
 
+== Shellcraft: Automated Shellcode Generation
+
+While writing assembly manually gives you fine-grained control, it can be tedious and error-prone. Fortunately, `pwntools` includes a powerful tool called *Shellcraft*. It provides a library of pre-written assembly snippets for common system calls and tasks.
+
+Instead of manually loading registers and triggering interrupts, you can generate shellcode using simple Python function calls:
+
+```python
+# Generate assembly for openat(3, "flag", O_RDONLY)
+sc = shellcraft.openat(3, "flag", 0)
+
+# Generate assembly for sendfile(1, rax, 0, 100)
+# (assuming rax contains the FD from the previous call)
+sc += shellcraft.sendfile(1, 'rax', 0, 100)
+
+# Assemble into raw bytes
+payload = asm(sc)
+```
+
+This module heavily utilizes `shellcraft` in the exploit scripts to keep them concise and readable.
+
 === Note on Architecture Confusion
 In #link("/modules/pwn/sandboxing/9_cross_arch_syscall_confusion")[Cross-Arch Syscall Confusion], we exploit the overlap between 64-bit and 32-bit syscall numbers. For reference, the 32-bit (x86) numbers used were:
 - `read`: 3 (corresponds to x64 `close`)
