@@ -66,6 +66,35 @@ mov rdx, 5
 syscall
 ```
 
+== Common Syscalls Used in Payloads
+
+The following system calls are frequently used in the exploits throughout this module. Knowing their syscall numbers is essential for writing custom shellcode.
+
+#table(
+  columns: (auto, auto, 1fr),
+  inset: 10pt,
+  align: (right, right, left),
+  [*Name*], [*Number (x64)*], [*Common Usage*],
+  [`read`], [`0`], [Read data from a file descriptor into a buffer.],
+  [`write`], [`1`], [Write data from a buffer to a file descriptor.],
+  [`open`], [`2`], [Open a file and return a file descriptor.],
+  [`nanosleep`], [`35`], [Pause execution for a specified duration (timing leaks).],
+  [`sendfile`], [`40`], [Copy data between file descriptors (bypass read/write blocks).],
+  [`exit`], [`60`], [Terminate the process (leak data via exit code).],
+  [`chdir`], [`80`], [Change the current working directory.],
+  [`fchdir`], [`81`], [Change CWD to a directory referenced by an FD (jail escape).],
+  [`mkdir`], [`83`], [Create a new directory.],
+  [`chroot`], [`161`], [Change the root directory.],
+  [`openat`], [`257`], [Open a file relative to a directory FD (jail escape).],
+  [`linkat`], [`265`], [Create a hard link relative to directory FDs.],
+)
+
+=== Note on Architecture Confusion
+In #link("./cross_arch_syscall_confusion#confusion")[Cross-Arch Syscall Confusion], we exploit the overlap between 64-bit and 32-bit syscall numbers. For reference, the 32-bit (x86) numbers used were:
+- `read`: 3 (corresponds to x64 `close`)
+- `write`: 4 (corresponds to x64 `stat`)
+- `open`: 5 (corresponds to x64 `fstat`)
+
 = Testing Sandboxes Locally
 
 To run this binary on a standard Linux system without root privileges (and without `sudo`), you can use *User Namespaces*. The `unshare` command allows you to create a new namespace where you have the `CAP_SYS_CHROOT` capability.
