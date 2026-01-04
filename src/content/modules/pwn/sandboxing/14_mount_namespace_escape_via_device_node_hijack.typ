@@ -132,10 +132,9 @@ Although the `chroot` environment might be mounted with `nodev` (disallowing dev
 ```python
 from pwn import *
 
-exe = "./challenge"
-context.binary = exe
+elf = context.binary = ELF("./challenge")
 
-p = process(exe)
+p = process(elf.path)
 
 # Commands to be executed inside the shell
 commands = """

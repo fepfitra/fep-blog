@@ -128,11 +128,10 @@ The vulnerability is that the program *fails to unmount the old root* from `/old
 ```python
 from pwn import *
 
-exe = "./challenge"
-context.binary = exe
+elf = context.binary = ELF("./challenge")
 
 # The challenge gives us a shell. We just need to interact with it.
-p = process(exe)
+p = process(elf.path)
 
 # Wait for the shell prompt (or just send commands)
 p.sendline(b"cat /old/flag")

