@@ -70,3 +70,26 @@ Since we are outside the new root, we can use relative paths to traverse upwards
 /challenge/challenge ../../../flag
 ```
 The program opens the file relative to the CWD, which is still outside the jail, allowing us to read the real flag.
+
+== Testing Locally
+
+To run this binary on a standard Linux system without root privileges (and without `sudo`), you can use *User Namespaces*. The `unshare` command allows you to create a new namespace where you have the `CAP_SYS_CHROOT` capability.
+
+```bash
+unshare -r ./challenge ../../../flag
+```
+
+The `-r` flag (or `--map-root-user`) maps your current user to the root user inside the new namespace, permitting the `chroot()` syscall to succeed.
+
+=== Simulating the Challenge Environment
+In real CTF environments, the challenge binary is typically owned by `root` and has the *SUID bit* set. This allows it to call `chroot()` even when run by a normal user.
+
+If you have `sudo` access and want to simulate this exact setup locally:
+
+```bash
+sudo chown root:root ./challenge
+sudo chmod u+s ./challenge
+./challenge ../../../flag  # Now it works without sudo!
+```
+
+Without `sudo`, the `unshare -r` method remains the best way to test the vulnerability. Standard file permissions (`chmod 777`) only control who can run the binary, not what kernel capabilities (like `CAP_SYS_CHROOT`) the process has once it's running.
