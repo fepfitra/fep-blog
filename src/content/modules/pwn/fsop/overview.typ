@@ -184,21 +184,12 @@ Glibc maintains a global linked list of all active `FILE` structures. The head o
 
 When a new file is opened (e.g., via `fopen`), it is added to the head of the list. The chain traversal follows the `_chain` pointers:
 
+setaso
+
 #figure(
-  grid(
-    columns: (auto, auto, auto, auto, auto, auto, auto, auto, auto),
-    align: center + horizon,
-    column-gutter: 5pt,
-    rect(inset: 5pt)[`_IO_list_all (head)`],
-    [→],
-    rect(inset: 5pt)[`opened file \n (_chain)`],
-    [→],
-    rect(inset: 5pt)[`stdin \n (_chain)`],
-    [→],
-    rect(inset: 5pt)[`stdout \n (_chain)`],
-    [→],
-    [`NULL`],
-  ),
+  $
+    "_IO_list_all" arrow.r "opened file" arrow.r "stdin" arrow.r "stdout" arrow.r "NULL"
+  $,
   caption: [The `_IO_list_all` chain linking file structures via their `_chain` members.],
 )
 
