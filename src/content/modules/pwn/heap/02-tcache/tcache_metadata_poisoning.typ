@@ -84,4 +84,4 @@ When `malloc(0x20)` is called:
 
 == Security Implications
 
-This attack is extremely powerful because it bypasses almost all tcache-specific mitigations. It doesn't require freeing chunks or dealing with Safe-Linking (as we are writing to the metadata entry directly, not to a chunk's `next` pointer). It effectively provides an "instant" arbitrary allocation once the metadata address is known and writable. Techniques like **House of Water** often aim for this level of control as their ultimate goal.
+This attack is extremely powerful because it bypasses almost all tcache-specific mitigations. It doesn't require freeing chunks or dealing with Safe-Linking (as we are writing to the metadata entry directly, not to a chunk's `next` pointer). It effectively provides an "instant" arbitrary allocation once the metadata address is known and writable. Techniques like *House of Water* often aim for this level of control as their ultimate goal.

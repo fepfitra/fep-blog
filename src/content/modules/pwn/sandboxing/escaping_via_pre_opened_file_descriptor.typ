@@ -80,10 +80,10 @@ By passing `/` as the argument, we can cause the program to hold a file descript
 
 == Exploitation Plan
 
-1.  **Leak the Root FD:** Run the challenge binary with `/` as the first argument. This will open the root directory and assign it to a file descriptor.
-2.  **Bypass Chroot:** Since we have a handle to the real root directory, we can use the `openat` syscall. `openat` works like `open`, but it takes a directory file descriptor as a starting point.
-3.  **Read the Flag:** We will use `openat(3, "flag", ...)` to open the real flag file relative to the leaked root FD.
-4.  **Output:** Finally, we read the content of the flag and write it to stdout (FD 1).
+1. *Leak the Root FD:* Run the challenge binary with `/` as the first argument. This will open the root directory and assign it to a file descriptor.
+2. *Bypass Chroot:* Since we have a handle to the real root directory, we can use the `openat` syscall. `openat` works like `open`, but it takes a directory file descriptor as a starting point.
+3. *Read the Flag:* We will use `openat(3, "flag", ...)` to open the real flag file relative to the leaked root FD.
+4. *Output:* Finally, we read the content of the flag and write it to stdout (FD 1).
 
 == Exploit Script
 

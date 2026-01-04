@@ -95,11 +95,11 @@ The vulnerability relies on how the kernel handles directory traversal when `chr
 
 == Exploitation Plan
 
-1.  **Create Directory:** Create a new directory (e.g., "jail") inside the current root.
-2.  **Double Chroot:** Call `chroot` on this new directory. Crucially, do *not* call `chdir` into it yet.
-3.  **Break Out:** Call `chdir("../../../../../../../../../../../../../..")`. Since our CWD was outside the *new* root, we can traverse up past the old chroot boundary.
-4.  **Reset Root:** Call `chroot(".")` to set the process's root to the real system root we just reached.
-5.  **Retrieve Flag:** Open and read the flag.
+1.  *Create Directory:* Create a new directory (e.g., "jail") inside the current root.
+2.  *Double Chroot:* Call `chroot` on this new directory. Crucially, do *not* call `chdir` into it yet.
+3.  *Break Out:* Call `chdir("../../../../../../../../../../../../../..")`. Since our CWD was outside the *new* root, we can traverse up past the old chroot boundary.
+4.  *Reset Root:* Call `chroot(".")` to set the process's root to the real system root we just reached.
+5.  *Retrieve Flag:* Open and read the flag.
 
 == Exploit Script
 

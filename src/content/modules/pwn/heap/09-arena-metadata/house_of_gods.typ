@@ -19,11 +19,11 @@
 The attack leverages a minor bug in glibc related to how arenas are reused when the arena limit (`narenas_limit`) is exceeded. It combines a "Binmap Attack" to gain control over arena metadata with an "Unsorted Bin Attack" to corrupt the arena count.
 
 == Prerequisites
-- **Glibc < 2.27**: Tested on versions 2.23 through 2.26.
-- **8-11 Allocations**: A small number of allocations is sufficient to trigger the hijacking.
-- **Write-After-Free (WAF)**: A single WAF on an unsorted chunk is required.
-- **Leaks**: Knowledge of heap and libc addresses is mandatory.
-- **Userdata Control**: Control over the first 5 quadwords of a chunk's userdata.
+- *Glibc < 2.27*: Tested on versions 2.23 through 2.26.
+- *8-11 Allocations*: A small number of allocations is sufficient to trigger the hijacking.
+- *Write-After-Free (WAF)*: A single WAF on an unsorted chunk is required.
+- *Leaks*: Knowledge of heap and libc addresses is mandatory.
+- *Userdata Control*: Control over the first 5 quadwords of a chunk's userdata.
 
 == Example from `house_of_gods.c`
 

@@ -67,9 +67,9 @@ However, the `exit` syscall takes an integer argument (the exit status), which i
 
 == Exploitation Plan
 
-1.  **Read Flag:** Use the `read` syscall to read the flag from the pre-opened file descriptor (FD 3) into memory.
-2.  **Leak Byte:** Select a specific byte from the read buffer and use it as the argument for the `exit` syscall.
-3.  **Automation:** Write a script to run the binary repeatedly, incrementing the index of the byte to leak, and capturing the process's exit code each time.
+1.  *Read Flag:* Use the `read` syscall to read the flag from the pre-opened file descriptor (FD 3) into memory.
+2.  *Leak Byte:* Select a specific byte from the read buffer and use it as the argument for the `exit` syscall.
+3.  *Automation:* Write a script to run the binary repeatedly, incrementing the index of the byte to leak, and capturing the process's exit code each time.
 
 == Exploit Script
 

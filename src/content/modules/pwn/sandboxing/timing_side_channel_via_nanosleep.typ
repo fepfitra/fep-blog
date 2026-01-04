@@ -72,12 +72,12 @@ By measuring the time the process takes to terminate, we can determine the value
 
 == Exploitation Plan
 
-1.  **Read Flag:** Read the flag from the pre-opened FD 3 into memory.
-2.  **Compare Byte:** Compare the target byte with a candidate value.
-3.  **Conditional Sleep:**
+1.  *Read Flag:* Read the flag from the pre-opened FD 3 into memory.
+2.  *Compare Byte:* Compare the target byte with a candidate value.
+3.  *Conditional Sleep:*
     *   If equal: Call `nanosleep` for 1 second.
     *   If not equal: Trigger immediate termination (e.g., call a forbidden syscall).
-4.  **Measure Time:** The python script measures execution time. If > 0.5s, the guess is correct.
+4.  *Measure Time:* The python script measures execution time. If > 0.5s, the guess is correct.
 
 == Exploit Script
 

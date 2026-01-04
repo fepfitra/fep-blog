@@ -14,11 +14,11 @@
 
 == Introduction
 
-The `sysmalloc` function in glibc is responsible for extending the heap when the current **Top Chunk** (wilderness) is too small to satisfy a `malloc()` request. A clever technique involves corrupting the Top Chunk's `size` field to trigger an implicit call to `_int_free()` on the Top Chunk itself.
+The `sysmalloc` function in glibc is responsible for extending the heap when the current *Top Chunk* (wilderness) is too small to satisfy a `malloc()` request. A clever technique involves corrupting the Top Chunk's `size` field to trigger an implicit call to `_int_free()` on the Top Chunk itself.
 
-When `sysmalloc` is called to grow the heap (usually via `mmap` or `sbrk`), it performs several checks. If the attacker has corrupted the Top Chunk's size such that it is still page-aligned but much smaller than before, and then requests an allocation larger than this new size, `sysmalloc` may decide it cannot merge the old top chunk with the newly acquired memory. Instead, it will **free the old top chunk**.
+When `sysmalloc` is called to grow the heap (usually via `mmap` or `sbrk`), it performs several checks. If the attacker has corrupted the Top Chunk's size such that it is still page-aligned but much smaller than before, and then requests an allocation larger than this new size, `sysmalloc` may decide it cannot merge the old top chunk with the newly acquired memory. Instead, it will *free the old top chunk*.
 
-This primitive is extremely powerful because it allows an attacker to place a chunk into the Unsorted Bin without ever calling `free()` directly on a pointer. This technique is a core component of advanced attacks like the **House of Orange** and **House of Tangerine**.
+This primitive is extremely powerful because it allows an attacker to place a chunk into the Unsorted Bin without ever calling `free()` directly on a pointer. This technique is a core component of advanced attacks like the *House of Orange* and *House of Tangerine*.
 
 == Prerequisites
 - *Top Chunk Size Corruption*: Ability to overwrite the `size` field of the Top Chunk (Wilderness).
@@ -80,7 +80,7 @@ int main() {
 
 === 1. Preparation and Alignment
 
-For the attack to succeed, the Top Chunk's size must remain **page-aligned** and have the `PREV_INUSE` bit set. The PoC calculates an `allocated_size` that consumes just enough memory so that the remaining Top Chunk ends exactly at a page boundary.
+For the attack to succeed, the Top Chunk's size must remain *page-aligned* and have the `PREV_INUSE` bit set. The PoC calculates an `allocated_size` that consumes just enough memory so that the remaining Top Chunk ends exactly at a page boundary.
 
 === 2. The Vulnerability: Top Size Corruption
 
@@ -101,7 +101,7 @@ if (old_size >= MINSIZE)
     _int_free (av, old_top, 1);
 }
 ```
-The old Top Chunk is passed to `_int_free()`, placing it into the **Unsorted Bin**.
+The old Top Chunk is passed to `_int_free()`, placing it into the *Unsorted Bin*.
 
 === 5. Exploitation
 

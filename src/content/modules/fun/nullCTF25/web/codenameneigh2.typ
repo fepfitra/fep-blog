@@ -64,8 +64,8 @@ When the `jennet` server receives this request, it will make a new request to `h
 === Step 2: Bypassing the Checks
 
 This new, internal request bypasses both checks in the `F` class:
-1. **Host Check:** The request originates from the server itself, so the `Host` header will be `127.0.0.1`.
-2. **Path Check:** The `jennet` library appears to set the `path` variable to the full URL (`http://127.0.0.1/flag`). Since this string does not start with `flag` or `/flag`, the check is bypassed.
+1. *Host Check:* The request originates from the server itself, so the `Host` header will be `127.0.0.1`.
+2. *Path Check:* The `jennet` library appears to set the `path` variable to the full URL (`http://127.0.0.1/flag`). Since this string does not start with `flag` or `/flag`, the check is bypassed.
 
 == The Exploit
 

@@ -81,12 +81,12 @@ The challenge implements a seccomp filter that whitelists specific system calls 
 
 The vulnerability arises because seccomp filters often check the system call *number*, but system call numbers differ between architectures.
 
-*   **x86-64 (64-bit):**
+*   *x86-64 (64-bit):*
     -   `close`: 3
     -   `stat`: 4
     -   `fstat`: 5
     -   `lstat`: 6
-*   **x86 (32-bit):**
+*   *x86 (32-bit):*
     -   `read`: 3
     -   `write`: 4
     -   `open`: 5
@@ -95,10 +95,10 @@ The filter allows syscalls 3, 4, 5, and 6. If we switch the processor to 32-bit 
 
 == Exploitation Plan
 
-1.  **Switch Mode (Conceptually):** We don't need to fully switch the process to 32-bit mode; we just need to use the 32-bit system call interface (`int 0x80`).
-2.  **Open Flag:** Call syscall 5 (`open`) to open `/flag`.
-3.  **Read Flag:** Call syscall 3 (`read`) to read from the FD returned by open.
-4.  **Write Flag:** Call syscall 4 (`write`) to write the flag to stdout.
+1.  *Switch Mode (Conceptually):* We don't need to fully switch the process to 32-bit mode; we just need to use the 32-bit system call interface (`int 0x80`).
+2.  *Open Flag:* Call syscall 5 (`open`) to open `/flag`.
+3.  *Read Flag:* Call syscall 3 (`read`) to read from the FD returned by open.
+4.  *Write Flag:* Call syscall 4 (`write`) to write the flag to stdout.
 
 == Exploit Script
 

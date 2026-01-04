@@ -93,9 +93,9 @@ The `fchdir` syscall changes the process's current working directory to the dire
 
 == Exploitation Plan
 
-1.  **Leak Root FD:** Execute the binary with `/` as the argument to obtain a file descriptor (FD 3) pointing to the host's root directory.
-2.  **Escape Jail:** Use the `fchdir` syscall with the leaked FD (3). This sets our current working directory to the host's root.
-3.  **Read Flag:** Now that our CWD is the host's root, we can simply `open("flag")` (relative to CWD) to access the real flag.
+1.  *Leak Root FD:* Execute the binary with `/` as the argument to obtain a file descriptor (FD 3) pointing to the host's root directory.
+2.  *Escape Jail:* Use the `fchdir` syscall with the leaked FD (3). This sets our current working directory to the host's root.
+3.  *Read Flag:* Now that our CWD is the host's root, we can simply `open("flag")` (relative to CWD) to access the real flag.
 
 == Exploit Script
 

@@ -16,7 +16,7 @@
 
 "House of Io" is a heap exploitation technique that targets glibc versions 2.29 through 2.33. It exploits a specific behavior of the tcache implementation where a freed chunk's `key` field (the second slot in the chunk's user data) is populated with a pointer to the `tcache_perthread_struct` (the tcache management structure).
 
-By combining a Use-After-Free (UAF) vulnerability with this leaked pointer, an attacker can directly manipulate the tcache metadata. This allows for a **Tcache Metadata Poisoning** attack, even without a direct heap leak or large overflow, as the management structure's address is provided directly by the allocator itself.
+By combining a Use-After-Free (UAF) vulnerability with this leaked pointer, an attacker can directly manipulate the tcache metadata. This allows for a *Tcache Metadata Poisoning* attack, even without a direct heap leak or large overflow, as the management structure's address is provided directly by the allocator itself.
 
 == The Mechanism
 
@@ -81,13 +81,13 @@ The next `malloc` request for that size will be served by the corrupted tcache m
 
 == Comparison with Tcache Metadata Poisoning
 
-While **Tcache Metadata Poisoning** is the "goal," House of Io is the "method" to achieve it when a direct leak is unavailable. It relies specifically on the `key` field behavior present in glibc 2.29-2.33.
+While *Tcache Metadata Poisoning* is the "goal," House of Io is the "method" to achieve it when a direct leak is unavailable. It relies specifically on the `key` field behavior present in glibc 2.29-2.33.
 
 | Feature | Tcache Metadata Poisoning | House of Io |
 | :--- | :--- | :--- |
-| **Glibc Versions** | Any (with tcache) | 2.29 - 2.33 |
-| **Primitive** | Direct write to metadata | UAF on freed tcache chunk |
-| **Leak Required** | Heap leak (to find metadata) | **None** (metadata address is leaked via `key`) |
-| **Safe-Linking** | Bypasses (direct metadata write) | Bypasses (direct metadata write) |
+| *Glibc Versions* | Any (with tcache) | 2.29 - 2.33 |
+| *Primitive* | Direct write to metadata | UAF on freed tcache chunk |
+| *Leak Required* | Heap leak (to find metadata) | *None* (metadata address is leaked via `key`) |
+| *Safe-Linking* | Bypasses (direct metadata write) | Bypasses (direct metadata write) |
 
 Note: In glibc 2.34+, the `key` value was changed to a random cookie to prevent this specific leak and complicate double-free detection.

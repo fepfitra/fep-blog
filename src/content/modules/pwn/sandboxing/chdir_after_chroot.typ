@@ -85,9 +85,9 @@ Even though our CWD is now safely inside the jail, the file descriptor (FD 3) po
 
 == Exploitation Plan
 
-1.  **Leak the Root FD:** Run the binary with `/` as the argument to open the host's root directory.
-2.  **Bypass Sandbox:** Use the `openat` syscall with the leaked file descriptor (FD 3) as the directory base. This allows us to access files relative to the host's root, completely ignoring the current `chroot` and `chdir` state.
-3.  **Retrieve Flag:** Open the `flag` file using `openat` and send its content to stdout.
+1.  *Leak the Root FD:* Run the binary with `/` as the argument to open the host's root directory.
+2.  *Bypass Sandbox:* Use the `openat` syscall with the leaked file descriptor (FD 3) as the directory base. This allows us to access files relative to the host's root, completely ignoring the current `chroot` and `chdir` state.
+3.  *Retrieve Flag:* Open the `flag` file using `openat` and send its content to stdout.
 
 == Exploit Script
 

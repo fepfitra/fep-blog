@@ -92,13 +92,13 @@ The `linkat` syscall allows creating a hard link to a file. Crucially, it accept
 
 == Exploitation Plan
 
-1.  **Leak Root FD:** Execute the binary with `/` to get a file descriptor (FD 3) pointing to the host's root.
-2.  **Create a Link:** Use `linkat` to create a hard link from the real flag (relative to the leaked root FD) to a file inside our current directory (the jail).
+1.  *Leak Root FD:* Execute the binary with `/` to get a file descriptor (FD 3) pointing to the host's root.
+2.  *Create a Link:* Use `linkat` to create a hard link from the real flag (relative to the leaked root FD) to a file inside our current directory (the jail).
     *   `olddirfd`: 3 (Host Root)
     *   `oldpath`: "flag"
     *   `newdirfd`: AT_FDCWD (Current Directory / Jail Root)
     *   `newpath`: "flag_link"
-3.  **Read the Link:** Since the link is now inside our jail, we can use the standard `open` syscall to read it.
+3.  *Read the Link:* Since the link is now inside our jail, we can use the standard `open` syscall to read it.
 
 == Exploit Script
 

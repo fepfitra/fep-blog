@@ -93,9 +93,9 @@ While this prevents us from passing `/flag` directly, it does *not* prevent us f
 
 == Exploitation Plan
 
-1.  **Leak the Root FD:** Execute the binary with `/` as the argument. The string check passes (since "/" doesn't contain "flag"), and we get a handle to the real root directory.
-2.  **Bypass Checks:** Use the `openat` syscall within our shellcode. We use the leaked FD (3) as the starting directory and `"flag"` as the relative path.
-3.  **Retrieve Flag:** Read the file content and write it to stdout using `sendfile`.
+1.  *Leak the Root FD:* Execute the binary with `/` as the argument. The string check passes (since "/" doesn't contain "flag"), and we get a handle to the real root directory.
+2.  *Bypass Checks:* Use the `openat` syscall within our shellcode. We use the leaked FD (3) as the starting directory and `"flag"` as the relative path.
+3.  *Retrieve Flag:* Read the file content and write it to stdout using `sendfile`.
 
 == Exploit Script
 

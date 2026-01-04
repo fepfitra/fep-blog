@@ -122,10 +122,10 @@ Although the `chroot` environment might be mounted with `nodev` (disallowing dev
 
 == Exploitation Plan
 
-1.  **Identify Host Device:** Check `/proc/self/mountinfo` (or `/p/self/mountinfo` if we need to mount proc) to find the major/minor numbers of the host's root filesystem.
-2.  **Create Device Node:** Use `mknod` to create a block device file representing the host's disk. We create this inside `/bin` (e.g., `/bin/disk`) because `/bin` is bind-mounted from the host and permits device execution.
-3.  **Mount Host Root:** Mount this new device node to a directory (e.g., `/mnt`).
-4.  **Read Flag:** The host's filesystem is now accessible at `/mnt`. Read `/mnt/flag`.
+1.  *Identify Host Device:* Check `/proc/self/mountinfo` (or `/p/self/mountinfo` if we need to mount proc) to find the major/minor numbers of the host's root filesystem.
+2.  *Create Device Node:* Use `mknod` to create a block device file representing the host's disk. We create this inside `/bin` (e.g., `/bin/disk`) because `/bin` is bind-mounted from the host and permits device execution.
+3.  *Mount Host Root:* Mount this new device node to a directory (e.g., `/mnt`).
+4.  *Read Flag:* The host's filesystem is now accessible at `/mnt`. Read `/mnt/flag`.
 
 == Exploit Script
 

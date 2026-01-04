@@ -115,13 +115,13 @@ snprintf(old_root, sizeof(old_root), "%s/old", new_root);
 assert(syscall(SYS_pivot_root, new_root, old_root) != -1);
 ```
 
-The vulnerability is that the program **fails to unmount the old root** from `/old` after the pivot. While it sets up a jail, it explicitly preserves access to the entire host filesystem at `/old` inside that jail.
+The vulnerability is that the program *fails to unmount the old root* from `/old` after the pivot. While it sets up a jail, it explicitly preserves access to the entire host filesystem at `/old` inside that jail.
 
 == Exploitation Plan
 
-1.  **Identify Old Root:** The challenge source code (or exploration) reveals that the old root filesystem is mounted at `/old`.
-2.  **Access Flag:** Since `/old` corresponds to the host's `/`, the real flag (at `/flag` on the host) is accessible at `/old/flag`.
-3.  **Read Flag:** Use the provided shell to read the file.
+1.  *Identify Old Root:* The challenge source code (or exploration) reveals that the old root filesystem is mounted at `/old`.
+2.  *Access Flag:* Since `/old` corresponds to the host's `/`, the real flag (at `/flag` on the host) is accessible at `/old/flag`.
+3.  *Read Flag:* Use the provided shell to read the file.
 
 == Exploit Script
 

@@ -68,12 +68,12 @@ This difference in "life expectancy" (alive vs. dead) is our side-channel.
 
 == Exploitation Plan
 
-1.  **Read Flag:** Read the flag from the pre-opened FD 3.
-2.  **Compare Byte:** Check if `flag[i] == guess`.
-3.  **Busy Loop:**
+1.  *Read Flag:* Read the flag from the pre-opened FD 3.
+2.  *Compare Byte:* Check if `flag[i] == guess`.
+3.  *Busy Loop:*
     *   If correct: Enter an infinite loop (`jmp $`).
     *   If wrong: Trigger a forbidden syscall (e.g., `write`).
-4.  **Measure Time:** The python script waits for a short period (e.g., 0.5s) and checks if the process is still running. If it is, the guess was correct.
+4.  *Measure Time:* The python script waits for a short period (e.g., 0.5s) and checks if the process is still running. If it is, the guess was correct.
 
 == Exploit Script
 

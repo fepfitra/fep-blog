@@ -71,8 +71,8 @@ Because the CWD is outside the jail, relative paths like `../` are resolved rela
 
 == Exploitation Plan
 
-1.  **Traverse Up:** Since our CWD is effectively "outside" the new root, we can use `../../` to reach the real root directory.
-2.  **Access Flag:** Provide the path `../../../flag` (or enough `../`s) as the argument to the program. The program will resolve this relative to the CWD, reaching the real flag.
+1.  *Traverse Up:* Since our CWD is effectively "outside" the new root, we can use `../../` to reach the real root directory.
+2.  *Access Flag:* Provide the path `../../../flag` (or enough `../`s) as the argument to the program. The program will resolve this relative to the CWD, reaching the real flag.
 
 == Exploit Script
 

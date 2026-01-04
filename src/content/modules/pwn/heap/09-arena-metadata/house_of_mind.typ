@@ -22,12 +22,12 @@ By setting the `NON_MAIN_ARENA` flag on a chunk's size and carefully aligning me
 
 When a chunk has the `NON_MAIN_ARENA` (bit 2) set in its size field, glibc uses the following logic to find the arena:
 
-1.  **Heap Info**: glibc assumes that non-main heaps are aligned to `HEAP_MAX_SIZE` (typically 64MB on 64-bit Linux). It finds the `heap_info` struct by masking the chunk's address:
+1.  *Heap Info*: glibc assumes that non-main heaps are aligned to `HEAP_MAX_SIZE` (typically 64MB on 64-bit Linux). It finds the `heap_info` struct by masking the chunk's address:
     ```c
     #define heap_for_ptr(ptr) \
       ((heap_info *) ((unsigned long) (ptr) & ~(HEAP_MAX_SIZE - 1)))
     ```
-2.  **Arena Pointer**: The `heap_info` struct contains an `ar_ptr` field which points to the `malloc_state` (the arena) for that heap:
+2.  *Arena Pointer*: The `heap_info` struct contains an `ar_ptr` field which points to the `malloc_state` (the arena) for that heap:
     ```c
     #define arena_for_chunk(ptr) \
       (chunk_non_main_arena (ptr) ? heap_for_ptr (ptr)->ar_ptr : &main_arena)
@@ -36,10 +36,10 @@ When a chunk has the `NON_MAIN_ARENA` (bit 2) set in its size field, glibc uses 
 By controlling the memory at the `HEAP_MAX_SIZE` aligned boundary, an attacker can provide a fake `ar_ptr` that points to a fake arena.
 
 == Prerequisites
-- **Memory Leak**: To know the address of the fake arena.
-- **Large Allocation Capability**: Ability to allocate enough memory to reach a `HEAP_MAX_SIZE` aligned boundary.
-- **Size Overwrite**: Ability to set the `NON_MAIN_ARENA` bit on a chunk being freed.
-- **Tcache Exhaustion**: The tcache for the target size must be full to force the chunk into the fastbin logic.
+- *Memory Leak*: To know the address of the fake arena.
+- *Large Allocation Capability*: Ability to allocate enough memory to reach a `HEAP_MAX_SIZE` aligned boundary.
+- *Size Overwrite*: Ability to set the `NON_MAIN_ARENA` bit on a chunk being freed.
+- *Tcache Exhaustion*: The tcache for the target size must be full to force the chunk into the fastbin logic.
 
 == Example from `house_of_mind.c`
 

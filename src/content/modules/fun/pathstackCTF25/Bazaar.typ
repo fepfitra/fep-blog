@@ -81,12 +81,12 @@ This generates a valid signature that the server accepts, bypassing the security
 
 To exploit this, we perform the following steps:
 
-1. **Add Product to Cart:** Use a standard WooCommerce request to add the target product (which contains the flag) to the cart.
-2. **Forge Payment Request:** Send a `POST` request to `admin-ajax.php?action=bazaar_process_payment` with:
+1. *Add Product to Cart:* Use a standard WooCommerce request to add the target product (which contains the flag) to the cart.
+2. *Forge Payment Request:* Send a `POST` request to `admin-ajax.php?action=bazaar_process_payment` with:
   - `Content-Type: multipart/form-data` (to empty `php://input`).
   - `X-Signature` header containing a signature of `timestamp.` signed with an empty key.
   - Required fields in the body (`product_id`, `price`, etc.) to satisfy validation.
-3. **Retrieve Flag:** The server processes the "payment" and creates an order. We follow the redirect or use the `get_bazaar_order` AJAX action with the order key to retrieve the download link for the flag.
+3. *Retrieve Flag:* The server processes the "payment" and creates an order. We follow the redirect or use the `get_bazaar_order` AJAX action with the order key to retrieve the download link for the flag.
 
 === Exploit Script
 

@@ -14,7 +14,7 @@
 
 == Introduction
 
-The "House of Force" is a powerful heap exploitation technique that targets the "wilderness" chunk, also known as the **Top Chunk**. The Top Chunk is the region of memory at the very end of the heap that is used to satisfy allocation requests when no suitable free chunks are available in the bins.
+The "House of Force" is a powerful heap exploitation technique that targets the "wilderness" chunk, also known as the *Top Chunk*. The Top Chunk is the region of memory at the very end of the heap that is used to satisfy allocation requests when no suitable free chunks are available in the bins.
 
 By corrupting the `size` field of the Top Chunk, an attacker can trick the allocator into believing that the heap is much larger than it actually is (e.g., by setting the size to `-1`). This allows the attacker to make a subsequent `malloc()` request with a carefully calculated "evil" size that causes the Top Chunk's pointer to wrap around or reach an arbitrary memory location (like the stack, `.bss`, or the GOT).
 
@@ -87,7 +87,7 @@ To make `new_top` point to our target (minus some space for the next header), we
     [Target Address], `bss_var`,
     [Current Top], `ptr_top`,
     [Metadata Overhead], `4 * sizeof(long)`,
-    [**Evil Size**], `target - top - overhead`,
+    [*Evil Size*], `target - top - overhead`,
   ),
   caption: [Calculating the request size to reach an arbitrary target.],
 )

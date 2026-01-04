@@ -117,9 +117,9 @@ Upon `free(c)`, the allocator:
 
 === 5. Overlapping and Control
 
-Because the new large chunk overlaps with the still-allocated chunk `b`, an attacker can request the large chunk back (`d = malloc(...)`) and then use the overlap to overwrite `b`'s metadata. In the PoC, this is used to perform **tcache poisoning**, pointing `b->next` to a stack address, allowing a subsequent `malloc` to return a pointer to the stack.
+Because the new large chunk overlaps with the still-allocated chunk `b`, an attacker can request the large chunk back (`d = malloc(...)`) and then use the overlap to overwrite `b`'s metadata. In the PoC, this is used to perform *tcache poisoning*, pointing `b->next` to a stack address, allowing a subsequent `malloc` to return a pointer to the stack.
 
 == Modern Mitigations
 
-Since glibc 2.32, **Safe-Linking** was introduced. Pointers in tcache and fastbins are now XORed with their own address (shifted 12 bits) to prevent simple overwrites. Exploiting this now requires a heap leak to correctly calculate the encoded pointer value, as demonstrated in the PoC:
+Since glibc 2.32, *Safe-Linking* was introduced. Pointers in tcache and fastbins are now XORed with their own address (shifted 12 bits) to prevent simple overwrites. Exploiting this now requires a heap leak to correctly calculate the encoded pointer value, as demonstrated in the PoC:
 `d[0x30 / 8] = (long)target ^ ((long)&d[0x30/8] >> 12);`

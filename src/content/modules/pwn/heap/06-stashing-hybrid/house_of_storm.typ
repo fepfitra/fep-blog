@@ -15,16 +15,16 @@
 == Introduction
 
 The "House of Storm" is an advanced heap exploitation technique that allows an attacker to obtain an arbitrary chunk from `malloc`, even at a memory location that does not contain a valid size field. It achieved this by combining two powerful primitives:
-1.  **Unsorted Bin Attack**: Used to link a target address into the unsorted bin.
-2.  **Large Bin Write-Where**: Used to write a "fake size" to that target address.
+1.  *Unsorted Bin Attack*: Used to link a target address into the unsorted bin.
+2.  *Large Bin Write-Where*: Used to write a "fake size" to that target address.
 
 This attack is particularly notable because it can bypass the lack of a pre-existing size field at the target location. It was highly effective on glibc versions 2.26 through 2.28. In later versions, patches to the unsorted bin attack (specifically checking that `victim->bk->fd == victim`) have largely mitigated this specific technique.
 
 == Prerequisites
-- **Glibc 2.26 - 2.28**: The attack relies on the traditional unsorted bin behavior.
-- **Write Primitives**: Ability to overwrite the `bk` pointer of an unsorted bin chunk and the `bk_nextsize` pointer of a large bin chunk.
-- **Known Addresses**: Knowledge of the target memory address and the upper bits of a heap address (used to craft the fake size).
-- **Tcache Exhaustion**: The tcache for the target allocation size must be full to ensure the allocator processes the unsorted bin.
+- *Glibc 2.26 - 2.28*: The attack relies on the traditional unsorted bin behavior.
+- *Write Primitives*: Ability to overwrite the `bk` pointer of an unsorted bin chunk and the `bk_nextsize` pointer of a large bin chunk.
+- *Known Addresses*: Knowledge of the target memory address and the upper bits of a heap address (used to craft the fake size).
+- *Tcache Exhaustion*: The tcache for the target allocation size must be full to ensure the allocator processes the unsorted bin.
 
 == Example from `house_of_storm.c`
 
@@ -81,7 +81,7 @@ int main(){
 == Attack Flow Explained
 
 === 1. Heap Feng Shui
-The attacker places one chunk in the **Unsorted Bin** and a slightly smaller chunk (belonging to the same size bin) in the **Large Bin**.
+The attacker places one chunk in the *Unsorted Bin* and a slightly smaller chunk (belonging to the same size bin) in the *Large Bin*.
 
 === 2. Creating a Fake Size (Large Bin Attack)
 The large bin write-where primitive is used to write a heap address to a location slightly before the target address. By carefully misaligning this write, the attacker ensures that the non-zero bytes of the heap address overlap with the `size` field of the intended `fake_chunk`.

@@ -90,8 +90,8 @@ The subsequent `malloc(0x30)` call finds the fake chunk at the head of the tcach
 
 | Feature | Fastbin House of Spirit | Tcache House of Spirit |
 | :--- | :--- | :--- |
-| **Next Chunk Size Check** | Required (must be sane) | **Not required** |
-| **Tcache State** | Must be full | Must have space |
-| **Speed/Simplicity** | Moderate | High |
-| **Glibc Version** | Any | 2.26+ |
+| *Next Chunk Size Check* | Required (must be sane) | *Not required* |
+| *Tcache State* | Must be full | Must have space |
+| *Speed/Simplicity* | Moderate | High |
+| *Glibc Version* | Any | 2.26+ |
 

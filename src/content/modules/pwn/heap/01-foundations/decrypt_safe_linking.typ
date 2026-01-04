@@ -14,7 +14,7 @@
 
 == Introduction
 
-Starting from glibc 2.32, a security mitigation called **Safe-Linking** was introduced to protect single-linked lists (specifically tcache and fastbins). It masks the next-chunk pointer (`fd`) by XORing it with the address of the pointer itself, shifted right by 12 bits.
+Starting from glibc 2.32, a security mitigation called *Safe-Linking* was introduced to protect single-linked lists (specifically tcache and fastbins). It masks the next-chunk pointer (`fd`) by XORing it with the address of the pointer itself, shifted right by 12 bits.
 
 If a pointer `P` is stored at address `L`, the stored value `V` is:
 $V = (L >> 12) xor P$
@@ -69,12 +69,12 @@ int main()
 
 The decryption works in rounds, processing 12 bits at a time from most significant to least significant.
 
-1.  **Round 1**: The bits 63-52 of the key $(L >> 12)$ are `0`. Thus, bits 63-52 of `plain` are simply `cipher & 0xFFF0000000000000`.
-2.  **Round 2**: We shift the recovered `plain` bits right by 12 to get the next part of the key. We XOR this with `cipher` to recover bits 51-40.
-3.  **Subsequent Rounds**: We repeat this process until all 64 bits are recovered.
+1.  *Round 1*: The bits 63-52 of the key $(L >> 12)$ are `0`. Thus, bits 63-52 of `plain` are simply `cipher & 0xFFF0000000000000`.
+2.  *Round 2*: We shift the recovered `plain` bits right by 12 to get the next part of the key. We XOR this with `cipher` to recover bits 51-40.
+3.  *Subsequent Rounds*: We repeat this process until all 64 bits are recovered.
 
 This recursive XOR decryption is effective because the "key" (the address shifted by 12) and the "plaintext" (the pointer) often share the same top bits, and the 12-bit right shift creates a predictable dependency chain that can be unwound.
 
 == Prerequisites
-- **Safe-Linking Enabled**: Glibc 2.32 or later.
-- **Page Alignment**: The attack works best when the chunk address and the stored pointer share the same 4KB page boundary, which is the common case for heap allocations.
+- *Safe-Linking Enabled*: Glibc 2.32 or later.
+- *Page Alignment*: The attack works best when the chunk address and the stored pointer share the same 4KB page boundary, which is the common case for heap allocations.

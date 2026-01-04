@@ -14,7 +14,7 @@
 
 == Introduction
 
-This technique demonstrates a "blind bypass" for the **Safe-Linking** mitigation introduced in glibc 2.32. Safe-Linking obfuscates pointers in single-linked lists (like tcache and fastbins) by XORing them with the address where they are stored (shifted right by 12 bits).
+This technique demonstrates a "blind bypass" for the *Safe-Linking* mitigation introduced in glibc 2.32. Safe-Linking obfuscates pointers in single-linked lists (like tcache and fastbins) by XORing them with the address where they are stored (shifted right by 12 bits).
 
 The core of this bypass is the algebraic property of the XOR operation:
 $(P xor K) xor K = P$
@@ -65,11 +65,11 @@ int main(void) {
 
 == Attack Flow Explained
 
-1.  **Preparation**: Allocate chunks of different sizes (e.g., `0x20` and `0x40`) and fill a "value" chunk with the target pointer you wish to eventually allocate.
-2.  **Initial Protection**: By manipulating tcache metadata, we link the "value" chunk into a tcache bin. Glibc treats the data we wrote (the target pointer) as a `next` pointer and "protects" it by XORing it with the chunk's address.
-3.  **The Double Protect**: We use the metadata control primitive again to point a *different* tcache bin to the metadata of the first bin.
-4.  **Reverting to Plaintext**: When the allocator processes the second bin, it performs the Safe-Linking XOR operation again. Because the "key" (derived from the address) is the same, $(P xor K) xor K$ results in $P$.
-5.  **Arbitrary Allocation**: The next allocation from the second bin returns the original target pointer `P` in its plaintext form, bypassing the alignment and obfuscation checks.
+1.  *Preparation*: Allocate chunks of different sizes (e.g., `0x20` and `0x40`) and fill a "value" chunk with the target pointer you wish to eventually allocate.
+2.  *Initial Protection*: By manipulating tcache metadata, we link the "value" chunk into a tcache bin. Glibc treats the data we wrote (the target pointer) as a `next` pointer and "protects" it by XORing it with the chunk's address.
+3.  *The Double Protect*: We use the metadata control primitive again to point a *different* tcache bin to the metadata of the first bin.
+4.  *Reverting to Plaintext*: When the allocator processes the second bin, it performs the Safe-Linking XOR operation again. Because the "key" (derived from the address) is the same, $(P xor K) xor K$ results in $P$.
+5.  *Arbitrary Allocation*: The next allocation from the second bin returns the original target pointer `P` in its plaintext form, bypassing the alignment and obfuscation checks.
 
 == Security Implications
 
