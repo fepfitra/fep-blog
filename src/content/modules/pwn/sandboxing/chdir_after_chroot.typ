@@ -1,6 +1,6 @@
 #metadata(
   (
-    title: "Chdir(\"/") after chroot",
+    title: "Chdir('/') after chroot",
     description: "Writeup for Sandboxing Level 3",
     date: "2026-01-01",
     order: 3,
@@ -10,6 +10,7 @@
 #import "../../../../typst-theme.c.typ": project
 #show: project
 
+= Chdir('/') after chroot
 
 == Challenge Source Code
 
@@ -75,5 +76,3 @@ Even though we are now inside the jail and our CWD is at the jail's root, we sti
 
 *Exploit:*
 The strategy is identical to Level 2. We provide `/` as the first argument and use `openat(3, "flag", ...)` in our shellcode to reach the real flag.
-
-```

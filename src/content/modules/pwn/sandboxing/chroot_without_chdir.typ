@@ -10,6 +10,7 @@
 #import "../../../../typst-theme.c.typ": project
 #show: project
 
+= Chroot without chdir
 
 == Challenge Source Code
 
@@ -66,6 +67,6 @@ Since we are outside the new root, we can use relative paths to traverse upwards
 
 *Exploit:*
 ```bash
-/challenge/babyjail_level1 ../../../flag
+/challenge/challenge ../../../flag
 ```
 The program opens the file relative to the CWD, which is still outside the jail, allowing us to read the real flag.

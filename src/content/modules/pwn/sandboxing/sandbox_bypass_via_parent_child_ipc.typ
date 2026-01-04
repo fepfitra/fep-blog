@@ -10,6 +10,7 @@
 #import "../../../../typst-theme.c.typ": project
 #show: project
 
+= Sandbox Bypass via Parent-Child IPC
 
 == Challenge Source Code
 

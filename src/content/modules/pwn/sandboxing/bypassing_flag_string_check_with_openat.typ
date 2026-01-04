@@ -10,6 +10,7 @@
 #import "../../../../typst-theme.c.typ": project
 #show: project
 
+= Bypassing flag-string check with openat
 
 == Challenge Source Code
 

@@ -10,6 +10,7 @@
 #import "../../../../typst-theme.c.typ": project
 #show: project
 
+= Cross-Arch Syscall Confusion
 
 == Challenge Source Code
 

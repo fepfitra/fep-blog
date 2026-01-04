@@ -10,6 +10,7 @@
 #import "../../../../typst-theme.c.typ": project
 #show: project
 
+= Mount Namespace and pivot_root Escape
 
 == Challenge Source Code
 

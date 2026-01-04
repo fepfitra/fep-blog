@@ -10,6 +10,7 @@
 #import "../../../../typst-theme.c.typ": project
 #show: project
 
+= Escaping via Pre-opened File Descriptor
 
 == Challenge Source Code
 
@@ -85,6 +86,6 @@ int fd = open(argv[1], O_RDONLY|O_NOFOLLOW);
 
 *Exploit Command:*
 ```bash
-python3 babyjail_level2.py
+python3 exploit.py
 ```
 This script passes `/` to the binary, then sends shellcode that uses FD 3 to read `/flag`.

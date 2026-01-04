@@ -10,6 +10,7 @@
 #import "../../../../typst-theme.c.typ": project
 #show: project
 
+= Chroot Escape via openat and ..
 
 == Challenge Source Code
 

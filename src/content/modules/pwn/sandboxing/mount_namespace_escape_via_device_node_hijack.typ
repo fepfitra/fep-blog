@@ -10,6 +10,7 @@
 #import "../../../../typst-theme.c.typ": project
 #show: project
 
+= Mount Namespace Escape via Device Node Hijack
 
 == Challenge Source Code
 

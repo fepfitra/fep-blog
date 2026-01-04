@@ -10,6 +10,7 @@
 #import "../../../../typst-theme.c.typ": project
 #show: project
 
+= Side-Channel Leak via Exit Code
 
 == Challenge Source Code
 

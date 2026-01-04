@@ -10,6 +10,7 @@
 #import "../../../../typst-theme.c.typ": project
 #show: project
 
+= Timing side-channel via nanosleep
 
 == Challenge Source Code
 
@@ -110,5 +111,3 @@ syscall
 A python script iterates through character positions and possible values. It measures the time elapsed from the start of shellcode execution until the process terminates. A duration significantly longer than the process overhead (e.g., > 0.8s) indicates a correct guess.
 
 The retrieved flag was: `falg\n`.
-
-```

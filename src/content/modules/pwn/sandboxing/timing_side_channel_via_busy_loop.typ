@@ -10,6 +10,7 @@
 #import "../../../../typst-theme.c.typ": project
 #show: project
 
+= Timing side-channel via Busy Loop
 
 == Challenge Source Code
 
@@ -104,5 +105,3 @@ jmp busy_loop
 A python script iterates through each character position and possible values. It measures how long the process stays alive after the shellcode starts. If the process is still running after a significant delay (e.g., 1 second), it indicates a correct guess. The script then kills the hanging process and moves to the next byte.
 
 The retrieved flag was: `falg\n`.
-
-```
