@@ -14,7 +14,7 @@
 
 == Introduction
 
-This document continues from the `fastbin_dup` example. It demonstrates how the double-free vulnerability can be escalated to not just allocate a chunk that is already in use, but to trick the allocator into returning a pointer to an arbitrary, controlled location—in this case, a variable on the stack. This is a powerful technique that can often lead directly to arbitrary code execution by overwriting return addresses or other critical stack data.
+This document continues from the `fastbin_dup` example. It demonstrates how the double-free vulnerability can be escalated to not just allocate a chunk that is already in use, but to trick the allocator into returning a pointer to an arbitrary, controlled location, in this case, a variable on the stack. This is a powerful technique that can often lead directly to arbitrary code execution by overwriting return addresses or other critical stack data.
 
 The example code is `fastbin_dup_into_stack.c`.
 

@@ -137,5 +137,5 @@ for(int i=0; i<7; i++) {
 void *allocated = calloc(1, 0x30);
 ```
 
-The `malloc` call requests a `0x30`-byte chunk (which rounds up to a `0x40` internal size), finds the t-cache empty, and pulls the next available chunk from the fastbin—which is our fake chunk. The `assert(allocated == victim)` passes, confirming that we have received a `malloc`-returned pointer that points directly to our controlled stack memory. An attacker can now use this pointer to overwrite saved function parameters, return addresses, or anything else on the stack.
+The `malloc` call requests a `0x30`-byte chunk (which rounds up to a `0x40` internal size), finds the t-cache empty, and pulls the next available chunk from the fastbin, which is our fake chunk. The `assert(allocated == victim)` passes, confirming that we have received a `malloc`-returned pointer that points directly to our controlled stack memory. An attacker can now use this pointer to overwrite saved function parameters, return addresses, or anything else on the stack.
 

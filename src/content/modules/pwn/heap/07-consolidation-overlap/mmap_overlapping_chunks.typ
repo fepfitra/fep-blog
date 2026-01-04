@@ -20,7 +20,7 @@ In glibc, when an allocation request exceeds a certain size (defined by the `mma
 2. *Metadata*: The `IS_MMAPPED` bit (the second least significant bit of the `size` field) is set to 1.
 3. *Deallocation*: When `free()` is called on an mmap chunk, the allocator uses the `munmap` system call to release the memory directly back to the kernel.
 
-The "mmap Overlapping Chunks" attack involves corrupting the `size` field of an mmap chunk so that when it is freed, the `munmap` call releases a larger region of memory than intended—potentially including other active mmap chunks. If the attacker then performs a new large allocation, the kernel may reuse the released memory range, leading to multiple pointers pointing to overlapping mmap regions.
+The "mmap Overlapping Chunks" attack involves corrupting the `size` field of an mmap chunk so that when it is freed, the `munmap` call releases a larger region of memory than intended, potentially including other active mmap chunks. If the attacker then performs a new large allocation, the kernel may reuse the released memory range, leading to multiple pointers pointing to overlapping mmap regions.
 
 == Prerequisites
 - *Mmap Allocation*: Ability to trigger large allocations (typically > 128KB) that use the `mmap` syscall instead of the main heap.
@@ -92,7 +92,7 @@ When `free(mmap_chunk_3)` is called, glibc reads the corrupted size and calls `m
 
 === 4. Re-mapping and Overlap
 
-To complete the attack, we must reclaim that memory. We call `malloc(0x300000)`. The kernel is likely to reuse the largest available hole in the virtual memory space—which is the region we just released.
+To complete the attack, we must reclaim that memory. We call `malloc(0x300000)`. The kernel is likely to reuse the largest available hole in the virtual memory space, which is the region we just released.
 
 The new `overlapping_chunk` pointer now covers the entire range. An attacker who still holds the "stale" `mmap_chunk_2` pointer can now interact with the memory through two different pointers, or if `mmap_chunk_2` was a pointer in a different part of the application, we have achieved a cross-allocation overlap.
 
