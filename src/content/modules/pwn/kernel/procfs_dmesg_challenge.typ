@@ -115,18 +115,6 @@ module_init(secret_chall_init);
 module_exit(secret_chall_exit);
 ```
 
-== Makefile
-
-```makefile
-obj-m += secret_chall.o
-
-all:
-	make -C /lib/modules/$(shell uname -r)/build M=$(PWD) modules
-
-clean:
-	make -C /lib/modules/$(shell uname -r)/build M=$(PWD) clean
-```
-
 == The Kernel Log Leak
 
 The interesting part of this challenge is how the flag is disclosed:
@@ -184,24 +172,5 @@ echo -n "uiiaiiuuiiai" > /proc/pwnmepls
 cat /proc/pwnmepls
 # OR
 dmesg | tail
-```
-
-== Deployment
-
-To deploy this challenge using the #link("https://github.com/fepfitra/kernel-pwn-minimal")[kernel-pwn-minimal] orchestrator, place the challenge source code in the `src/` directory and your exploit source in the `exploit/` directory.
-
-Modify the `rootfs/init` script to load the module and trigger the exploit:
-
-```diff
--exec /bin/sh
-+insmod /secret_chall.ko
-+su pwn -c "/exploit_secret"
-+poweroff -f
-```
-
-Finally, rebuild the rootfs and launch the environment:
-
-```bash
-./pack.sh && ./run.sh
 ```
 

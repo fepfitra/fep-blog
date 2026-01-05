@@ -91,18 +91,6 @@ module_init(secret_chall_init);
 module_exit(secret_chall_exit);
 ```
 
-== Makefile
-
-```makefile
-obj-m += secret_chall.o
-
-all:
-	make -C /lib/modules/$(shell uname -r)/build M=$(PWD) modules
-
-clean:
-	make -C /lib/modules/$(shell uname -r)/build M=$(PWD) clean
-```
-
 == The Rooting Primitive
 
 The core of the privilege escalation happens in a single line:
