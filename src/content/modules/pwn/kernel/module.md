@@ -2,7 +2,7 @@
 title: "Kernel"
 description: "Resources and write-ups on kernel exploitation."
 date: 2026-01-01
-order: 40
+order: 70
 ---
 ## Kernel
 
