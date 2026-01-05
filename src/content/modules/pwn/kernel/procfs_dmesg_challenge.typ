@@ -115,6 +115,18 @@ module_init(secret_chall_init);
 module_exit(secret_chall_exit);
 ```
 
+== Makefile
+
+```makefile
+obj-m += secret_chall.o
+
+all:
+	make -C /lib/modules/$(shell uname -r)/build M=$(PWD) modules
+
+clean:
+	make -C /lib/modules/$(shell uname -r)/build M=$(PWD) clean
+```
+
 == The Kernel Log Leak
 
 The interesting part of this challenge is how the flag is disclosed:
@@ -141,23 +153,16 @@ This script interacts with the proc entry and instructs the user to check the ke
 #include <string.h>
 
 int main() {
-    printf("[*] Current UID: %d\n", getuid());
-
+    // 1. Write the secret password
     int fd = open("/proc/pwnmepls", O_WRONLY);
-    if (fd < 0) {
-        perror("open /proc/pwnmepls");
-        return 1;
-    }
+    if (fd < 0) { perror("open write"); return 1; }
 
     const char *password = "uiiaiiuuiiai";
-    if (write(fd, password, strlen(password)) < 0) {
-        perror("write password");
-        close(fd);
-        return 1;
-    }
+    write(fd, password, strlen(password));
     close(fd);
 
-    printf("[+] Password sent. Checking dmesg for the flag...\n");
+    // 2. Instruct user to check logs
+    printf("[+] Password sent. Check dmesg for the flag.\n");
 
     return 0;
 }
@@ -168,9 +173,28 @@ int main() {
 You can solve this by sending the password and then either reading the file or checking the kernel log via `dmesg`.
 
 ```bash
+# -n is important to avoid sending a trailing newline unless the driver expects it
 echo -n "uiiaiiuuiiai" > /proc/pwnmepls
 cat /proc/pwnmepls
 # OR
 dmesg | tail
 ```
 
+== Deployment
+
+To deploy this challenge using the #link("https://github.com/fepfitra/kernel-pwn-minimal")[kernel-pwn-minimal] orchestrator, place the challenge source code in the `src/` directory and your exploit source in the `exploit/` directory.
+
+Modify the `rootfs/init` script to load the module and trigger the exploit:
+
+```diff
+-exec /bin/sh
++insmod /secret_chall.ko
++su pwn -c "/exploit_secret"
++poweroff -f
+```
+
+Finally, rebuild the rootfs and launch the environment:
+
+```bash
+./pack.sh && ./run.sh
+```
