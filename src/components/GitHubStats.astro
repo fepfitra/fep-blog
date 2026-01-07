@@ -170,6 +170,11 @@
             return;
 
         try {
+            interface ContributionDay {
+                date: string;
+                count: number;
+            }
+
             const contribRes = await fetch(
                 `https://github-contributions-api.jogruber.de/v4/${username}?y=last`,
             );
@@ -177,7 +182,7 @@
                 throw new Error("Failed to fetch contributions");
             const contribData = await contribRes.json();
 
-            const contributions = contribData.contributions;
+            const contributions: ContributionDay[] = contribData.contributions;
             const totalContributions = contribData.total.lastYear;
 
             let currentStreak = 0;
@@ -211,25 +216,25 @@
                 longestStreakEnd = contributions[contributions.length - 1].date;
             }
 
-            let lastIndex = contributions.length - 1;
             let streakEndIndex = -1;
-            const lastDay = contributions[lastIndex];
+            const lastDay = contributions[contributions.length - 1];
             const yesterday = new Date();
             yesterday.setDate(yesterday.getDate() - 1);
             const yesterdayStr = yesterday.toISOString().split("T")[0];
 
             if (lastDay.date === today && lastDay.count > 0) {
-                streakEndIndex = lastIndex;
+                streakEndIndex = contributions.length - 1;
             } else if (lastDay.date === today && lastDay.count === 0) {
                 if (
-                    contributions[lastIndex - 1] &&
-                    contributions[lastIndex - 1].date === yesterdayStr &&
-                    contributions[lastIndex - 1].count > 0
+                    contributions[contributions.length - 2] &&
+                    contributions[contributions.length - 2].date ===
+                        yesterdayStr &&
+                    contributions[contributions.length - 2].count > 0
                 ) {
-                    streakEndIndex = lastIndex - 1;
+                    streakEndIndex = contributions.length - 2;
                 }
             } else if (lastDay.date === yesterdayStr && lastDay.count > 0) {
-                streakEndIndex = lastIndex;
+                streakEndIndex = contributions.length - 1;
             }
 
             if (streakEndIndex !== -1) {
@@ -244,6 +249,9 @@
                     }
                 }
             }
+
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            const _unusedStart = currentStreakStart;
 
             document.getElementById("gh-total-contribs")!.textContent =
                 totalContributions.toLocaleString();
@@ -271,8 +279,8 @@
                     ? `${formatDate(longestStreakStart)} - ${formatDate(longestStreakEnd)}`
                     : "-";
 
-            const weeks: any[][] = [];
-            let currentWeek: any[] = [];
+            const weeks: (ContributionDay | null)[][] = [];
+            let currentWeek: (ContributionDay | null)[] = [];
 
             const firstDay = new Date(contributions[0].date);
             const firstDayOfWeek = firstDay.getDay();
@@ -280,7 +288,7 @@
                 currentWeek.push(null);
             }
 
-            contributions.forEach((day: any) => {
+            contributions.forEach((day: ContributionDay) => {
                 currentWeek.push(day);
                 if (currentWeek.length === 7) {
                     weeks.push(currentWeek);
@@ -328,15 +336,19 @@
             if (!reposRes.ok) throw new Error("Failed to fetch repos");
             const reposData = await reposRes.json();
 
-            const topRepos = reposData
-                .sort(
-                    (a: any, b: any) => b.stargazers_count - a.stargazers_count,
-                )
+            interface Repo {
+                html_url: string;
+                name: string;
+                stargazers_count: number;
+            }
+
+            const topRepos = (reposData as Repo[])
+                .sort((a, b) => b.stargazers_count - a.stargazers_count)
                 .slice(0, 5);
 
             listRepos.innerHTML = topRepos
                 .map(
-                    (repo: any) => `
+                    (repo) => `
         <li class="flex items-center justify-between rounded p-2 hover:bg-black/5 dark:hover:bg-white/5 transition-colors">
           <a href="${repo.html_url}" target="_blank" rel="noopener noreferrer" class="flex items-center gap-2 truncate">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4 text-black dark:text-white"><path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36 1.5-8 1.5C8.48 2 5.64 2 2.64.5 2.64 2.5 2.64 4.5 2.64 4.5c-.28 1.15-.28 2.35 0 3.5-.73 1.02-1.08 2.25-1 3.5 0 3.5 3 5.5 6 5.5-.39 1-.39 2 0 3.5v4"/></svg>

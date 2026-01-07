@@ -2,7 +2,6 @@
 import { type CollectionEntry, getCollection, render } from "astro:content";
 import ModulesLayout from "@layouts/ModulesLayout.astro";
 import ModuleNavigation from "@components/ModuleNavigation.astro";
-import Giscus from "@components/Giscus.astro";
 
 export async function getStaticPaths() {
 	const modules = await getCollection("modules");

@@ -190,7 +190,7 @@ const { title, description, image = "/me.png" } = Astro.props;
 			document.documentElement.classList.remove("dark");
 		}
 
-		window.getComputedStyle(css).opacity;
+		void window.getComputedStyle(css).opacity;
 		document.head.removeChild(css);
 
 		setGiscusTheme();
@@ -207,8 +207,8 @@ const { title, description, image = "/me.png" } = Astro.props;
 	}
 
 	function addCopyCodeButtons() {
-		let copyButtonLabel = "📋";
-		let codeBlocks = Array.from(document.querySelectorAll("pre"));
+		const copyButtonLabel = "📋";
+		const codeBlocks = Array.from(document.querySelectorAll("pre"));
 
 		async function copyCode(codeBlock, copyButton) {
 			const codeText = codeBlock.innerText;
@@ -223,7 +223,7 @@ const { title, description, image = "/me.png" } = Astro.props;
 			}, 2000);
 		}
 
-		for (let codeBlock of codeBlocks) {
+		for (const codeBlock of codeBlocks) {
 			const wrapper = document.createElement("div");
 			wrapper.style.position = "relative";
 
