@@ -9,17 +9,22 @@ type Props = {
   title: string;
   description: string;
   width?: "sm" | "md" | "lg" | "xl" | "2xl";
+  publishDate?: Date;
+  articleType?: "article" | "website";
 };
 
-const { title, description, width = "sm" } = Astro.props;
+const { title, description, width = "sm", publishDate, articleType } = Astro.props;
 ---
 
 <!doctype html>
 <html lang="en">
   <head>
-    <Head title={`${title} | ${SITE.TITLE}`} description={description} />
+    <Head title={`${title} | ${SITE.TITLE}`} description={description} publishDate={publishDate} articleType={articleType} />
   </head>
   <body>
+    <a href="#main-content" class="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-sm focus:bg-white focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:text-black focus:shadow-lg dark:focus:bg-neutral-800 dark:focus:text-white">
+      Skip to content
+    </a>
     <Header containerSize={width} />
 
 
@@ -34,7 +39,7 @@ const { title, description, width = "sm" } = Astro.props;
       </div>
     </div>
 
-    <main>
+    <main id="main-content">
       <slot />
     </main>
     <Footer containerSize={width} />

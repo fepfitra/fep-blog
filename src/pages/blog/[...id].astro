@@ -1,5 +1,5 @@
 ---
-import { type CollectionEntry, getCollection, render } from "astro:content";
+import { getCollection, render } from "astro:content";
 import Layout from "@layouts/Layout.astro";
 import Container from "@components/Container.astro";
 import FormattedDate from "@components/FormattedDate.astro";
@@ -14,45 +14,21 @@ export async function getStaticPaths() {
   const posts = (await getCollection("blog"))
     .filter((post) => !post.data.draft)
     .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
-  return posts.map((post) => ({
+  return posts.map((post, index) => ({
     params: { id: post.id },
-    props: post,
+    props: {
+      post,
+      prevPost: posts[index - 1] ?? null,
+      nextPost: posts[index + 1] ?? null,
+    },
   }));
 }
-type Props = CollectionEntry<"blog">;
 
-const posts = (await getCollection("blog"))
-  .filter((post) => !post.data.draft)
-  .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
-
-function getNextPost() {
-  let postIndex;
-  for (const post of posts) {
-    if (post.id === Astro.params.id) {
-      postIndex = posts.indexOf(post);
-      return posts[postIndex + 1];
-    }
-  }
-}
-
-function getPrevPost() {
-  let postIndex;
-  for (const post of posts) {
-    if (post.id === Astro.params.id) {
-      postIndex = posts.indexOf(post);
-      return posts[postIndex - 1];
-    }
-  }
-}
-
-const nextPost = getNextPost();
-const prevPost = getPrevPost();
-
-const post = Astro.props;
+const { post, prevPost, nextPost } = Astro.props;
 const { Content, headings } = await render(post);
 ---
 
-<Layout title={post.data.title} description={post.data.description} width="2xl">
+<Layout title={post.data.title} description={post.data.description} width="2xl" publishDate={post.data.date} articleType="article">
   <Container size="lg">
     <div
       class="grid grid-cols-1 gap-10 md:grid-cols-[1fr_250px] lg:grid-cols-[1fr_300px]"

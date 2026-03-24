@@ -1,18 +1,19 @@
-@import 'tailwindcss';
+@import "tailwindcss";
 
 @plugin '@tailwindcss/typography';
 
 @custom-variant dark (&:is(.dark *));
 
 @theme {
-  --font-sans: Geist Sans, ui-sans-serif, system-ui, sans-serif,
-    'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
-  --font-mono: Geist Mono, ui-monospace, SFMono-Regular, Menlo, Monaco,
-    Consolas, 'Liberation Mono', 'Courier New', monospace;
+  --font-sans:
+    Geist Sans, ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji",
+    "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  --font-mono:
+    Geist Mono, ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+    "Liberation Mono", "Courier New", monospace;
 }
 
 @layer base {
-
   *,
   ::after,
   ::before,
@@ -42,11 +43,11 @@
     @apply font-sans antialiased;
     @apply flex flex-col;
     @apply bg-neutral-100 dark:bg-neutral-900;
-    @apply text-black/75 dark:text-white/75;
+    @apply text-black/80 dark:text-white/80;
   }
 
   header {
-    @apply fixed left-0 right-0 top-0 z-50 py-6;
+    @apply fixed top-0 right-0 left-0 z-50 py-6;
     @apply bg-neutral-100/75 dark:bg-neutral-900/75;
     @apply saturate-200 backdrop-blur-xs;
   }
@@ -97,7 +98,7 @@ html.scrolled #back-to-top {
 }
 
 .prose pre {
-  @apply border border-black/15 py-5 rounded-sm dark:border-white/20;
+  @apply rounded-sm border border-black/15 py-5 dark:border-white/20;
   white-space: pre-wrap !important;
   max-width: 100%;
 }
@@ -136,7 +137,7 @@ html.scrolled #back-to-top {
 }
 
 .copy-code {
-  @apply absolute right-3 top-3 grid size-9 place-content-center rounded-sm border border-black/15 bg-neutral-100 text-center duration-300 ease-in-out dark:border-white/20 dark:bg-neutral-900;
+  @apply absolute top-3 right-3 grid size-9 place-content-center rounded-sm border border-black/15 bg-neutral-100 text-center duration-300 ease-in-out dark:border-white/20 dark:bg-neutral-900;
 }
 
 .copy-code:hover {
@@ -149,8 +150,8 @@ html.scrolled #back-to-top {
 
 [role="math"] {
   @apply align-middle;
-	margin-top: 2em;
-	margin-bottom: 2em;
+  margin-top: 2em;
+  margin-bottom: 2em;
 }
 
 [role="inline-math"] {
@@ -158,8 +159,8 @@ html.scrolled #back-to-top {
 }
 
 .typst-frame {
-	margin-top: 0em;
-	margin-bottom: 0em;
+  margin-top: 0em;
+  margin-bottom: 0em;
 }
 
 html:not(.dark) .typst-math-dark {
@@ -171,5 +172,5 @@ html.dark .typst-math-light {
 }
 
 figcaption {
-	@apply text-center;
+  @apply text-center;
 }

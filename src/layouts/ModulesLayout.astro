@@ -17,6 +17,7 @@ type Props = {
     currentSlug: string;
     width?: "sm" | "md" | "lg" | "xl" | "2xl";
     headings?: MarkdownHeading[];
+    publishDate?: Date;
 };
 
 const {
@@ -25,17 +26,21 @@ const {
     currentSlug,
     width = "sm",
     headings = [],
+    publishDate,
 } = Astro.props;
 ---
 
 <!doctype html>
 <html lang="en">
     <head>
-        <Head title={`${title} | ${SITE.TITLE}`} description={description} />
+        <Head title={`${title} | ${SITE.TITLE}`} description={description} publishDate={publishDate} articleType={publishDate ? "article" : "website"} />
     </head>
     <body>
+        <a href="#main-content" class="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-sm focus:bg-white focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:text-black focus:shadow-lg dark:focus:bg-neutral-800 dark:focus:text-white">
+            Skip to content
+        </a>
         <Header containerSize={width} />
-        <main class="container mx-auto px-4 py-32">
+        <main id="main-content" class="container mx-auto px-4 py-32">
             <div class="flex flex-col gap-8 md:flex-row">
                 <div class="w-full md:w-64 md:shrink-0">
                     <div

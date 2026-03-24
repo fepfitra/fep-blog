@@ -3,14 +3,14 @@ import Search from "astro-pagefind/components/Search";
 ---
 
 <aside data-pagefind-ignore>
-  <div
+  <dialog
     transition:persist
-    id="backdrop"
-    class="bg-[rgba(0, 0, 0, 0.5] invisible fixed left-0 top-0 z-50 flex h-screen w-full justify-center p-6 backdrop-blur-xs"
+    id="search-dialog"
+    class="fixed inset-0 z-50 m-0 h-screen w-full bg-transparent p-6 backdrop:bg-black/50 backdrop:backdrop-blur-xs"
   >
     <div
       id="pagefind-container"
-      class="m-0 flex h-fit max-h-[80%] w-full max-w-(--breakpoint-sm) flex-col overflow-auto rounded-sm border border-black/15 bg-neutral-100 p-2 px-4 py-3 shadow-lg dark:border-white/20 dark:bg-neutral-900"
+      class="mx-auto flex h-fit max-h-[80%] w-full max-w-(--breakpoint-sm) flex-col overflow-auto rounded-sm border border-black/15 bg-neutral-100 p-2 px-4 py-3 shadow-lg dark:border-white/20 dark:bg-neutral-900"
     >
       <Search
         id="search"
@@ -27,28 +27,26 @@ import Search from "astro-pagefind/components/Search";
         > or click anywhere to close
       </div>
     </div>
-  </div>
+  </dialog>
 </aside>
 
 <script is:inline>
   const magnifyingGlass = document.getElementById("magnifying-glass");
-  const backdrop = document.getElementById("backdrop");
+  const dialog = document.getElementById("search-dialog");
 
   function openPagefind() {
+    if (!dialog) return;
+    dialog.showModal();
     const searchDiv = document.getElementById("search");
-    const search = searchDiv.querySelector("input");
+    const search = searchDiv?.querySelector("input");
     setTimeout(() => {
-      search.focus();
+      search?.focus();
     }, 0);
-    backdrop?.classList.remove("invisible");
-    backdrop?.classList.add("visible");
   }
 
   function closePagefind() {
-    const search = document.getElementById("search");
-    search.value = "";
-    backdrop?.classList.remove("visible");
-    backdrop?.classList.add("invisible");
+    if (!dialog) return;
+    dialog.close();
   }
 
   magnifyingGlass?.addEventListener("click", () => {
@@ -65,8 +63,8 @@ import Search from "astro-pagefind/components/Search";
     }
   });
 
-  document.addEventListener("keydown", (e) => {
-    if (e.key === "Escape") {
+  dialog?.addEventListener("click", (event) => {
+    if (!event.target.closest("#pagefind-container")) {
       closePagefind();
     }
   });
@@ -75,17 +73,6 @@ import Search from "astro-pagefind/components/Search";
     if (event.target.classList.contains("pagefind-ui__result-link")) {
       closePagefind();
     }
-  });
-
-  backdrop?.addEventListener("click", (event) => {
-    if (!event.target.closest("#pagefind-container")) {
-      closePagefind();
-    }
-  });
-
-  const form = document.getElementById("form");
-  form?.addEventListener("submit", (event) => {
-    event.preventDefault();
   });
 </script>
 
@@ -107,6 +94,11 @@ import Search from "astro-pagefind/components/Search";
     --pagefind-ui-text: #d4d4d4;
     --pagefind-ui-background: #171717;
     --pagefind-ui-border: #404040;
+  }
+
+  dialog::backdrop {
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
   }
 
   #search input {

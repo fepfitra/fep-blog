@@ -19,13 +19,6 @@ const modules = allModules
     })
     .sort((a, b) => (a.data.order || 0) - (b.data.order || 0));
 
-console.log("ModuleContents Debug:");
-console.log("Slug:", currentSlug);
-console.log("Base:", base);
-console.log(
-    "Found modules:",
-    modules.map((m) => m.id),
-);
 ---
 
 <ul class="flex flex-col gap-3">

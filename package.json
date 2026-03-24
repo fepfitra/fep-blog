@@ -1,5 +1,5 @@
 {
-  "name": "astro-micro",
+  "name": "fep-blog",
   "type": "module",
   "version": "0.0.1",
   "scripts": {
@@ -28,10 +28,10 @@
     "tailwind-merge": "^3.5.0",
     "tailwindcss": "^4.2.1",
     "three": "^0.183.2",
-    "typescript": "^5.9.3",
-    "wrangler": "latest"
+    "typescript": "^5.9.3"
   },
   "devDependencies": {
+    "wrangler": "^4.12.0",
     "@tailwindcss/typography": "^0.5.19",
     "@typescript-eslint/eslint-plugin": "^8.57.0",
     "@typescript-eslint/parser": "^8.57.0",

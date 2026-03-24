@@ -1,47 +1,49 @@
 import type { Metadata, Site, Socials, GiscusProps } from "@types";
 
+export const GITHUB_USERNAME = "fepfitra";
+
 export const SITE: Site = {
-	TITLE: "Fep Blog",
-	DESCRIPTION: "Write a random thing.",
-	EMAIL: "fitra.fep@gmail.com",
-	NUM_POSTS_ON_HOMEPAGE: 5,
-	NUM_PROJECTS_ON_HOMEPAGE: 3,
+  TITLE: "Fep Blog",
+  DESCRIPTION: "Write a random thing.",
+  EMAIL: "fitra.fep@gmail.com",
+  NUM_POSTS_ON_HOMEPAGE: 5,
+  NUM_PROJECTS_ON_HOMEPAGE: 3,
 };
 
 export const HOME: Metadata = {
-	TITLE: "Home",
-	DESCRIPTION: "Just write a random thing.",
+  TITLE: "Home",
+  DESCRIPTION: "Just write a random thing.",
 };
 
 export const BLOG: Metadata = {
-	TITLE: "Blog",
-	DESCRIPTION: "A collection of articles on topics I am passionate about.",
+  TITLE: "Blog",
+  DESCRIPTION: "A collection of articles on topics I am passionate about.",
 };
 
 export const PROJECTS: Metadata = {
-	TITLE: "Projects",
-	DESCRIPTION:
-		"A collection of my projects with links to repositories and live demos.",
+  TITLE: "Projects",
+  DESCRIPTION:
+    "A collection of my projects with links to repositories and live demos.",
 };
 
 export const SOCIALS: Socials = [
-	{
-		NAME: "X (formerly Twitter)",
-		HREF: "https://twitter.com/fitrafepdotcom",
-	},
-	{
-		NAME: "GitHub",
-		HREF: "https://github.com/fepfitra",
-	},
-	{
-		NAME: "Website",
-		HREF: "https://fitrafep.com",
-	},
+  {
+    NAME: "X (formerly Twitter)",
+    HREF: "https://twitter.com/fitrafepdotcom",
+  },
+  {
+    NAME: "GitHub",
+    HREF: "https://github.com/fepfitra",
+  },
+  {
+    NAME: "Website",
+    HREF: "https://fitrafep.com",
+  },
 ];
 
 export const GISCUS: GiscusProps = {
-	repo: "fepfitra/fep-blog",
-	repoId: "R_kgDONW_mQA",
-	category: "General",
-	categoryId: "DIC_kwDONW_mQM4Ck1zO",
+  repo: "fepfitra/fep-blog",
+  repoId: "R_kgDONW_mQA",
+  category: "General",
+  categoryId: "DIC_kwDONW_mQM4Ck1zO",
 };

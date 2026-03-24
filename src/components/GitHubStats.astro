@@ -1,5 +1,5 @@
 ---
-
+import { GITHUB_USERNAME } from "@consts";
 ---
 
 <div class="space-y-6">
@@ -30,12 +30,12 @@
                         class="text-2xl font-bold text-black dark:text-white"
                         >...</span
                     >
-                    <span class="text-xs text-black/60 dark:text-white/60"
+                    <span class="text-xs text-black/70 dark:text-white/70"
                         >Total Contributions</span
                     >
                     <span
                         id="gh-contribs-range"
-                        class="mt-1 text-[10px] text-black/40 dark:text-white/40"
+                        class="mt-1 text-[10px] text-black/50 dark:text-white/50"
                         >Last Year</span
                     >
                 </div>
@@ -53,6 +53,7 @@
                             stroke-width="2"
                             stroke-linecap="round"
                             stroke-linejoin="round"
+                            aria-hidden="true"
                             ><path
                                 d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.1.2-2.2.5-3.3.3-1.1.9-2.2 1.6-3.1 1.4 2.8 1.4 4.9 1.4 6.9z"
                             ></path></svg
@@ -68,7 +69,7 @@
                     >
                     <span
                         id="gh-current-streak-date"
-                        class="mt-1 text-[10px] text-black/40 dark:text-white/40"
+                        class="mt-1 text-[10px] text-black/50 dark:text-white/50"
                         >...</span
                     >
                 </div>
@@ -79,12 +80,12 @@
                         class="text-2xl font-bold text-black dark:text-white"
                         >...</span
                     >
-                    <span class="text-xs text-black/60 dark:text-white/60"
+                    <span class="text-xs text-black/70 dark:text-white/70"
                         >Longest Streak</span
                     >
                     <span
                         id="gh-longest-streak-range"
-                        class="mt-1 text-[10px] text-black/40 dark:text-white/40"
+                        class="mt-1 text-[10px] text-black/50 dark:text-white/50"
                         >...</span
                     >
                 </div>
@@ -94,7 +95,7 @@
                 <div id="gh-contrib-graph" class="flex min-w-fit gap-[3px]">
                 </div>
                 <div
-                    class="mt-2 flex items-center justify-end gap-2 text-[10px] text-black/40 dark:text-white/40"
+                    class="mt-2 flex items-center justify-end gap-2 text-[10px] text-black/50 dark:text-white/50"
                 >
                     <span>Less</span>
                     <div class="flex gap-[3px]">
@@ -148,9 +149,136 @@
     </div>
 </div>
 
-<script>
+<script is:inline define:vars={{ username: GITHUB_USERNAME }}>
+    const CACHE_KEY = "github-stats-cache";
+    const CACHE_TTL = 30 * 60 * 1000; // 30 minutes
+
+    function getCachedData() {
+        try {
+            const raw = localStorage.getItem(CACHE_KEY);
+            if (!raw) return null;
+            const cached = JSON.parse(raw);
+            if (Date.now() - cached.timestamp > CACHE_TTL) {
+                localStorage.removeItem(CACHE_KEY);
+                return null;
+            }
+            return cached.data;
+        } catch {
+            return null;
+        }
+    }
+
+    function setCachedData(data) {
+        try {
+            localStorage.setItem(
+                CACHE_KEY,
+                JSON.stringify({ data, timestamp: Date.now() }),
+            );
+        } catch {
+            // localStorage full or unavailable, ignore
+        }
+    }
+
+    function getColor(count) {
+        if (count === 0) return "bg-[#ebedf0] dark:bg-[#161b22]";
+        if (count <= 3) return "bg-[#9be9a8] dark:bg-[#0e4429]";
+        if (count <= 6) return "bg-[#40c463] dark:bg-[#006d32]";
+        if (count <= 9) return "bg-[#30a14e] dark:bg-[#26a641]";
+        return "bg-[#216e39] dark:bg-[#39d353]";
+    }
+
+    function formatDate(dateStr) {
+        if (!dateStr) return "";
+        const d = new Date(dateStr);
+        return d.toLocaleDateString("en-US", {
+            month: "short",
+            day: "numeric",
+        });
+    }
+
+    function buildContribGraph(graphContainer, weeks) {
+        graphContainer.innerHTML = "";
+        weeks.forEach((week) => {
+            const weekCol = document.createElement("div");
+            weekCol.className = "flex flex-col gap-[3px]";
+            week.forEach((day) => {
+                const cell = document.createElement("div");
+                if (!day) {
+                    cell.className = "size-[10px]";
+                } else {
+                    cell.className = `size-[10px] rounded-[2px] ${getColor(day.count)}`;
+                    cell.title = `${day.date}: ${day.count} contributions`;
+                }
+                weekCol.appendChild(cell);
+            });
+            graphContainer.appendChild(weekCol);
+        });
+    }
+
+    function buildReposList(listRepos, topRepos) {
+        listRepos.innerHTML = "";
+        topRepos.forEach((repo) => {
+            const li = document.createElement("li");
+            li.className =
+                "flex items-center justify-between rounded p-2 hover:bg-black/5 dark:hover:bg-white/5 transition-colors";
+
+            const a = document.createElement("a");
+            a.href = repo.html_url;
+            a.target = "_blank";
+            a.rel = "noopener noreferrer";
+            a.className = "flex items-center gap-2 truncate";
+
+            const repoSvg = document.createElementNS(
+                "http://www.w3.org/2000/svg",
+                "svg",
+            );
+            repoSvg.setAttribute("viewBox", "0 0 24 24");
+            repoSvg.setAttribute("fill", "none");
+            repoSvg.setAttribute("stroke", "currentColor");
+            repoSvg.setAttribute("stroke-width", "2");
+            repoSvg.setAttribute("stroke-linecap", "round");
+            repoSvg.setAttribute("stroke-linejoin", "round");
+            repoSvg.setAttribute("aria-hidden", "true");
+            repoSvg.classList.add("size-4", "text-black", "dark:text-white");
+            repoSvg.innerHTML =
+                '<path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36 1.5-8 1.5C8.48 2 5.64 2 2.64.5 2.64 2.5 2.64 4.5 2.64 4.5c-.28 1.15-.28 2.35 0 3.5-.73 1.02-1.08 2.25-1 3.5 0 3.5 3 5.5 6 5.5-.39 1-.39 2 0 3.5v4"/>';
+
+            const nameSpan = document.createElement("span");
+            nameSpan.className =
+                "font-medium text-black dark:text-white truncate";
+            nameSpan.textContent = repo.name;
+
+            a.appendChild(repoSvg);
+            a.appendChild(nameSpan);
+
+            const starDiv = document.createElement("div");
+            starDiv.className =
+                "flex items-center gap-1 text-xs text-black/70 dark:text-white/70";
+
+            const starSvg = document.createElementNS(
+                "http://www.w3.org/2000/svg",
+                "svg",
+            );
+            starSvg.setAttribute("viewBox", "0 0 24 24");
+            starSvg.setAttribute("fill", "currentColor");
+            starSvg.setAttribute("aria-hidden", "true");
+            starSvg.classList.add("size-3", "text-yellow-500");
+            starSvg.innerHTML =
+                '<path fill-rule="evenodd" d="M10.788 3.21c.448-1.077 1.976-1.077 2.424 0l2.082 5.007 5.404.433c1.164.093 1.636 1.545.749 2.305l-4.117 3.527 1.257 5.273c.271 1.136-.964 2.033-1.96 1.425L12 18.354 7.373 21.18c-.996.608-2.231-.29-1.96-1.425l1.257-5.273-4.117-3.527c-.887-.76-.415-2.212.749-2.305l5.404-.433 2.082-5.006z" clip-rule="evenodd" />';
+
+            const countSpan = document.createElement("span");
+            countSpan.textContent = String(repo.stargazers_count);
+
+            starDiv.appendChild(starSvg);
+            starDiv.appendChild(countSpan);
+
+            li.appendChild(a);
+            li.appendChild(starDiv);
+            listRepos.appendChild(li);
+        });
+    }
+
     async function fetchGitHubStats() {
-        const username = "fepfitra";
         const loadingStats = document.getElementById("github-stats-loading");
         const contentStats = document.getElementById("github-stats-content");
         const errorStats = document.getElementById("github-stats-error");
@@ -170,26 +298,39 @@
             return;
 
         try {
-            interface ContributionDay {
-                date: string;
-                count: number;
+            const cached = getCachedData();
+            let contribData, reposData;
+
+            if (cached) {
+                contribData = cached.contribData;
+                reposData = cached.reposData;
+            } else {
+                const [contribRes, reposRes] = await Promise.all([
+                    fetch(
+                        `https://github-contributions-api.jogruber.de/v4/${username}?y=last`,
+                    ),
+                    fetch(
+                        `https://api.github.com/users/${username}/repos?per_page=100&sort=pushed`,
+                    ),
+                ]);
+
+                if (!contribRes.ok)
+                    throw new Error("Failed to fetch contributions");
+                if (!reposRes.ok) throw new Error("Failed to fetch repos");
+
+                contribData = await contribRes.json();
+                reposData = await reposRes.json();
+
+                setCachedData({ contribData, reposData });
             }
 
-            const contribRes = await fetch(
-                `https://github-contributions-api.jogruber.de/v4/${username}?y=last`,
-            );
-            if (!contribRes.ok)
-                throw new Error("Failed to fetch contributions");
-            const contribData = await contribRes.json();
-
-            const contributions: ContributionDay[] = contribData.contributions;
+            const contributions = contribData.contributions;
             const totalContributions = contribData.total.lastYear;
 
             let currentStreak = 0;
             let longestStreak = 0;
             let tempStreak = 0;
             let currentStreakEnd = "";
-            let currentStreakStart = "";
             let longestStreakStart = "";
             let longestStreakEnd = "";
             let tempStreakStart = "";
@@ -213,7 +354,8 @@
             if (tempStreak > longestStreak) {
                 longestStreak = tempStreak;
                 longestStreakStart = tempStreakStart;
-                longestStreakEnd = contributions[contributions.length - 1].date;
+                longestStreakEnd =
+                    contributions[contributions.length - 1].date;
             }
 
             let streakEndIndex = -1;
@@ -243,44 +385,31 @@
                 for (let i = streakEndIndex; i >= 0; i--) {
                     if (contributions[i].count > 0) {
                         currentStreak++;
-                        currentStreakStart = contributions[i].date;
                     } else {
                         break;
                     }
                 }
             }
 
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            const _unusedStart = currentStreakStart;
-
-            document.getElementById("gh-total-contribs")!.textContent =
+            document.getElementById("gh-total-contribs").textContent =
                 totalContributions.toLocaleString();
-            document.getElementById("gh-current-streak")!.textContent =
+            document.getElementById("gh-current-streak").textContent =
                 currentStreak.toString();
-            document.getElementById("gh-longest-streak")!.textContent =
+            document.getElementById("gh-longest-streak").textContent =
                 longestStreak.toString();
 
-            const formatDate = (dateStr: string) => {
-                if (!dateStr) return "";
-                const d = new Date(dateStr);
-                return d.toLocaleDateString("en-US", {
-                    month: "short",
-                    day: "numeric",
-                });
-            };
-
-            document.getElementById("gh-current-streak-date")!.textContent =
+            document.getElementById("gh-current-streak-date").textContent =
                 currentStreak > 0
-                    ? `${formatDate(currentStreakEnd)}`
+                    ? formatDate(currentStreakEnd)
                     : formatDate(today);
 
-            document.getElementById("gh-longest-streak-range")!.textContent =
+            document.getElementById("gh-longest-streak-range").textContent =
                 longestStreak > 0
                     ? `${formatDate(longestStreakStart)} - ${formatDate(longestStreakEnd)}`
                     : "-";
 
-            const weeks: (ContributionDay | null)[][] = [];
-            let currentWeek: (ContributionDay | null)[] = [];
+            const weeks = [];
+            let currentWeek = [];
 
             const firstDay = new Date(contributions[0].date);
             const firstDayOfWeek = firstDay.getDay();
@@ -288,7 +417,7 @@
                 currentWeek.push(null);
             }
 
-            contributions.forEach((day: ContributionDay) => {
+            contributions.forEach((day) => {
                 currentWeek.push(day);
                 if (currentWeek.length === 7) {
                     weeks.push(currentWeek);
@@ -299,69 +428,16 @@
                 weeks.push(currentWeek);
             }
 
-            const getColor = (count: number) => {
-                if (count === 0) return "bg-[#ebedf0] dark:bg-[#161b22]";
-                if (count <= 3) return "bg-[#9be9a8] dark:bg-[#0e4429]";
-                if (count <= 6) return "bg-[#40c463] dark:bg-[#006d32]";
-                if (count <= 9) return "bg-[#30a14e] dark:bg-[#26a641]";
-                return "bg-[#216e39] dark:bg-[#39d353]";
-            };
-
-            graphContainer.innerHTML = weeks
-                .map(
-                    (week) => `
-        <div class="flex flex-col gap-[3px]">
-          ${week
-              .map((day) => {
-                  if (!day) return '<div class="size-[10px]"></div>';
-                  return `
-              <div 
-                class="size-[10px] rounded-[2px] ${getColor(day.count)}" 
-                title="${day.date}: ${day.count} contributions"
-              ></div>
-            `;
-              })
-              .join("")}
-        </div>
-      `,
-                )
-                .join("");
+            buildContribGraph(graphContainer, weeks);
 
             loadingStats.classList.add("hidden");
             contentStats.classList.remove("hidden");
 
-            const reposRes = await fetch(
-                `https://api.github.com/users/${username}/repos?per_page=100&sort=pushed`,
-            );
-            if (!reposRes.ok) throw new Error("Failed to fetch repos");
-            const reposData = await reposRes.json();
-
-            interface Repo {
-                html_url: string;
-                name: string;
-                stargazers_count: number;
-            }
-
-            const topRepos = (reposData as Repo[])
+            const topRepos = reposData
                 .sort((a, b) => b.stargazers_count - a.stargazers_count)
                 .slice(0, 5);
 
-            listRepos.innerHTML = topRepos
-                .map(
-                    (repo) => `
-        <li class="flex items-center justify-between rounded p-2 hover:bg-black/5 dark:hover:bg-white/5 transition-colors">
-          <a href="${repo.html_url}" target="_blank" rel="noopener noreferrer" class="flex items-center gap-2 truncate">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4 text-black dark:text-white"><path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36 1.5-8 1.5C8.48 2 5.64 2 2.64.5 2.64 2.5 2.64 4.5 2.64 4.5c-.28 1.15-.28 2.35 0 3.5-.73 1.02-1.08 2.25-1 3.5 0 3.5 3 5.5 6 5.5-.39 1-.39 2 0 3.5v4"/></svg>
-            <span class="font-medium text-black dark:text-white truncate">${repo.name}</span>
-          </a>
-          <div class="flex items-center gap-1 text-xs text-black/60 dark:text-white/60">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-3 text-yellow-500"><path fill-rule="evenodd" d="M10.788 3.21c.448-1.077 1.976-1.077 2.424 0l2.082 5.007 5.404.433c1.164.093 1.636 1.545.749 2.305l-4.117 3.527 1.257 5.273c.271 1.136-.964 2.033-1.96 1.425L12 18.354 7.373 21.18c-.996.608-2.231-.29-1.96-1.425l1.257-5.273-4.117-3.527c-.887-.76-.415-2.212.749-2.305l5.404-.433 2.082-5.006z" clip-rule="evenodd" /></svg>
-            <span>${repo.stargazers_count}</span>
-          </div>
-        </li>
-      `,
-                )
-                .join("");
+            buildReposList(listRepos, topRepos);
 
             loadingRepos.classList.add("hidden");
             listRepos.classList.remove("hidden");
@@ -369,6 +445,7 @@
         } catch (error) {
             console.error("Error fetching GitHub stats:", error);
             loadingStats.classList.add("hidden");
+            loadingRepos?.classList.add("hidden");
             errorStats.classList.remove("hidden");
         }
     }
