@@ -3,30 +3,15 @@ import sitemap from "@astrojs/sitemap";
 import mdx from "@astrojs/mdx";
 import pagefind from "astro-pagefind";
 import tailwindcss from "@tailwindcss/vite";
-import { typst } from "astro-typst";
-
 import cloudflare from "@astrojs/cloudflare";
 
 // https://astro.build/config
 export default defineConfig({
   site: "https://blog.fitrafep.com",
-  integrations: [
-    sitemap(),
-    mdx(),
-    typst({
-      options: {
-        remPx: 14,
-      },
-      target: () => "html",
-    }),
-    pagefind(),
-  ],
+  integrations: [sitemap(), mdx(), pagefind()],
 
   vite: {
     plugins: [tailwindcss()],
-    ssr: {
-      external: ["@myriaddreamin/typst-ts-node-compiler"],
-    },
   },
 
   markdown: {

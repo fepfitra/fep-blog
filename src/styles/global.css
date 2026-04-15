@@ -148,29 +148,6 @@ html.scrolled #back-to-top {
   @apply scale-90 transition-transform;
 }
 
-[role="math"] {
-  @apply align-middle;
-  margin-top: 2em;
-  margin-bottom: 2em;
-}
-
-[role="inline-math"] {
-  @apply inline-block align-middle;
-}
-
-.typst-frame {
-  margin-top: 0em;
-  margin-bottom: 0em;
-}
-
-html:not(.dark) .typst-math-dark {
-  display: none;
-}
-
-html.dark .typst-math-light {
-  display: none;
-}
-
 figcaption {
   @apply text-center;
 }

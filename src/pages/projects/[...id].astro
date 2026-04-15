@@ -7,7 +7,6 @@ import { readingTime } from "@lib/utils";
 import BackToPrevious from "@components/BackToPrevious.astro";
 import Link from "@components/Link.astro";
 import TableOfContents from "@components/TableOfContents.astro";
-import TypstToC from "@components/TypstToC.astro";
 import PostNavigation from "@components/PostNavigation.astro";
 import Giscus from "@components/Giscus.astro";
 
@@ -90,12 +89,10 @@ const { Content, headings } = await render(project);
         </div>
         <article class="animate" data-pagefind-body>
           {
-            headings.length > 0 ? (
+            headings.length > 0 && (
               <div class="mb-8 md:hidden">
                 <TableOfContents headings={headings} open={false} />
               </div>
-            ) : (
-              <TypstToC class="mb-8 md:hidden" open={false} />
             )
           }
           <Content />
@@ -113,16 +110,10 @@ const { Content, headings } = await render(project);
       </div>
 
       {
-        headings.length > 0 ? (
+        headings.length > 0 && (
           <aside class="hidden md:block">
             <div class="sticky top-24">
               <TableOfContents headings={headings} />
-            </div>
-          </aside>
-        ) : (
-          <aside class="hidden md:block">
-            <div class="sticky top-24">
-              <TypstToC />
             </div>
           </aside>
         )

@@ -19,7 +19,13 @@ function buildToc(headings: Heading[]) {
     if (heading.depth === 2) {
       toc.push(heading);
     } else {
-      parentHeadings.get(heading.depth - 1).subheadings.push(heading);
+      const parent = parentHeadings.get(heading.depth - 1);
+      if (parent) {
+        parent.subheadings.push(heading);
+      } else {
+        // Heading skips a level (e.g. h3 without h2) — treat as top-level
+        toc.push(heading);
+      }
     }
   });
   return toc;
