@@ -29,3 +29,6 @@ debug-*
 
 **/*.pdf
 .wrangler/
+
+# served PDF assets
+!public/pdfs/*.pdf
