@@ -10,7 +10,7 @@ import type { CollectionEntry } from "astro:content";
 
 import ThreeModel from "@components/ThreeModel.astro";
 
-const blog = (await getCollection("blog")).filter((post) => !post.data.draft);
+const blog = (await getCollection("blog")).filter((post) => !post.data.draft && !post.data.hidden);
 
 const modulePosts = (await getCollection("modules")).filter(
 	(module) => !module.data.draft,

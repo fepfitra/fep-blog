@@ -5,7 +5,7 @@ import Container from "@components/Container.astro";
 import ArrowCard from "@components/ArrowCard.astro";
 import { BLOG } from "@consts";
 
-const blog = (await getCollection("blog")).filter((post) => !post.data.draft);
+const blog = (await getCollection("blog")).filter((post) => !post.data.draft && !post.data.hidden);
 
 const data = blog.sort(
   (a, b) => b.data.date.valueOf() - a.data.date.valueOf(),

@@ -2,6 +2,7 @@
 title: "Mensetsu Slides — Interview Deck"
 description: "My Japanese-style interview presentation slides (self-introduction, projects, system design) — built with Typst."
 date: "2026-10-12"
+hidden: true
 tags: ["typst", "presentation"]
 ---
 
