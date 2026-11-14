@@ -1,8 +1,13 @@
 ---
 import Search from "astro-pagefind/components/Search";
+
+// pagefind's index is a build artifact, so `astro dev` (the sandbox preview)
+// has no search to offer: keep the dialog inert and the "/" shortcut off
+// instead of opening a UI whose pagefind.js 404s (PIT-414).
+const hasSearchIndex = import.meta.env.PROD;
 ---
 
-<aside data-pagefind-ignore>
+<aside data-pagefind-ignore hidden={!hasSearchIndex}>
   <dialog
     transition:persist
     id="search-dialog"
@@ -53,7 +58,7 @@ import Search from "astro-pagefind/components/Search";
     openPagefind();
   });
 
-  document.addEventListener("keydown", (e) => {
+  if (dialog) document.addEventListener("keydown", (e) => {
     if (e.key === "/") {
       e.preventDefault();
       openPagefind();

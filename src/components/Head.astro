@@ -22,6 +22,13 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
 
 const { title, description, image = "/me.png", publishDate, articleType = "website" } = Astro.props;
 
+// pagefind's index is a build artifact: `astro-pagefind` writes dist/pagefind at
+// `astro:build:done` and only *serves* it in dev when an earlier build left it
+// there. The sandbox preview runs `astro dev` on a fresh clone, so the index —
+// and its pagefind-ui.js/css — is absent, and the search control cannot work.
+// Hide it when there is no index instead of shipping a control that 404s (PIT-414).
+const hasSearchIndex = import.meta.env.PROD;
+
 const jsonLd = articleType === "article" && publishDate
 	? {
 		"@context": "https://schema.org",
@@ -70,8 +77,14 @@ const jsonLd = articleType === "article" && publishDate
 <meta property="twitter:description" content={description} />
 <meta property="twitter:image" content={new URL(image, Astro.url)} />
 
-<link href="/pagefind/pagefind-ui.css" rel="stylesheet" />
-<script is:inline src="/pagefind/pagefind-ui.js"></script>
+{
+	hasSearchIndex && (
+		<>
+			<link href="/pagefind/pagefind-ui.css" rel="stylesheet" />
+			<script is:inline src="/pagefind/pagefind-ui.js"></script>
+		</>
+	)
+}
 
 <script is:inline type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
 
