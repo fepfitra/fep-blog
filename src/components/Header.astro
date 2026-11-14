@@ -35,8 +35,9 @@ const { containerSize = "sm" } = Astro.props;
         <span>
           {`/`}
         </span>
-        <button
-          id="magnifying-glass"
+        {import.meta.env.PROD && (
+          <button
+            id="magnifying-glass"
           aria-label="Search"
           class="flex items-center rounded-sm border border-black/15 bg-neutral-100 px-2 py-1 text-xs transition-colors duration-300 ease-in-out hover:bg-black/5 hover:text-black focus-visible:bg-black/5 focus-visible:text-black dark:border-white/20 dark:bg-neutral-900 dark:hover:bg-white/5 dark:hover:text-white dark:focus-visible:bg-white/5 dark:focus-visible:text-white"
         >
@@ -54,7 +55,8 @@ const { containerSize = "sm" } = Astro.props;
               fill="currentColor"></path></svg
           >
           &nbsp;Search
-        </button>
+          </button>
+        )}
       </nav>
     </div>
   </Container>

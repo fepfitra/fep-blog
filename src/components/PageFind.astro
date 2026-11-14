@@ -2,6 +2,7 @@
 import Search from "astro-pagefind/components/Search";
 ---
 
+{import.meta.env.PROD && (
 <aside data-pagefind-ignore>
   <dialog
     transition:persist
@@ -29,6 +30,7 @@ import Search from "astro-pagefind/components/Search";
     </div>
   </dialog>
 </aside>
+)}
 
 <script is:inline>
   const magnifyingGlass = document.getElementById("magnifying-glass");
