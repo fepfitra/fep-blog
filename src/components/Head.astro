@@ -70,8 +70,18 @@ const jsonLd = articleType === "article" && publishDate
 <meta property="twitter:description" content={description} />
 <meta property="twitter:image" content={new URL(image, Astro.url)} />
 
-<link href="/pagefind/pagefind-ui.css" rel="stylesheet" />
-<script is:inline src="/pagefind/pagefind-ui.js"></script>
+<!-- ponytail: pagefind writes /pagefind/ into dist/ at build time only, so a dev
+     preview has no index. Hold the tags to prod builds instead of requesting
+     assets that can only 404. Add when a live preview needs search: build the
+     index in the sandbox (`pagefind --site dist` after each save). -->
+{
+  import.meta.env.PROD && (
+    <>
+      <link href="/pagefind/pagefind-ui.css" rel="stylesheet" />
+      <script is:inline src="/pagefind/pagefind-ui.js" />
+    </>
+  )
+}
 
 <script is:inline type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
 
